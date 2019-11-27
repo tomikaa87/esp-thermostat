@@ -1,0 +1,11 @@
+47L04 I2C EERAM
+https://hu.farnell.com/microchip/47l04-i-sn/eeram-4kbit-512-x-8bit-soic-8/dp/2674859?st=47L04
+	
+CL21A226MQQNNNE -  SMD Multilayer Ceramic Capacitor, 22 µF, 6.3 V, 0805 [2012 Metric], ± 20%, X5R, CL Series 
+https://hu.farnell.com/samsung-electro-mechanics/cl21a226mqqnnne/cap-22uf-6-3v-mlcc-0805/dp/3013461
+	
+C0805C104M5RACTU -  SMD Multilayer Ceramic Capacitor, 0.1 µF, 50 V, 0805 [2012 Metric], ± 20%, X7R, C Series KEMET 
+https://hu.farnell.com/kemet/c0805c104m5ractu/cap-0-1-f-50v-20-x7r-0805/dp/1650866?st=100n%200805
+
+FSM4JSMA -  Tactile Switch, FSMJSM Series, Top Actuated, Surface Mount, Round Button, 160 gf, 50mA at 24VDC 
+https://hu.farnell.com/alcoswitch-te-connectivity/fsm4jsma/switch-spno-0-05a-24v-smd/dp/3801305

@@ -1,0 +1,27 @@
+SSD1306
+    SCL: D1 (GPIO5)
+    SDA: D2 (GPIO4)
+
+DS18B20:
+    DQ: D7 (GPIO13)
+
+Keypad read:
+    D0 (GPIO16)
+    D3 (GPIO0)
+    D4 (GPIO2)
+
+Keypad drive:
+    D5 (GPIO14)
+    D6 (GPIO12)
+
+Relay drive:
+    D8 (GPIO15)
+
+Key layout:
+
+    [  +  ]  [  -  ] [ MNU ]
+    [ BST ]  [ </C ] [  >  ]
+
+    Scheduler:
+    [ > / < ] [ WDAY ] [ SAVE ]
+    [ CNCL ]  [ NIG]   [ DAY ]

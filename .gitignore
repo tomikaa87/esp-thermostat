@@ -1,0 +1,12 @@
+.pio
+.vscode
+.idea
+CMakeLists.txt
+CMakeListsPrivate.txt
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+.DS_Store
+cmake-build-*/
+*.s#?
+*.b#?
+PrivateConfig.h

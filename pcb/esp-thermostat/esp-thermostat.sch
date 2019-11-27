@@ -1,0 +1,788 @@
+EESchema Schematic File Version 4
+LIBS:Test1-cache
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 2
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L SamacSys_Parts:HK4100F-DC5V-SHG K1
+U 1 1 5DD249DB
+P 6700 5500
+F 0 "K1" H 7350 5765 50  0000 C CNN
+F 1 "HK4100F-DC5V-SHG" H 7350 5674 50  0000 C CNN
+F 2 "SamacSys_Parts:HK4100FDC5VSHG" H 7850 5600 50  0001 L CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1905051831_Ningbo-Keke-New-Era-Appliance-HK4100F-DC5V-SHG_C12072.pdf" H 7850 5500 50  0001 L CNN
+F 4 "Relays General Purpose Non Latching 5VDC SPDT 3A (250VAC , 30VDC) Max DIP RoHS" H 7850 5400 50  0001 L CNN "Description"
+F 5 "12.1" H 7850 5300 50  0001 L CNN "Height"
+F 6 "Ningbo Keke New Era Appliance" H 7850 5200 50  0001 L CNN "Manufacturer_Name"
+F 7 "HK4100F-DC5V-SHG" H 7850 5100 50  0001 L CNN "Manufacturer_Part_Number"
+F 8 "" H 7850 5000 50  0001 L CNN "Mouser Part Number"
+F 9 "" H 7850 4900 50  0001 L CNN "Mouser Price/Stock"
+F 10 "" H 7850 4800 50  0001 L CNN "RS Part Number"
+F 11 "" H 7850 4700 50  0001 L CNN "RS Price/Stock"
+	1    6700 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L SamacSys_Parts:BAV170HMFHT116 D1
+U 1 1 5DD25F3E
+P 6150 6300
+F 0 "D1" H 6850 6565 50  0000 C CNN
+F 1 "BAV170HMFHT116" H 6850 6474 50  0000 C CNN
+F 2 "SamacSys_Parts:SOT95P240X115-3N" H 7400 6400 50  0001 L CNN
+F 3 "http://rohmfs.rohm.com/en/products/databook/datasheet/discrete/diode/switching/bav170hmfht116-e.pdf" H 7400 6300 50  0001 L CNN
+F 4 "Diodes - General Purpose, Power, Switching 90VVrm 80V Vr 0.215A Io 150mA" H 7400 6200 50  0001 L CNN "Description"
+F 5 "1.15" H 7400 6100 50  0001 L CNN "Height"
+F 6 "ROHM Semiconductor" H 7400 6000 50  0001 L CNN "Manufacturer_Name"
+F 7 "BAV170HMFHT116" H 7400 5900 50  0001 L CNN "Manufacturer_Part_Number"
+F 8 "755-BAV170HMFHT116" H 7400 5800 50  0001 L CNN "Mouser Part Number"
+F 9 "https://www.mouser.com/Search/Refine.aspx?Keyword=755-BAV170HMFHT116" H 7400 5700 50  0001 L CNN "Mouser Price/Stock"
+F 10 "" H 7400 5600 50  0001 L CNN "RS Part Number"
+F 11 "" H 7400 5500 50  0001 L CNN "RS Price/Stock"
+	1    6150 6300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SamacSys_Parts:AO3480 Q3
+U 1 1 5DD2DA8D
+P 5850 7050
+F 0 "Q3" H 6280 7196 50  0000 L CNN
+F 1 "AO3480" H 6280 7105 50  0000 L CNN
+F 2 "SamacSys_Parts:SOT95P280X125-3N" H 6300 7000 50  0001 L CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1907081730_Alpha-Omega-Semicon-AOS-AO3480_C350817.pdf" H 6300 6900 50  0001 L CNN
+F 4 "MOSFET N Trench 30V 5.7A 1.45V @ 250uA 26.5 m @ 5.7A,10V SOT-23 RoHS" H 6300 6800 50  0001 L CNN "Description"
+F 5 "1.25" H 6300 6700 50  0001 L CNN "Height"
+F 6 "" H 6300 6600 50  0001 L CNN "LCSC Part Number"
+F 7 "" H 6300 6500 50  0001 L CNN "LCSC Price/Stock"
+F 8 "Alpha & Omega Semiconductors" H 6300 6400 50  0001 L CNN "Manufacturer_Name"
+F 9 "AO3480" H 6300 6300 50  0001 L CNN "Manufacturer_Part_Number"
+	1    5850 7050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8000 5500 8150 5500
+Wire Wire Line
+	8150 5500 8150 5600
+Wire Wire Line
+	8150 5600 8300 5600
+Wire Wire Line
+	6700 5700 6650 5700
+Wire Wire Line
+	6650 5700 6650 5850
+Wire Wire Line
+	6650 5850 8150 5850
+Wire Wire Line
+	8150 5850 8150 5600
+Connection ~ 8150 5600
+Wire Wire Line
+	6700 5500 6650 5500
+Wire Wire Line
+	6650 5500 6650 5150
+Wire Wire Line
+	6650 5150 8250 5150
+Wire Wire Line
+	8000 5600 8100 5600
+Wire Wire Line
+	8100 5600 8100 5900
+Wire Wire Line
+	8100 5900 6600 5900
+Wire Wire Line
+	6600 5900 6600 5650
+$Comp
+L Connector:Screw_Terminal_01x03 J2
+U 1 1 5DD359F6
+P 8500 5600
+F 0 "J2" H 8580 5642 50  0000 L CNN
+F 1 "RELAY" H 8580 5551 50  0000 L CNN
+F 2 "w_conn_mkds:mkds_1,5-3" H 8500 5600 50  0001 C CNN
+F 3 "~" H 8500 5600 50  0001 C CNN
+	1    8500 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6450 5600 6450 4850
+Wire Wire Line
+	6450 4850 6150 4850
+Wire Wire Line
+	6150 4850 6150 4900
+Wire Wire Line
+	6450 5600 6700 5600
+Wire Wire Line
+	6450 5650 6450 6350
+Wire Wire Line
+	6450 6350 6250 6350
+Wire Wire Line
+	6250 6350 6250 6300
+Wire Wire Line
+	6450 5650 6600 5650
+Wire Wire Line
+	6250 6350 6150 6350
+Wire Wire Line
+	6150 6350 6150 6300
+Connection ~ 6250 6350
+$Comp
+L power:+3V3 #PWR0103
+U 1 1 5DD7DA77
+P 6150 4750
+F 0 "#PWR0103" H 6150 4600 50  0001 C CNN
+F 1 "+3V3" H 6165 4923 50  0000 C CNN
+F 2 "" H 6150 4750 50  0001 C CNN
+F 3 "" H 6150 4750 50  0001 C CNN
+	1    6150 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0104
+U 1 1 5DD7E45F
+P 6150 7350
+F 0 "#PWR0104" H 6150 7100 50  0001 C CNN
+F 1 "GND" H 6155 7177 50  0000 C CNN
+F 2 "" H 6150 7350 50  0001 C CNN
+F 3 "" H 6150 7350 50  0001 C CNN
+	1    6150 7350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6150 7350 6150 7250
+Wire Wire Line
+	6150 4850 6150 4750
+Connection ~ 6150 4850
+Wire Wire Line
+	6150 6350 6150 6650
+Connection ~ 6150 6350
+$Comp
+L Device:R R3
+U 1 1 5DD895DD
+P 5600 7050
+F 0 "R3" V 5393 7050 50  0000 C CNN
+F 1 "10k" V 5484 7050 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 5530 7050 50  0001 C CNN
+F 3 "~" H 5600 7050 50  0001 C CNN
+	1    5600 7050
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5750 7050 5850 7050
+Wire Wire Line
+	5450 7050 5300 7050
+Text GLabel 5300 7050 0    50   Input ~ 0
+ESP_RELAY
+Wire Wire Line
+	1950 6750 1950 6800
+Wire Wire Line
+	1950 6950 1950 6900
+Wire Wire Line
+	1950 6150 1950 6100
+Wire Wire Line
+	1950 6100 2050 6100
+Wire Wire Line
+	1950 7550 1950 7600
+Wire Wire Line
+	1950 7600 2050 7600
+$Comp
+L SamacSys_Parts:SS8050-G Q2
+U 1 1 5DD27C79
+P 1550 7250
+F 0 "Q2" H 2088 7296 50  0000 L CNN
+F 1 "SS8050-G" H 2088 7205 50  0000 L CNN
+F 2 "SamacSys_Parts:SOT95P240X115-3N" H 2100 7100 50  0001 L CNN
+F 3 "http://www.comchiptech.com/admin/files/product/SS8050-G%20RevA181526.pdf" H 2100 7000 50  0001 L CNN
+F 4 "Bipolar Transistors - BJT NPN TRANSISTOR 1.5A 40V" H 2100 6900 50  0001 L CNN "Description"
+F 5 "1.15" H 2100 6800 50  0001 L CNN "Height"
+F 6 "Comchip Technology" H 2100 6700 50  0001 L CNN "Manufacturer_Name"
+F 7 "SS8050-G" H 2100 6600 50  0001 L CNN "Manufacturer_Part_Number"
+F 8 "750-SS8050-G" H 2100 6500 50  0001 L CNN "Mouser Part Number"
+F 9 "https://www.mouser.com/Search/Refine.aspx?Keyword=750-SS8050-G" H 2100 6400 50  0001 L CNN "Mouser Price/Stock"
+F 10 "" H 2100 6300 50  0001 L CNN "RS Part Number"
+F 11 "" H 2100 6200 50  0001 L CNN "RS Price/Stock"
+	1    1550 7250
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	1550 6450 1500 6450
+$Comp
+L Device:R R1
+U 1 1 5DDBBA62
+P 1350 6450
+F 0 "R1" V 1143 6450 50  0000 C CNN
+F 1 "10k" V 1234 6450 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 1280 6450 50  0001 C CNN
+F 3 "~" H 1350 6450 50  0001 C CNN
+	1    1350 6450
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 5DDBAD7F
+P 1350 7250
+F 0 "R2" V 1143 7250 50  0000 C CNN
+F 1 "10k" V 1234 7250 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 1280 7250 50  0001 C CNN
+F 3 "~" H 1350 7250 50  0001 C CNN
+	1    1350 7250
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	1550 7250 1500 7250
+Wire Wire Line
+	1150 7250 1200 7250
+Wire Wire Line
+	1150 7000 1000 7000
+Wire Wire Line
+	1150 7000 1150 7250
+Text GLabel 1000 6700 0    50   Input ~ 0
+PGM_DTR
+Text GLabel 1000 7000 0    50   Input ~ 0
+PGM_RTS
+Wire Wire Line
+	1200 6450 1150 6450
+Wire Wire Line
+	1650 6900 1950 6900
+Wire Wire Line
+	1950 6800 1650 6800
+Wire Wire Line
+	1650 6800 1550 6900
+Wire Wire Line
+	1550 6900 1150 6900
+Wire Wire Line
+	1150 6900 1150 7000
+Connection ~ 1150 7000
+$Comp
+L SamacSys_Parts:SS8050-G Q1
+U 1 1 5DD27198
+P 1550 6450
+F 0 "Q1" H 2088 6496 50  0000 L CNN
+F 1 "SS8050-G" H 2088 6405 50  0000 L CNN
+F 2 "SamacSys_Parts:SOT95P240X115-3N" H 2100 6300 50  0001 L CNN
+F 3 "http://www.comchiptech.com/admin/files/product/SS8050-G%20RevA181526.pdf" H 2100 6200 50  0001 L CNN
+F 4 "Bipolar Transistors - BJT NPN TRANSISTOR 1.5A 40V" H 2100 6100 50  0001 L CNN "Description"
+F 5 "1.15" H 2100 6000 50  0001 L CNN "Height"
+F 6 "Comchip Technology" H 2100 5900 50  0001 L CNN "Manufacturer_Name"
+F 7 "SS8050-G" H 2100 5800 50  0001 L CNN "Manufacturer_Part_Number"
+F 8 "750-SS8050-G" H 2100 5700 50  0001 L CNN "Mouser Part Number"
+F 9 "https://www.mouser.com/Search/Refine.aspx?Keyword=750-SS8050-G" H 2100 5600 50  0001 L CNN "Mouser Price/Stock"
+F 10 "" H 2100 5500 50  0001 L CNN "RS Part Number"
+F 11 "" H 2100 5400 50  0001 L CNN "RS Price/Stock"
+	1    1550 6450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1650 6900 1550 6800
+Wire Wire Line
+	1550 6800 1150 6800
+Wire Wire Line
+	1150 6800 1150 6700
+Wire Wire Line
+	1000 6700 1150 6700
+Connection ~ 1150 6700
+Wire Wire Line
+	1150 6700 1150 6450
+Wire Wire Line
+	4500 1150 4500 1200
+Connection ~ 4500 1150
+Wire Wire Line
+	4500 750  4500 800 
+Connection ~ 4500 750 
+Wire Wire Line
+	4500 1100 4500 1150
+Wire Wire Line
+	4500 700  4500 750 
+$Comp
+L power:+3V3 #PWR0102
+U 1 1 5DD52264
+P 4500 700
+F 0 "#PWR0102" H 4500 550 50  0001 C CNN
+F 1 "+3V3" H 4515 873 50  0000 C CNN
+F 2 "" H 4500 700 50  0001 C CNN
+F 3 "" H 4500 700 50  0001 C CNN
+	1    4500 700 
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 5DD516C0
+P 4500 1200
+F 0 "#PWR0101" H 4500 950 50  0001 C CNN
+F 1 "GND" H 4505 1027 50  0000 C CNN
+F 2 "" H 4500 1200 50  0001 C CNN
+F 3 "" H 4500 1200 50  0001 C CNN
+	1    4500 1200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP C2
+U 1 1 5DD50DA5
+P 4500 950
+F 0 "C2" H 4618 996 50  0000 L CNN
+F 1 "1000u" H 4618 905 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D10.0mm_P5.00mm" H 4538 800 50  0001 C CNN
+F 3 "~" H 4500 950 50  0001 C CNN
+	1    4500 950 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1200 750  1100 750 
+Connection ~ 1650 750 
+Wire Wire Line
+	1500 750  1650 750 
+$Comp
+L Device:Varistor RV1
+U 1 1 5DD3CFA0
+P 1650 950
+F 0 "RV1" H 1600 650 50  0000 L CNN
+F 1 "VDR10D561KJ" H 1600 550 50  0000 L CNN
+F 2 "Varistor:RV_Disc_D12mm_W6.7mm_P7.5mm" V 1580 950 50  0001 C CNN
+F 3 "~" H 1650 950 50  0001 C CNN
+	1    1650 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Fuse F1
+U 1 1 5DD36B6A
+P 1350 750
+F 0 "F1" V 1153 750 50  0000 C CNN
+F 1 "0,5A 250V Slow" V 1244 750 50  0000 C CNN
+F 2 "SamacSys_Parts:FUSC10134X305N" V 1280 750 50  0001 C CNN
+F 3 "~" H 1350 750 50  0001 C CNN
+	1    1350 750 
+	0    1    1    0   
+$EndComp
+Connection ~ 2200 750 
+Wire Wire Line
+	2550 850  2600 850 
+Wire Wire Line
+	2550 750  2550 850 
+Wire Wire Line
+	2200 750  2550 750 
+Wire Wire Line
+	2200 750  2200 800 
+Wire Wire Line
+	1650 750  2200 750 
+Wire Wire Line
+	1650 750  1650 800 
+Connection ~ 2200 1150
+Wire Wire Line
+	2550 1050 2600 1050
+Wire Wire Line
+	2550 1150 2550 1050
+Wire Wire Line
+	2200 1150 2550 1150
+Connection ~ 1650 1150
+Wire Wire Line
+	2200 1150 2200 1100
+Wire Wire Line
+	1650 1150 2200 1150
+Wire Wire Line
+	1650 1150 1650 1100
+Wire Wire Line
+	1100 1150 1650 1150
+Wire Wire Line
+	1100 1000 1100 1150
+Wire Wire Line
+	1100 750  1100 900 
+$Comp
+L Connector:Screw_Terminal_01x02 J1
+U 1 1 5DD373F9
+P 850 900
+F 0 "J1" H 930 892 50  0000 L CNN
+F 1 "AC IN" H 930 801 50  0000 L CNN
+F 2 "w_conn_mkds:mkds_1,5-2" H 850 900 50  0001 C CNN
+F 3 "~" H 850 900 50  0001 C CNN
+	1    850  900 
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Device:L_Coupled L1
+U 1 1 5DD3AD33
+P 2800 950
+F 0 "L1" H 2800 1231 50  0000 C CNN
+F 1 "10mH" H 2800 1140 50  0000 C CNN
+F 2 "SamacSys_Parts:UU9810MH" H 2800 950 50  0001 C CNN
+F 3 "~" H 2800 950 50  0001 C CNN
+	1    2800 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C1
+U 1 1 5DD39108
+P 2200 950
+F 0 "C1" H 2250 650 50  0000 L CNN
+F 1 "100n 310V" H 2250 550 50  0000 L CNN
+F 2 "SamacSys_Parts:R46KI310040M1K" H 2238 800 50  0001 C CNN
+F 3 "~" H 2200 950 50  0001 C CNN
+	1    2200 950 
+	1    0    0    -1  
+$EndComp
+$Sheet
+S 7650 1200 850  150 
+U 5DE7044F
+F0 "Controller" 50
+F1 "Controller.sch" 50
+$EndSheet
+Text GLabel 2050 6100 2    50   Output ~ 0
+ESP_~RST~
+Text GLabel 2050 7600 2    50   Output ~ 0
+ESP_GPIO0
+$Comp
+L Converter_ACDC:HLK-PM03 PS1
+U 1 1 5DEB4E33
+P 3500 950
+F 0 "PS1" H 3500 1275 50  0000 C CNN
+F 1 "HLK-PM03" H 3500 1184 50  0000 C CNN
+F 2 "Converter_ACDC:Converter_ACDC_HiLink_HLK-PMxx" H 3500 650 50  0001 C CNN
+F 3 "http://www.hlktech.net/product_detail.php?ProId=59" H 3900 600 50  0001 C CNN
+	1    3500 950 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 850  3100 850 
+Wire Wire Line
+	3000 1050 3100 1050
+Wire Wire Line
+	3900 850  4000 850 
+Wire Wire Line
+	4000 850  4000 750 
+Wire Wire Line
+	4000 750  4500 750 
+Wire Wire Line
+	3900 1050 4000 1050
+Wire Wire Line
+	4000 1050 4000 1150
+Wire Wire Line
+	4000 1150 4500 1150
+Wire Wire Line
+	1050 1000 1100 1000
+Wire Wire Line
+	1100 900  1050 900 
+$Comp
+L w_connectors:HEADER_4 J3
+U 1 1 5DDA6C86
+P 1800 5000
+F 0 "J3" H 1928 5053 60  0000 L CNN
+F 1 "OLED" H 1928 4947 60  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 1800 5000 60  0001 C CNN
+F 3 "" H 1800 5000 60  0000 C CNN
+	1    1800 5000
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0126
+U 1 1 5DDA81B3
+P 1600 4750
+F 0 "#PWR0126" H 1600 4600 50  0001 C CNN
+F 1 "+3.3V" H 1615 4923 50  0000 C CNN
+F 2 "" H 1600 4750 50  0001 C CNN
+F 3 "" H 1600 4750 50  0001 C CNN
+	1    1600 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0127
+U 1 1 5DDA8F74
+P 1600 5250
+F 0 "#PWR0127" H 1600 5000 50  0001 C CNN
+F 1 "GND" H 1605 5077 50  0000 C CNN
+F 2 "" H 1600 5250 50  0001 C CNN
+F 3 "" H 1600 5250 50  0001 C CNN
+	1    1600 5250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 4850 1600 4850
+Wire Wire Line
+	1600 4850 1600 4750
+Wire Wire Line
+	1700 4950 1600 4950
+Wire Wire Line
+	1600 4950 1600 5250
+Wire Wire Line
+	1700 5050 1500 5050
+Wire Wire Line
+	1700 5150 1500 5150
+Text GLabel 1500 5050 0    50   3State ~ 0
+ESP_SCL
+Text GLabel 1500 5150 0    50   3State ~ 0
+ESP_SDA
+$Comp
+L w_connectors:HEADER_6 J4
+U 1 1 5DDBCBA1
+P 1800 3800
+F 0 "J4" H 1928 3853 60  0000 L CNN
+F 1 "PROGRAM" H 1928 3747 60  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical" H 1800 3800 60  0001 C CNN
+F 3 "" H 1800 3800 60  0000 C CNN
+	1    1800 3800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0128
+U 1 1 5DDBD2AC
+P 1600 3450
+F 0 "#PWR0128" H 1600 3300 50  0001 C CNN
+F 1 "+3.3V" H 1615 3623 50  0000 C CNN
+F 2 "" H 1600 3450 50  0001 C CNN
+F 3 "" H 1600 3450 50  0001 C CNN
+	1    1600 3450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0129
+U 1 1 5DDBDB17
+P 1600 4150
+F 0 "#PWR0129" H 1600 3900 50  0001 C CNN
+F 1 "GND" H 1605 3977 50  0000 C CNN
+F 2 "" H 1600 4150 50  0001 C CNN
+F 3 "" H 1600 4150 50  0001 C CNN
+	1    1600 4150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 3550 1600 3550
+Wire Wire Line
+	1600 3550 1600 3450
+Wire Wire Line
+	1700 4050 1600 4050
+Wire Wire Line
+	1600 4050 1600 4150
+Wire Wire Line
+	1700 3650 1600 3650
+Wire Wire Line
+	1700 3750 1600 3750
+Text GLabel 1600 3650 0    50   Output ~ 0
+ESP_RXD
+Text GLabel 1600 3750 0    50   Input ~ 0
+ESP_TXD
+Wire Wire Line
+	1700 3850 1600 3850
+Wire Wire Line
+	1700 3950 1600 3950
+Text GLabel 1600 3850 0    50   Output ~ 0
+PGM_DTR
+Text GLabel 1600 3950 0    50   Output ~ 0
+PGM_RTS
+$Comp
+L Switch:SW_Push SW1
+U 1 1 5DE272E8
+P 4300 2450
+F 0 "SW1" H 4300 2735 50  0000 C CNN
+F 1 "SW_PLUS" H 4300 2644 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 4300 2650 50  0001 C CNN
+F 3 "~" H 4300 2650 50  0001 C CNN
+	1    4300 2450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW3
+U 1 1 5DE27EBC
+P 4900 2450
+F 0 "SW3" H 4900 2735 50  0000 C CNN
+F 1 "SW_MINUS" H 4900 2644 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 4900 2650 50  0001 C CNN
+F 3 "~" H 4900 2650 50  0001 C CNN
+	1    4900 2450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW5
+U 1 1 5DE281E0
+P 5500 2450
+F 0 "SW5" H 5500 2735 50  0000 C CNN
+F 1 "SW_MENU" H 5500 2644 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 5500 2650 50  0001 C CNN
+F 3 "~" H 5500 2650 50  0001 C CNN
+	1    5500 2450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW2
+U 1 1 5DE28862
+P 4300 2900
+F 0 "SW2" H 4300 3185 50  0000 C CNN
+F 1 "SW_BOOST" H 4300 3094 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 4300 3100 50  0001 C CNN
+F 3 "~" H 4300 3100 50  0001 C CNN
+	1    4300 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW4
+U 1 1 5DE29005
+P 4900 2900
+F 0 "SW4" H 4900 3185 50  0000 C CNN
+F 1 "SW_LEFT" H 4900 3094 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 4900 3100 50  0001 C CNN
+F 3 "~" H 4900 3100 50  0001 C CNN
+	1    4900 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW6
+U 1 1 5DE29370
+P 5500 2900
+F 0 "SW6" H 5500 3185 50  0000 C CNN
+F 1 "SW_RIGHT" H 5500 3094 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 5500 3100 50  0001 C CNN
+F 3 "~" H 5500 3100 50  0001 C CNN
+	1    5500 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 2000 4600 2450
+Wire Wire Line
+	5200 2000 5200 2450
+Wire Wire Line
+	5800 2000 5800 2450
+Wire Wire Line
+	4500 2450 4600 2450
+Connection ~ 4600 2450
+Wire Wire Line
+	4600 2450 4600 2900
+Wire Wire Line
+	4500 2900 4600 2900
+Wire Wire Line
+	5100 2450 5200 2450
+Connection ~ 5200 2450
+Wire Wire Line
+	5200 2450 5200 2900
+Wire Wire Line
+	5100 2900 5200 2900
+Wire Wire Line
+	5700 2450 5800 2450
+Connection ~ 5800 2450
+Wire Wire Line
+	5800 2450 5800 2900
+Wire Wire Line
+	5700 2900 5800 2900
+Wire Wire Line
+	3800 2500 4050 2500
+Wire Wire Line
+	5250 2500 5250 2450
+Wire Wire Line
+	5250 2450 5300 2450
+Wire Wire Line
+	4700 2450 4650 2450
+Wire Wire Line
+	4650 2450 4650 2500
+Connection ~ 4650 2500
+Wire Wire Line
+	4650 2500 5250 2500
+Wire Wire Line
+	4100 2450 4050 2450
+Wire Wire Line
+	4050 2450 4050 2500
+Connection ~ 4050 2500
+Wire Wire Line
+	4050 2500 4650 2500
+Wire Wire Line
+	5250 2950 4650 2950
+Wire Wire Line
+	4100 2900 4050 2900
+Wire Wire Line
+	4050 2900 4050 2950
+Connection ~ 4050 2950
+Wire Wire Line
+	4050 2950 3800 2950
+Wire Wire Line
+	4700 2900 4650 2900
+Wire Wire Line
+	4650 2900 4650 2950
+Connection ~ 4650 2950
+Wire Wire Line
+	4650 2950 4050 2950
+Wire Wire Line
+	5300 2900 5250 2900
+Wire Wire Line
+	5250 2900 5250 2950
+Text GLabel 3800 2500 0    50   3State ~ 0
+ESP_GPIO14
+Text GLabel 3800 2950 0    50   3State ~ 0
+ESP_GPIO12
+Text GLabel 4600 2000 1    50   3State ~ 0
+ESP_GPIO16
+Text GLabel 5200 2000 1    50   3State ~ 0
+ESP_GPIO0
+Text GLabel 5800 2000 1    50   3State ~ 0
+ESP_GPIO2
+$Comp
+L Mechanical:MountingHole H1
+U 1 1 5DF00DB2
+P 950 1800
+F 0 "H1" H 1050 1846 50  0000 L CNN
+F 1 "MountingHole" H 1050 1755 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 950 1800 50  0001 C CNN
+F 3 "~" H 950 1800 50  0001 C CNN
+	1    950  1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H2
+U 1 1 5DF01A09
+P 950 2000
+F 0 "H2" H 1050 2046 50  0000 L CNN
+F 1 "MountingHole" H 1050 1955 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 950 2000 50  0001 C CNN
+F 3 "~" H 950 2000 50  0001 C CNN
+	1    950  2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H3
+U 1 1 5DF01F2E
+P 950 2200
+F 0 "H3" H 1050 2246 50  0000 L CNN
+F 1 "MountingHole" H 1050 2155 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 950 2200 50  0001 C CNN
+F 3 "~" H 950 2200 50  0001 C CNN
+	1    950  2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H4
+U 1 1 5DF023DC
+P 950 2400
+F 0 "H4" H 1050 2446 50  0000 L CNN
+F 1 "MountingHole" H 1050 2355 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 950 2400 50  0001 C CNN
+F 3 "~" H 950 2400 50  0001 C CNN
+	1    950  2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8000 5700 8300 5700
+Wire Wire Line
+	8300 5500 8250 5500
+Wire Wire Line
+	8250 5500 8250 5150
+$Comp
+L Mechanical:MountingHole H5
+U 1 1 5DF75C9E
+P 950 2600
+F 0 "H5" H 1050 2646 50  0000 L CNN
+F 1 "MountingHole" H 1050 2555 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 950 2600 50  0001 C CNN
+F 3 "~" H 950 2600 50  0001 C CNN
+	1    950  2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Graphic:Logo_Open_Hardware_Small #LOGO1
+U 1 1 5DF7A0D1
+P 7300 6850
+F 0 "#LOGO1" H 7300 7125 50  0001 C CNN
+F 1 "Logo_Open_Hardware_Small" H 7300 6625 50  0001 C CNN
+F 2 "" H 7300 6850 50  0001 C CNN
+F 3 "~" H 7300 6850 50  0001 C CNN
+	1    7300 6850
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC

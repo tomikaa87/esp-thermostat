@@ -1,0 +1,276 @@
+#include "BlynkHandler.h"
+#include "clock.h"
+#include "Display.h"
+#include "ds1307.h"
+#include "ds18x20.h"
+#include "heat_ctl.h"
+#include "keypad.h"
+#include "main.h"
+#include "settings.h"
+#include "ui.h"
+
+// This header must contain the following configuration values:
+// namespace PrivateConfig {
+//     static const char* BlynkAppToken = ...;
+//     static const char* WiFiSSID = ...;
+//     static const char* WiFiPassword = ...;
+// }
+#include "PrivateConfig.h"
+
+#include <Arduino.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <Wire.h>
+
+#include <ctime>
+
+static Display* display = nullptr;
+static DS1307* rtc = nullptr;
+static BlynkHandler* blynk = nullptr;
+static NTPClient* ntp = nullptr;
+
+static constexpr auto LocalTimeOffsetMinutes = 60;
+static constexpr auto LocalTimeDstOffsetMinutes = 60;
+
+void ICACHE_RAM_ATTR timer1_isr()
+{
+    static int counter = 0;
+
+    if (++counter == 3125) {
+        counter = 0;
+        ++clock_epoch;
+    }
+}
+
+void setup()
+{
+    timer1_isr_init();
+    timer1_attachInterrupt(timer1_isr);
+    timer1_enable(TIM_DIV256, TIM_EDGE, TIM_LOOP);
+    timer1_write(100);
+
+    Serial.begin(115200);
+
+    Wire.begin();
+    // Be safe with 400 kHz, it can produce RTC errors and OLED artifacts
+    Wire.setClock(200000);
+
+    Serial.println("Initializing Display...");
+    static Display sDisplay;
+    display = &sDisplay;
+
+    Serial.println("Initializing RTC...");
+    static DS1307 sRtc{
+        // WriteReg
+        [](const uint8_t reg, const uint8_t value) {
+            Wire.beginTransmission(DS1307::Address);
+            Wire.write(reg);
+            Wire.write(value);
+            Wire.endTransmission();
+        },
+        // ReadReg
+        [](const uint8_t reg) {
+            Wire.beginTransmission(DS1307::Address);
+            Wire.write(reg);
+            Wire.endTransmission(false);
+            Wire.requestFrom(DS1307::Address, 1);
+            const auto value = Wire.read();
+            return value;
+        }
+    };
+    rtc = &sRtc;
+
+    Serial.println("Loading settings...");
+    settings_init(
+        [](const uint8_t address) {
+            const auto data = rtc->readRam(address);
+            Serial.printf("RAM[%02xh] -> %02xh\n", address, data);
+            return data;
+        },
+        [](const uint8_t address, const uint8_t data) {
+            Serial.printf("RAM[%02xh] <- %02xh\n", address, data);
+            rtc->writeRam(address, data);
+        }
+    );
+    settings_load();
+
+    Serial.println("Initializing keypad...");
+    keypad_init();
+
+    Serial.println("Initializing HeatCtl...");
+    heatctl_init();
+
+    Serial.println("Initializing UI...");
+    ui_init();
+
+    Serial.println("Initializing Blynk...");
+    static BlynkHandler blynkHandler{
+        PrivateConfig::BlynkAppToken,
+        PrivateConfig::WiFiSSID,
+        PrivateConfig::WiFiPassword
+    };
+    blynk = &blynkHandler;
+
+    blynkHandler.setActivateBoostCallback([] {
+        if (!heatctl_is_boost_active())
+            heatctl_activate_boost();
+        else
+            heatctl_extend_boost();
+    });
+    blynkHandler.setDaytimeTemperatureChangedCallback([](const float value) { heatctl_set_daytime_temp(value * 10); });
+    blynkHandler.setDeactivateBoostCallback(heatctl_deactivate_boost);
+    blynkHandler.setDecrementTempCallback(heatctl_dec_target_temp);
+    blynkHandler.setIncrementTempCallback(heatctl_inc_target_temp);
+    blynkHandler.setModeChangedCallback([](const uint8_t mode) { heatctl_set_mode(static_cast<heatctl_mode_t>(mode)); });
+    blynkHandler.setNightTimeTemperatureChangedCallback([](const float value) { heatctl_set_night_time_temp(value * 10); });
+    blynkHandler.setTargetTemperatureChangedCallback([](const float value) { heatctl_set_target_temp(value * 10); });
+
+    // FIXME this is a poor NTP client implementation which blocks the execution while it waits for response.
+    // It must be replaced with a non-blocking one that has more sophisticated error handling.
+    Serial.println("Initializing NTP Client...");
+    static WiFiUDP udpSocket;
+    static NTPClient ntpCli{ udpSocket, "europe.pool.ntp.org" };
+    ntp = &ntpCli;
+    ntpCli.begin();
+    ntpCli.forceUpdate();
+}
+
+bool isDst(const time_t t)
+{
+    const auto tm = gmtime(&t);
+
+    // Before March or after October
+    if (tm->tm_mon < 2 || tm->tm_mon > 9)
+        return false;
+
+    // After March and before October
+    if (tm->tm_mon > 2 && tm->tm_mon < 9)
+        return true;
+
+    const auto previousSunday = tm->tm_mday - tm->tm_wday;
+
+    // Sunday after March 25th
+    if (tm->tm_mon == 2)
+        return previousSunday >= 25;
+
+    // Sunday before October 25th
+    if (tm->tm_mon == 9)
+        return previousSunday < 25;
+
+    // This should never happen
+    return false;
+}
+
+void setClockEpoch(const time_t utc)
+{
+    clock_epoch = utc + LocalTimeOffsetMinutes * 60;
+
+    if (isDst(clock_epoch))
+        clock_epoch += LocalTimeDstOffsetMinutes * 60;
+}
+
+void updateClock()
+{
+    const time_t utc = ntp->getEpochTime();
+
+    setClockEpoch(utc);
+
+    const auto tm = gmtime(&utc);
+
+    rtc->setSeconds(tm->tm_sec);
+    rtc->setMinutes(tm->tm_min);
+    rtc->setHours(tm->tm_hour);
+    rtc->setDayOfWeek(tm->tm_wday + 1);
+    rtc->setMonth(tm->tm_mon + 1);
+    rtc->setDate(tm->tm_mday);
+    rtc->setYear(tm->tm_year - 100);
+
+    Serial.printf("NTP synchronization finished. Current time (UTC): %d-%02d-%02d %d:%02d:%02d\n",
+        tm->tm_year + 1900,
+        tm->tm_mon + 1,
+        tm->tm_mday,
+        tm->tm_hour,
+        tm->tm_min,
+        tm->tm_sec
+    );
+}
+
+void updateBlynk()
+{
+    blynk->updateActiveTemperature(heatctl_target_temp() / 10.f);
+    blynk->updateBoostRemaining(heatctl_boost_remaining_secs());
+    blynk->updateCurrentTemperature(heatctl_current_temp() / 10.f);
+    blynk->updateDaytimeTemperature(heatctl_daytime_temp() / 10.f);
+    blynk->updateIsBoostActive(heatctl_is_boost_active());
+    blynk->updateIsHeatingActive(heatctl_is_active());
+    blynk->updateMode(heatctl_mode());
+    blynk->updateNightTimeTemperature(heatctl_night_time_temp() / 10.f);
+    
+    const auto ns = heatctl_next_state();
+    blynk->updateNextSwitch(ns.state, ns.weekday, ns.hour, ns.minute);
+}
+
+void loop()
+{
+    static const auto NtpSyncInterval = 10 * 24 * 60 * 60 * 1000ul;
+
+    static auto lastUpdate = 500u;
+    static auto lastRtcSync = 10000u;
+    static auto lastNtpSync = NtpSyncInterval;
+    static auto lastBlynkUpdate = 1000u;
+
+    if (millis() - lastUpdate > 500) {
+        ds18x20_update();
+        heatctl_task();
+        ui_update();
+        lastUpdate = millis();
+    }
+
+    if (millis() - lastBlynkUpdate > 1000u) {
+        updateBlynk();
+        lastBlynkUpdate = millis();
+    }
+
+    if (millis() - lastRtcSync > 10000) {
+        struct tm rtcTm;
+        rtcTm.tm_hour = rtc->getHours();
+        rtcTm.tm_min = rtc->getMinutes();
+        rtcTm.tm_sec = rtc->getSeconds();
+        rtcTm.tm_mday = rtc->getDate();
+        rtcTm.tm_mon = rtc->getMonth() - 1;     // DS1307: 1-12, C: 0-11
+        rtcTm.tm_year = rtc->getYear() + 100;   // DS1307: 0-99, C: 1900 + value
+
+        Serial.printf("RTC time (UTC): %d-%02d-%02d %d:%02d:%02d\n",
+            rtcTm.tm_year + 1900,
+            rtcTm.tm_mon + 1,
+            rtcTm.tm_mday,
+            rtcTm.tm_hour,
+            rtcTm.tm_min,
+            rtcTm.tm_sec
+        );
+
+        setClockEpoch(mktime(&rtcTm));
+
+        lastRtcSync = millis();
+    }
+
+    
+    if (millis() - lastNtpSync >= NtpSyncInterval)
+    {
+        if (ntp->forceUpdate())
+        {
+            lastNtpSync = millis();
+            updateClock();
+        }
+        else
+        {
+            // Try again 10 seconds later
+            lastNtpSync = millis() - NtpSyncInterval + 10000ul;
+        }
+    }
+
+    const auto pressedKeys = keypad_task();
+    ui_handle_keys(pressedKeys);
+
+    blynk->task();
+}
