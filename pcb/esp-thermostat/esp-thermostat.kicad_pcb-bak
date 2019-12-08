@@ -2845,7 +2845,7 @@
   (gr_text "NO\n\nCOM\n\nNC\n" (at 52 31) (layer F.SilkS)
     (effects (font (size 2 2) (thickness 0.3)) (justify left))
   )
-  (gr_text "ESP-Thermostat v1.0\n2019 - github.com/tomikaa87" (at 87.3 75) (layer F.SilkS)
+  (gr_text "ESP-Thermostat v1.0\n2019 - github.com/tomikaa87" (at 87.5 82.7) (layer F.SilkS)
     (effects (font (size 1.5 1.5) (thickness 0.2)))
   )
 
