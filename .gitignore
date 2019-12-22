@@ -10,3 +10,6 @@ cmake-build-*/
 *.s#?
 *.b#?
 PrivateConfig.h
+*.gbr
+*.drl
+pcb/**/*.zip
