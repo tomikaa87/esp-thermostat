@@ -536,6 +536,21 @@ X GND 1 0 0 0 D 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
+# w_connectors_HEADER_3
+#
+DEF w_connectors_HEADER_3 J 0 0 Y Y 1 F N
+F0 "J" 0 200 60 H V C CNN
+F1 "w_connectors_HEADER_3" 0 -200 60 H V C CNN
+F2 "" 0 0 60 H V C CNN
+F3 "" 0 0 60 H V C CNN
+DRAW
+S 100 150 0 -150 0 1 0 N
+X ~ 1 -100 100 100 R 35 50 1 1 P
+X ~ 2 -100 0 100 R 35 50 1 1 P
+X ~ 3 -100 -100 100 R 35 50 1 1 P
+ENDDRAW
+ENDDEF
+#
 # w_connectors_HEADER_4
 #
 DEF w_connectors_HEADER_4 J 0 0 Y Y 1 F N
