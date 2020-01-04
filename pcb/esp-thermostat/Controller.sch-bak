@@ -598,7 +598,7 @@ U 1 1 5DDF5C14
 P 1300 5600
 F 0 "Y1" V 950 5450 50  0000 L CNN
 F 1 "Crystal_GND24" V 1050 5450 50  0000 L CNN
-F 2 "Crystal:Crystal_SMD_SeikoEpson_MC306-4Pin_8.0x3.2mm" H 1300 5600 50  0001 C CNN
+F 2 "Crystal:Crystal_SMD_SeikoEpson_MC306-4Pin_8.0x3.2mm_HandSoldering" H 1300 5600 50  0001 C CNN
 F 3 "~" H 1300 5600 50  0001 C CNN
 	1    1300 5600
 	0    1    1    0   
