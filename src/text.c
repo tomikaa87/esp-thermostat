@@ -30,8 +30,9 @@
 
 #include <string.h>
 
-#define NORMAL_CHAR_WIDTH 5
-static const uint8_t normal_charset[59][NORMAL_CHAR_WIDTH] = {
+#define SPACE_WIDTH			(1)
+#define NORMAL_CHAR_WIDTH 	(5)
+static const uint8_t normal_charset[][NORMAL_CHAR_WIDTH] = {
 	// [space]
 	{
 		0, 0, 0, 0, 0
@@ -500,6 +501,294 @@ static const uint8_t normal_charset[59][NORMAL_CHAR_WIDTH] = {
 		0b01000101,
 		0b01000011
 	},
+    // [
+    {
+        0b00000000,
+        0b01111111,
+        0b01000001,
+        0b01000001,
+        0b00000000
+    },
+    // backslash
+    {
+        0b00000010,
+        0b00000100,
+        0b00001000,
+        0b00010000,
+        0b00100000
+    },
+    // ]
+    {
+        0b00000000,
+        0b01000001,
+        0b01000001,
+        0b01111111,
+        0b00000000
+    },
+    // ^
+    {
+        0b00000100,
+        0b00000010,
+        0b00000001,
+        0b00000010,
+        0b00000100
+    },
+    // _
+    {
+        0b01000000,
+        0b01000000,
+        0b01000000,
+        0b01000000,
+        0b01000000
+    },
+    // `
+    {
+        0b00000000,
+        0b00000001,
+        0b00000010,
+        0b00000100,
+        0b00000000
+    },
+    // a
+    {
+        0b00100000,
+        0b01010100,
+        0b01010100,
+        0b01010100,
+        0b01111000
+    },
+    // b
+    {
+        0b01111111,
+        0b01001000,
+        0b01000100,
+        0b01000100,
+        0b00111000
+    },
+    // c
+    {
+        0b00111000,
+        0b01000100,
+        0b01000100,
+        0b01000100,
+        0b00100000
+    },
+    // d
+    {
+        0b00111000,
+        0b01000100,
+        0b01000100,
+        0b01001000,
+        0b01111111
+    },
+    // e
+    {
+        0b00111000,
+        0b01010100,
+        0b01010100,
+        0b01010100,
+        0b00011000
+    },
+    // f
+    {
+        0b00001000,
+        0b01111110,
+        0b00001001,
+        0b00000001,
+        0b00000010
+    },
+    // g
+    {
+        0b00001100,
+        0b01010010,
+        0b01010010,
+        0b01010010,
+        0b00111110
+    },
+    // h
+    {
+        0b01111111,
+        0b00001000,
+        0b00000100,
+        0b00000100,
+        0b01111000
+    },
+    // i
+    {
+        0b00000000,
+        0b01000100,
+        0b01111101,
+        0b01000000,
+        0b00000000
+    },
+    // j
+    {
+        0b00100000,
+        0b01000000,
+        0b01000000,
+        0b00111101,
+        0b00000000
+    },
+    // k
+    {
+        0b01111111,
+        0b00010000,
+        0b00101000,
+        0b01000100,
+        0b00000000
+    },
+    // l
+    {
+        0b00000000,
+        0b01000001,
+        0b01111111,
+        0b01000000,
+        0b00000000
+    },
+    // m
+    {
+        0b01111100,
+        0b00000100,
+        0b00011000,
+        0b00000100,
+        0b01111000
+    },
+    // n
+    {
+        0b01111100,
+        0b00001000,
+        0b00000100,
+        0b00000100,
+        0b01111000
+    },
+    // o
+    {
+        0b00111000,
+        0b01000100,
+        0b01000100,
+        0b01000100,
+        0b00111000
+    },
+    // p
+    {
+        0b01111100,
+        0b00010100,
+        0b00010100,
+        0b00010100,
+        0b00001000
+    },
+    // q
+    {
+        0b00001000,
+        0b00010100,
+        0b00010100,
+        0b00011000,
+        0b01111100
+    },
+    // r
+    {
+        0b01111100,
+        0b00001000,
+        0b00000100,
+        0b00000100,
+        0b00001000
+    },
+    // s
+    {
+        0b01001000,
+        0b01010100,
+        0b01010100,
+        0b01010100,
+        0b00100000
+    },
+    // t
+    {
+        0b00000100,
+        0b00111111,
+        0b01000100,
+        0b01000000,
+        0b00100000
+    },
+    // u
+    {
+        0b00111100,
+        0b01000000,
+        0b01000000,
+        0b00100000,
+        0b01111100
+    },
+    // v
+    {
+        0b00011100,
+        0b00100000,
+        0b01000000,
+        0b00100000,
+        0b00011100
+    },
+    // w
+    {
+        0b00111100,
+        0b01000000,
+        0b00110000,
+        0b01000000,
+        0b00111100
+    },
+    // x
+    {
+        0b01000100,
+        0b00101000,
+        0b00010000,
+        0b00101000,
+        0b01000100
+    },
+    // y
+    {
+        0b00001100,
+        0b01010000,
+        0b01010000,
+        0b01010000,
+        0b00111100
+    },
+    // z
+    {
+        0b01000100,
+        0b01100100,
+        0b01010100,
+        0b01001100,
+        0b01000100
+    },
+    // {
+    {
+        0b00000000,
+        0b00001000,
+        0b00110110,
+        0b01000001,
+        0b00000000
+    },
+    // |
+    {
+        0b00000000,
+        0b00000000,
+        0b01111111,
+        0b00000000,
+        0b00000000
+    },
+    // }
+    {
+        0b00000000,
+        0b01000001,
+        0b00110110,
+        0b00001000,
+        0b00000000
+    },
+    // ~
+    {
+        0b00001000,
+        0b00000100,
+        0b00001000,
+        0b00010000,
+        0b00001000
+    },
 };
 
 static const uint8_t normal_char_placeholder[NORMAL_CHAR_WIDTH] = {
@@ -1032,12 +1321,31 @@ static const uint8_t spec_char_7seg_large[11][SPEC_CHAR_7SEG_LARGE_PAGES][SPEC_C
 	},
 };
 
-void text_draw(const char* s, uint8_t line, uint8_t x, uint8_t y_offset)
+static void draw_char(const char c, const uint8_t y_offset, const bool invert)
+{
+	const uint8_t* char_data;
+
+	// If character is not supported, draw placeholder
+	if (c >= sizeof(normal_charset)) {
+		char_data = normal_char_placeholder;
+	} else {
+		// Get data for the next character
+		char_data = normal_charset[c - 32];
+	}
+
+#ifndef CONFIG_USE_OLED_SH1106
+	ssd1306_send_data(char_data, NORMAL_CHAR_WIDTH, y_offset, invert);
+#else
+	sh1106_send_data_array(char_data, NORMAL_CHAR_WIDTH, y_offset, invert);
+#endif
+}
+
+uint8_t text_draw(const char* s, uint8_t line, uint8_t x, uint8_t y_offset, bool invert)
 {
 	uint8_t length = strlen(s);
 
 	if (length == 0 || line > 7 || x > 127 || y_offset > 7)
-		return;
+		return 0;
 
 #ifndef CONFIG_USE_OLED_SH1106
 	ssd1306_page_addressing();
@@ -1057,27 +1365,26 @@ void text_draw(const char* s, uint8_t line, uint8_t x, uint8_t y_offset)
 
 		x += NORMAL_CHAR_WIDTH + 1;
 
+		draw_char(s[i], y_offset, invert);
+
 		// Stop if the next character won't fit
 		if (x > display_width - 1)
-			return;
+			return x;
 
-		char c = s[i];
-		const uint8_t* char_data;
-
-		// If character is not supported, draw placeholder
-		if (c >= sizeof(normal_charset)) {
-			char_data = normal_char_placeholder;
-		} else {
-			// Get data for the next character
-			char_data = normal_charset[c - 32];
-		}
-
+		// Fill the background between letters
+        if (i < length - 1) {
+            const uint8_t pattern[SPACE_WIDTH] = { 0 };
+            for (uint8_t j = 0; j < SPACE_WIDTH; ++j) {
 #ifndef CONFIG_USE_OLED_SH1106
-		ssd1306_send_data(char_data, NORMAL_CHAR_WIDTH, y_offset);
+				ssd1306_send_data(pattern, SPACE_WIDTH, y_offset, invert);
 #else
-		sh1106_send_data_array(char_data, NORMAL_CHAR_WIDTH, y_offset);
+				sh1106_send_data_array(pattern, SPACE_WIDTH, y_offset, invert);
 #endif
+            }
+        }
 	}
+
+	return x;
 }
 
 void text_draw_7seg_large(const char* number, uint8_t line, uint8_t x)
@@ -1116,9 +1423,9 @@ void text_draw_7seg_large(const char* number, uint8_t line, uint8_t x)
 				uint8_t char_data = 0b00011100;
 				for (uint8_t j = 2; j < SPEC_CHAR_7SEG_LARGE_WIDTH - 2; ++j)
 #ifndef CONFIG_USE_OLED_SH1106
-					ssd1306_send_data(&char_data, 1, 0);
+					ssd1306_send_data(&char_data, 1, 0, false);
 #else
-					sh1106_send_data_array(&char_data, 1, 0);
+					sh1106_send_data_array(&char_data, 1, 0, false);
 #endif
 			} else {
 				// Draw the pages of the character
@@ -1139,9 +1446,9 @@ void text_draw_7seg_large(const char* number, uint8_t line, uint8_t x)
 						char_data = spec_char_7seg_large[9 + 1][page];
 
 #ifndef CONFIG_USE_OLED_SH1106
-					ssd1306_send_data(char_data, SPEC_CHAR_7SEG_LARGE_WIDTH, 0);
+					ssd1306_send_data(char_data, SPEC_CHAR_7SEG_LARGE_WIDTH, 0, false);
 #else
-					sh1106_send_data_array(char_data, SPEC_CHAR_7SEG_LARGE_WIDTH, 0);
+					sh1106_send_data_array(char_data, SPEC_CHAR_7SEG_LARGE_WIDTH, 0, false);
 #endif
 				}
 			}
@@ -1158,13 +1465,26 @@ void text_draw_7seg_large(const char* number, uint8_t line, uint8_t x)
 				uint8_t char_data[SPEC_CHAR_7SEG_LARGE_WIDTH] = { 0 };
 
 #ifndef CONFIG_USE_OLED_SH1106
-				ssd1306_send_data(char_data, sizeof(char_data), 0);
+				ssd1306_send_data(char_data, sizeof(char_data), 0, false);
 #else
-				sh1106_send_data_array(char_data, sizeof(char_data), 0);
+				sh1106_send_data_array(char_data, sizeof(char_data), 0, false);
 #endif
 			}
 		}
 
 		x += SPEC_CHAR_7SEG_LARGE_WIDTH + 2;
 	}
+}
+
+void text_draw_char(char c, uint8_t line, uint8_t x, uint8_t y_offset, bool invert)
+{
+#ifndef CONFIG_USE_OLED_SH1106
+	ssd1306_set_page(line);
+	ssd1306_set_start_column(x);
+#else
+	sh1106_set_page_addr(line);
+	sh1106_set_col_addr(x);
+#endif
+
+	draw_char(c, y_offset, invert);
 }

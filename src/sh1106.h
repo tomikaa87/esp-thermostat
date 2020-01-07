@@ -128,7 +128,7 @@ void sh1106_fill_area(
     const uint8_t color
 );
 
-void sh1106_send_data_array(const uint8_t* data, uint8_t length, uint8_t bit_shift);
+void sh1106_send_data_array(const uint8_t* data, uint8_t length, uint8_t bit_shift, bool invert);
 
 #ifdef __cplusplus
 }

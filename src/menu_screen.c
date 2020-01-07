@@ -27,6 +27,7 @@
 #include "settings.h"
 #include "extras.h"
 #include "graphics.h"
+#include "text_input.h"
 
 #ifndef CONFIG_USE_OLED_SH1106
 #include "ssd1306.h"
@@ -50,9 +51,15 @@ static struct menu_s {
 		PAGE_DISPLAY_BRIGHTNESS,
 		PAGE_DISPLAY_TIMEOUT,
 		PAGE_TEMP_CORRECTION,
+		PAGE_WIFI,
 
-		PAGE_LAST
+		PAGE_LAST,
+
+		// These pages cannot be accessed by normal navigation
+		PAGE_WIFI_PASSWORD
 	} page;
+
+	char wifi_psw[64];
 
 	struct persistent_settings new_settings;
 } menu;
@@ -67,6 +74,8 @@ static void draw_page_custom_temp_timeout();
 static void draw_page_display_brightness();
 static void draw_page_display_timeout();
 static void draw_page_temp_correction();
+static void draw_page_wifi();
+static void draw_page_wifi_password();
 static void update_page_heatctl_mode();
 static void update_page_daytime_temp();
 static void update_page_nighttime_temp();
@@ -77,6 +86,7 @@ static void update_page_custom_temp_timeout();
 static void update_page_temp_correction();
 static void update_page_display_brightness();
 static void update_page_display_timeout();
+static void update_page_wifi();
 static void draw_page_title(const char* text);
 static void next_page();
 static void previous_page();
@@ -138,42 +148,81 @@ void menu_screen_draw()
 	case PAGE_TEMP_CORRECTION:
 		draw_page_temp_correction();
 		break;
+
+	case PAGE_WIFI:
+		draw_page_wifi();
+		break;
+
+	case PAGE_WIFI_PASSWORD:
+		draw_page_wifi_password();
+		break;
+
+	case PAGE_LAST:
+		break;
 	}
 
 	// "<-" previous page indicator
 	if (menu.page > PAGE_FIRST) {
-		text_draw("<-", 7, 0, 0);
+		text_draw("<-", 7, 0, 0, false);
 	}
 
 	// "->" next page indicator
 	if (menu.page < PAGE_LAST - 1) {
-		text_draw("->", 7, 115, 0);
+		text_draw("->", 7, 115, 0, false);
 	}
 }
 
 ui_result menu_screen_handle_handle_keys(uint16_t keys)
 {
-	// 1: increment current value
-	// 2: decrement current value
-	// 3: save and exit
-	// 4: cancel (revert settings)
-	// 5: navigate to previous page
-	// 6: navigate to next page
+	if (menu.page != PAGE_WIFI_PASSWORD) {
+		// 1: increment current value
+		// 2: decrement current value
+		// 3: save and exit
+		// 4: cancel (revert settings)
+		// 5: navigate to previous page
+		// 6: navigate to next page
 
-	if (keys & KEY_1) {
-		adjust_value(1);
-	} else if (keys & KEY_2) {
-		adjust_value(-1);
-	} else if (keys & KEY_3) {
-		apply_settings();
-		return UI_RESULT_SWITCH_MAIN_SCREEN;
-	} else if (keys & KEY_4) {
-		revert_settings();
-		return UI_RESULT_SWITCH_MAIN_SCREEN;
-	} else if (keys & KEY_5) {
-		previous_page();
-	} else if (keys & KEY_6) {
-		next_page();
+		if (keys & KEY_1) {
+			adjust_value(1);
+		} else if (keys & KEY_2) {
+			adjust_value(-1);
+		} else if (keys & KEY_3) {
+			apply_settings();
+			return UI_RESULT_SWITCH_MAIN_SCREEN;
+		} else if (keys & KEY_4) {
+			revert_settings();
+			return UI_RESULT_SWITCH_MAIN_SCREEN;
+		} else if (keys & KEY_5) {
+			previous_page();
+		} else if (keys & KEY_6) {
+			next_page();
+		}
+	} else {
+		ti_key_event_t key_event;
+		bool valid_key = true;
+
+		if (keys & KEY_1) {
+			key_event = TI_KE_UP;
+		} else if (keys & KEY_2) {
+			key_event = TI_KE_DOWN;
+		} else if (keys & KEY_3) {
+			key_event = TI_KE_SELECT;
+		} else if (keys & KEY_5) {
+			key_event = TI_KE_LEFT;
+		} else if (keys & KEY_6) {
+			key_event = TI_KE_RIGHT;
+		} else {
+			valid_key = false;
+		}
+
+		if (valid_key) {
+			const ti_key_event_result_t res = text_input_key_event(key_event);
+
+			if (res != TI_KE_NO_ACTION) {
+				menu.page = PAGE_WIFI;
+				menu_screen_draw();
+			}
+		}
 	}
 
 	return UI_RESULT_IDLE;
@@ -239,6 +288,17 @@ static void draw_page_temp_correction()
 	update_page_temp_correction();
 }
 
+static void draw_page_wifi()
+{
+	draw_page_title("WIFI CONN.");
+	update_page_wifi();
+}
+
+static void draw_page_wifi_password()
+{
+	text_input_init(menu.wifi_psw, sizeof(menu.wifi_psw), "WiFi password:");
+}
+
 static void update_page_heatctl_mode()
 {
 	// FIXME: proper mode name must be shown
@@ -255,13 +315,13 @@ static void update_page_heatctl_mode()
 	switch (menu.new_settings.heatctl.mode) {
 	case HC_MODE_NORMAL:
 		graphics_draw_multipage_bitmap(graphics_calendar_icon_20x3p, 20, 3, 20, 2);
-		text_draw("NORMAL", 3, 50, 0);
-		text_draw("(SCHEDULE)", 4, 50, 0);
+		text_draw("NORMAL", 3, 50, 0, false);
+		text_draw("(SCHEDULE)", 4, 50, 0, false);
 		break;
 
 	case HC_MODE_OFF:
 		graphics_draw_multipage_bitmap(graphics_off_icon_20x3p, 20, 3, 20, 2);
-		text_draw("OFF", 3, 50, 0);
+		text_draw("OFF", 3, 50, 0, false);
 		break;
 	}
 }
@@ -335,9 +395,16 @@ static void update_page_display_timeout()
 	text_draw_7seg_large(num, 2, 20);
 }
 
+static void update_page_wifi()
+{
+	text_draw("ENABLED: YES", 2, 0, 0, false);
+	text_draw("NETWORK:", 4, 0, 0, false);
+	text_draw("<SSID>", 5, 0, 0, false);
+}
+
 static void draw_page_title(const char* text)
 {
-	text_draw(text, 0, 0, 0);
+	text_draw(text, 0, 0, 0, false);
 }
 
 static void next_page()
@@ -449,6 +516,16 @@ static void adjust_value(int8_t amount)
 			SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MIN,
 			SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MAX);
 		update_page_temp_correction();
+		break;
+
+	// TODO dummy implementation
+	case PAGE_WIFI:
+		menu.page = PAGE_WIFI_PASSWORD;
+		draw_page_wifi_password();
+		break;
+
+	case PAGE_LAST:
+	case PAGE_WIFI_PASSWORD:
 		break;
 	}
 }

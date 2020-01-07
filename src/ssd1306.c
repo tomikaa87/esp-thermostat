@@ -295,7 +295,7 @@ void ssd1306_set_start_column(uint8_t address)
 	ssd1306_send_command(SSD1306_CMD_SETHIGHCOLUMN | ((address >> 4) & 0xF));
 }
 
-void ssd1306_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift)
+void ssd1306_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift, bool invert)
 {
 	if (bit_shift > 7)
 		return;
@@ -310,8 +310,11 @@ void ssd1306_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift)
 		bytes_remaining -= count;
 
 		buffer[0] = SSD1306_I2C_DC_FLAG;
-		for (uint8_t i = 1; i <= count; ++i)
+		for (uint8_t i = 1; i <= count; ++i) {
 			buffer[i] = data[data_index++] << bit_shift;
+			if (invert)
+				buffer[i] = ~buffer[i];
+		}
 		
 		i2c_send(buffer, count + 1);
 	}

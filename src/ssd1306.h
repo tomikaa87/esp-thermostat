@@ -21,6 +21,7 @@
 #ifndef SSD1306_H
 #define	SSD1306_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -132,7 +133,7 @@ void ssd1306_fill_area(uint8_t x, uint8_t start_page, uint8_t width, uint8_t pag
 
 // Low level API
 void ssd1306_send_command(ssd1306_cmd_t cmd);
-void ssd1306_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift);
+void ssd1306_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift, bool invert);
 
 void ssd1306_page_addressing();
 

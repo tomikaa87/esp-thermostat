@@ -84,11 +84,11 @@ static void update_schedule_bar()
 
 	draw_schedule_bar(settings.schedule.days[t->tm_wday]);
 
-	uint8_t index = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
+	uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
 
-	if (index != state.last_schedule_index) {
-		state.last_schedule_index = index;
-		draw_schedule_indicator(index);
+	if (idx != state.last_schedule_index) {
+		state.last_schedule_index = idx;
+		draw_schedule_indicator(idx);
 	}
 }
 
@@ -104,10 +104,10 @@ static void draw_target_temp_boost_indicator()
 		uint16_t minutes = secs / 60;
 		secs -= minutes * 60;
 
-		sprintf(s, " BST %3d:%02d", minutes, secs);
+		sprintf(s, " BST %3u:%02ld", minutes, secs);
 	}
 
-	text_draw(s, 0, 60, 0);
+	text_draw(s, 0, 60, 0, false);
 }
 
 static void draw_clock()
@@ -115,9 +115,9 @@ static void draw_clock()
 	const struct tm* t = gmtime(&clock_epoch);
 
 	char time_fmt[10] = { 6 };
-	sprintf(time_fmt, "%02u:%02u", t->tm_hour, t->tm_min);
+	sprintf(time_fmt, "%02d:%02d", t->tm_hour, t->tm_min);
 
-	text_draw(time_fmt, 0, 0, 0);
+	text_draw(time_fmt, 0, 0, 0, false);
 	draw_weekday(33, t->tm_wday);
 }
 

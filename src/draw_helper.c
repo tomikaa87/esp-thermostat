@@ -47,7 +47,7 @@ void draw_weekday(uint8_t x, uint8_t wday)
 		"SAT"
 	};
 
-	text_draw(days[wday], 0, x, 0);
+	text_draw(days[wday], 0, x, 0, false);
 }
 
 void draw_mode_indicator(mode_indicator_t indicator)
@@ -112,7 +112,7 @@ void draw_schedule_bar(schedule_day_data sday)
 		}
 
 #ifndef CONFIG_USE_OLED_SH1106
-		ssd1306_send_data(&bitmap, 1, 0);
+		ssd1306_send_data(&bitmap, 1, 0, false);
 #else
 		sh1106_send_data(bitmap);
 #endif
@@ -135,11 +135,11 @@ void draw_schedule_bar(schedule_day_data sday)
 		}
 	}
 
-	text_draw("0", 7, 1, 1);
-	text_draw("6", 7, 31, 1);
-	text_draw("12", 7, 58, 1);
-	text_draw("18", 7, 88, 1);
-	text_draw("24", 7, 115, 1);
+	text_draw("0", 7, 1, 1, false);
+	text_draw("6", 7, 31, 1, false);
+	text_draw("12", 7, 58, 1, false);
+	text_draw("18", 7, 88, 1, false);
+	text_draw("24", 7, 115, 1, false);
 }
 
 void draw_schedule_indicator(uint8_t sch_intval_idx)
@@ -200,11 +200,11 @@ void draw_temperature_value(uint8_t x, int8_t int_part, int8_t frac_part)
 #ifndef CONFIG_USE_OLED_SH1106
 	ssd1306_set_page(4);
 	ssd1306_set_start_column(x + 28);
-	ssd1306_send_data(dp_bitmap, sizeof(dp_bitmap), 0);
+	ssd1306_send_data(dp_bitmap, sizeof(dp_bitmap), 0, false);
 #else
 	sh1106_set_page_addr(4);
 	sh1106_set_col_addr(x + 28);
-	sh1106_send_data_array(dp_bitmap, sizeof(dp_bitmap), 0);
+	sh1106_send_data_array(dp_bitmap, sizeof(dp_bitmap), 0, false);
 #endif
 
 	// Draw fractional part of the value
@@ -223,11 +223,11 @@ void draw_temperature_value(uint8_t x, int8_t int_part, int8_t frac_part)
 #ifndef CONFIG_USE_OLED_SH1106	
 	ssd1306_set_page(2);
 	ssd1306_set_start_column(x + 48);
-	ssd1306_send_data(ds_bitmap, sizeof(ds_bitmap), 1);
+	ssd1306_send_data(ds_bitmap, sizeof(ds_bitmap), 1, false);
 #else
 	sh1106_set_page_addr(2);
 	sh1106_set_col_addr(x + 48);
-	sh1106_send_data_array(dp_bitmap, sizeof(dp_bitmap), 1);
+	sh1106_send_data_array(ds_bitmap, sizeof(ds_bitmap), 1, false);
 #endif
 
 	// Draw temperature unit

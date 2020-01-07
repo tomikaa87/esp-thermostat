@@ -33,10 +33,11 @@ extern "C" {
  * to closest integer. Result is undefined for negative divisors and
  * for negative dividends if the divisor variable type is unsigned.
  */
-#define DIV_ROUND_CLOSEST(n, d) ((((n) < 0) ^ ((d) < 0)) ? (((n) - (d)/2)/(d)) : (((n) + (d)/2)/(d)))
+#define DIV_ROUND_CLOSEST(n, d) \
+    ((((n) < 0) ^ ((d) < 0)) ? (((n) - (d)/2)/(d)) : (((n) + (d)/2)/(d)))
 
 #define CLAMP_VALUE(_VAL, _MIN, _MAX) \
-	(_VAL = _VAL > _MAX ? _MAX : (_VAL < _MIN ? _MIN : _VAL))
+	((_VAL) = (_VAL) >= (_MAX) ? (_MAX) : ((_VAL) <= (_MIN) ? (_MIN) : (_VAL)))
 	
 uint8_t calculate_schedule_intval_idx(uint8_t hours, uint8_t minutes);
 	

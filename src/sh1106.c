@@ -225,7 +225,7 @@ void sh1106_fill_area(
 	}
 }
 
-void sh1106_send_data_array(const uint8_t* data, uint8_t length, uint8_t bit_shift)
+void sh1106_send_data_array(const uint8_t* data, uint8_t length, uint8_t bit_shift, bool invert)
 {
     if (bit_shift > 7)
 		return;
@@ -240,8 +240,11 @@ void sh1106_send_data_array(const uint8_t* data, uint8_t length, uint8_t bit_shi
 		bytes_remaining -= count;
 
 		buffer[0] = SH1106_I2C_DC_FLAG;
-		for (uint8_t i = 1; i <= count; ++i)
+		for (uint8_t i = 1; i <= count; ++i) {
 			buffer[i] = data[data_index++] << bit_shift;
+            if (invert)
+                buffer[i] = ~buffer[i];
+        }
 		
 		i2c_write_data(buffer, count + 1, i2c_write_data_func_arg);
 	}

@@ -48,11 +48,11 @@ void graphics_draw_bitmap(
 	ssd1306_page_addressing();
 	ssd1306_set_page(page);
 	ssd1306_set_start_column(x);
-	ssd1306_send_data(bitmap, width, 0);
+	ssd1306_send_data(bitmap, width, 0, false);
 #else
 	sh1106_set_page_addr(page);
 	sh1106_set_col_addr(x);
-	sh1106_send_data_array(bitmap, width, 0);
+	sh1106_send_data_array(bitmap, width, 0, false);
 #endif
 }
 
