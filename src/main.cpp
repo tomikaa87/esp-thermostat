@@ -8,6 +8,7 @@
 #include "main.h"
 #include "settings.h"
 #include "ui.h"
+#include "wifi_screen.h"
 
 // This header must contain the following configuration values:
 // namespace PrivateConfig {
@@ -18,6 +19,10 @@
 #include "PrivateConfig.h"
 
 #include <Arduino.h>
+#include <ESP8266httpUpdate.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiSTA.h>
+#include <ESP8266WiFiScan.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <Wire.h>
@@ -40,6 +45,31 @@ void ICACHE_RAM_ATTR timer1_isr()
         counter = 0;
         ++clock_epoch;
     }
+}
+
+void connect_wifi()
+{
+    Serial.printf("Connecting to %s", PrivateConfig::WiFiSSID);
+
+    WiFi.mode(WIFI_STA);
+    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
+    WiFi.setOutputPower(20.5);
+
+    if (WiFi.status() != WL_CONNECTED) {
+        WiFi.begin(PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
+        // if (pass && strlen(pass)) {
+        //     WiFi.begin(ssid, pass);
+        // } else {
+        //     WiFi.begin(ssid);
+        // }
+    }
+
+    while (WiFi.status() != WL_CONNECTED) {
+        Serial.print(".");
+        delay(500);
+    }
+
+    Serial.println("\nConnected to WiFi");
 }
 
 void setup()
@@ -103,11 +133,13 @@ void setup()
     Serial.println("Initializing UI...");
     ui_init();
 
+    connect_wifi();
+
     Serial.println("Initializing Blynk...");
     static BlynkHandler blynkHandler{
-        PrivateConfig::BlynkAppToken,
-        PrivateConfig::WiFiSSID,
-        PrivateConfig::WiFiPassword
+        PrivateConfig::BlynkAppToken
+        // PrivateConfig::WiFiSSID,
+        // PrivateConfig::WiFiPassword
     };
     blynk = &blynkHandler;
 
@@ -133,6 +165,18 @@ void setup()
     ntp = &ntpCli;
     ntpCli.begin();
     ntpCli.forceUpdate();
+
+    wifi_screen_set_scan_cb([] {
+        return WiFi.scanNetworks();
+    });
+
+    wifi_screen_set_read_ssid_cb([](int8_t index, char* ssid) {
+        strcpy(ssid, WiFi.SSID(index).c_str());
+    });
+
+    wifi_screen_set_is_open_cb([](int8_t index) {
+        return WiFi.encryptionType(index) == AUTH_OPEN;
+    });
 }
 
 bool isDst(const time_t t)

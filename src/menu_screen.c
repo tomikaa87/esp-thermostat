@@ -28,6 +28,7 @@
 #include "extras.h"
 #include "graphics.h"
 #include "text_input.h"
+#include "wifi_screen.h"
 
 #ifndef CONFIG_USE_OLED_SH1106
 #include "ssd1306.h"
@@ -161,20 +162,22 @@ void menu_screen_draw()
 		break;
 	}
 
-	// "<-" previous page indicator
-	if (menu.page > PAGE_FIRST) {
-		text_draw("<-", 7, 0, 0, false);
-	}
+	if (menu.page != PAGE_WIFI) {
+		// "<-" previous page indicator
+		if (menu.page > PAGE_FIRST) {
+			text_draw("<-", 7, 0, 0, false);
+		}
 
-	// "->" next page indicator
-	if (menu.page < PAGE_LAST - 1) {
-		text_draw("->", 7, 115, 0, false);
+		// "->" next page indicator
+		if (menu.page < PAGE_LAST - 1) {
+			text_draw("->", 7, 115, 0, false);
+		}
 	}
 }
 
 ui_result menu_screen_handle_handle_keys(uint16_t keys)
 {
-	if (menu.page != PAGE_WIFI_PASSWORD) {
+	if (menu.page != PAGE_WIFI_PASSWORD && menu.page != PAGE_WIFI) {
 		// 1: increment current value
 		// 2: decrement current value
 		// 3: save and exit
@@ -197,7 +200,7 @@ ui_result menu_screen_handle_handle_keys(uint16_t keys)
 		} else if (keys & KEY_6) {
 			next_page();
 		}
-	} else {
+	} else if (menu.page == PAGE_WIFI_PASSWORD) {
 		ti_key_event_t key_event;
 		bool valid_key = true;
 
@@ -223,6 +226,8 @@ ui_result menu_screen_handle_handle_keys(uint16_t keys)
 				menu_screen_draw();
 			}
 		}
+	} else if (menu.page == PAGE_WIFI) {
+		wifi_screen_key_event(keys);
 	}
 
 	return UI_RESULT_IDLE;
@@ -290,8 +295,7 @@ static void draw_page_temp_correction()
 
 static void draw_page_wifi()
 {
-	draw_page_title("WIFI CONN.");
-	update_page_wifi();
+	wifi_screen_init();
 }
 
 static void draw_page_wifi_password()
@@ -397,9 +401,11 @@ static void update_page_display_timeout()
 
 static void update_page_wifi()
 {
-	text_draw("ENABLED: YES", 2, 0, 0, false);
-	text_draw("NETWORK:", 4, 0, 0, false);
-	text_draw("<SSID>", 5, 0, 0, false);
+	// text_draw("CONNECTED: YES", 2, 0, 0, false);
+	// text_draw("NETWORK:", 4, 0, 0, false);
+	// text_draw("<SSID>", 5, 0, 0, false);
+
+	wifi_screen_update();
 }
 
 static void draw_page_title(const char* text)

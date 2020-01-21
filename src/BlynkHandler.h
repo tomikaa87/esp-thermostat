@@ -30,7 +30,7 @@ class BlynkParam;
 class BlynkHandler
 {
 public:
-    BlynkHandler(const char* appToken, const char* wifiSSID, const char* wifiPassword);
+    BlynkHandler(const char* appToken/*, const char* wifiSSID, const char* wifiPassword*/);
     ~BlynkHandler();
 
     void task();

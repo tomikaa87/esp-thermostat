@@ -80,13 +80,14 @@ HANDLE_BLYNK_WRITE(PIN_TARGET_TEMPERATURE)
 
 static WidgetTerminal gs_terminal{ V64 };
 
-BlynkHandler::BlynkHandler(const char* appToken, const char* wifiSSID, const char* wifiPassword)
+BlynkHandler::BlynkHandler(const char* appToken/*, const char* wifiSSID, const char* wifiPassword*/)
 {
     g_blynkHandler = this;
-    Blynk.begin(appToken, wifiSSID, wifiPassword, "blynk-server.home", 8080);
+    Blynk.config(appToken, "blynk-server.home", 8080);
+    // Blynk.begin(appToken, wifiSSID, wifiPassword, "blynk-server.home", 8080);
 
-    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
-    WiFi.setOutputPower(20.5);
+    // WiFi.setPhyMode(WIFI_PHY_MODE_11N);
+    // WiFi.setOutputPower(20.5);
 }
 
 BlynkHandler::~BlynkHandler()

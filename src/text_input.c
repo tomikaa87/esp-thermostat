@@ -1,6 +1,5 @@
 #include "config.h"
-#include "ssd1306.h"
-#include "sh1106.h"
+#include "disp_helper.h"
 #include "text.h"
 #include "text_input.h"
 
@@ -193,12 +192,6 @@ static void on_shift_pressed();
 static bool is_shifted();
 static void on_bckspc_pressed();
 
-static void disp_clear();
-static void disp_set_page_addressing();
-static void disp_goto_col(uint8_t col);
-static void disp_goto_row(uint8_t row);
-static void disp_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift, bool invert);
-
 void text_input_init(char *buf, int buflen, const char* title)
 {
     printf("text_input::text_input_init: initializing context...\n");
@@ -308,8 +301,8 @@ static void draw_input_field()
     const uint8_t last_col = text_draw(ctx.buf + ctx.txt_offset, TI_ROW_OFFSET, 1, 0, false);
 
     // Fill the remaining space
-    if (last_col < SSD1306_LCDWIDTH) {
-        draw_background(TI_ROW_OFFSET, last_col, SSD1306_LCDWIDTH - last_col, 0);
+    if (last_col < 128) {
+        draw_background(TI_ROW_OFFSET, last_col, 128 - last_col, 0);
     }
 }
 
@@ -587,47 +580,4 @@ static void on_bckspc_pressed()
                ctx.pos.buf, cur_pos, ctx.txt_offset);
 #endif
     }
-}
-
-static void disp_clear()
-{
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_clear();
-#else
-    sh1106_clear();
-#endif
-}
-
-static void disp_set_page_addressing()
-{
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_page_addressing();
-#endif
-}
-
-static void disp_goto_col(uint8_t col)
-{
-#ifndef CONFIG_USE_OLED_SH1106		
-    ssd1306_set_start_column(col);
-#else
-    sh1106_set_col_addr(col);
-#endif
-}
-
-static void disp_goto_row(uint8_t row)
-{
-#ifndef CONFIG_USE_OLED_SH1106
-	ssd1306_set_page(row);
-#else
-	sh1106_set_page_addr(row);
-#endif
-}
-
-static void disp_send_data(const uint8_t* data, uint8_t length, uint8_t bit_shift, bool invert)
-{
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_send_data(data, length, bit_shift, invert);
-#else
-    sh1106_send_data_array(data, length, bit_shift, invert);
-#endif    
 }
