@@ -61,7 +61,7 @@ void SH1106::fill(const uint8_t pattern)
 {
     setColumn(0);
 
-    for (uint8_t line = 0; line < SH1106_PAGE_COUNT; ++line)
+    for (uint8_t line = 0; line < Lines; ++line)
     {
         setLine(line);
 
@@ -101,6 +101,34 @@ void SH1106::sendData(uint8_t data)
     Wire.write(&data, 1);
 
     Wire.endTransmission();
+}
+
+void SH1106::sendData(const uint8_t* data, const uint8_t length, const uint8_t bitShift, const bool invert)
+{
+    if (bitShift > 7)
+        return;
+
+    uint8_t buffer[17];
+    auto bytesRemaining = length;
+    uint8_t dataIndex = 0;
+    static const uint8_t ChunkSize = 16;
+
+    while (bytesRemaining > 0) {
+        const auto count =
+            bytesRemaining >= ChunkSize ? ChunkSize : bytesRemaining;
+        bytesRemaining -= count;
+
+        buffer[0] = SH1106_I2C_DC_FLAG;
+        for (uint8_t i = 1; i <= count; ++i) {
+            buffer[i] = data[dataIndex++] << bitShift;
+            if (invert)
+                buffer[i] = ~buffer[i];
+        }
+
+        Wire.beginTransmission(SH1106_I2C_ADDRESS);
+        Wire.write(buffer, count + 1);
+        Wire.endTransmission();
+    }
 }
 
 void SH1106::setPowerOn(const bool on)
