@@ -19,7 +19,7 @@
 */
 
 #include "config.h"
-#include "Display.h"
+#include "DisplayInitializer.h"
 
 #ifndef CONFIG_USE_OLED_SH1106
 #include "ssd1306.h"
@@ -30,9 +30,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-Display::Display()
+DisplayInitializer::DisplayInitializer()
 {
-    Serial.println("Display: initializing Wire");
+    Serial.println("DisplayInitializer: initializing Wire");
 
     Wire.begin();
     Wire.setClock(400000);
@@ -44,7 +44,7 @@ Display::Display()
         Wire.endTransmission();
     });
 
-    Serial.println("Display: initializing OLED (SSD1306)");
+    Serial.println("DisplayInitializer: initializing OLED (SSD1306)");
     ssd1306_init();
 #else
     sh1106_set_i2c_write_reg_func([](const uint8_t reg, const uint8_t data, const void*) {
@@ -60,7 +60,7 @@ Display::Display()
         Wire.endTransmission();
     }, nullptr);
 
-    Serial.println("Display: initializing OLED (SH1106)");
+    Serial.println("DisplayInitializer: initializing OLED (SH1106)");
     sh1106_init();
 #endif
 }

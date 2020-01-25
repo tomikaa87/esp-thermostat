@@ -2,7 +2,7 @@
 
 #include "../config.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 template <typename DriverImpl>
 class DisplayImpl
@@ -38,7 +38,7 @@ public:
         const uint8_t pattern
     )
     {
-        if (width == 0 || column >= Driver::Columns)
+        if (width == 0 || column >= Driver::Width)
             return;
 
         for (uint8_t i = 0; i < height; ++i) {
@@ -49,7 +49,7 @@ public:
             Driver::setLine(line);
             Driver::setColumn(column);
 
-            for (uint8_t j = 0; j < width && column + j < Driver::Columns; ++j) {
+            for (uint8_t j = 0; j < width && column + j < Driver::Width; ++j) {
                 Driver::sendData(pattern);
             }
         }
@@ -65,17 +65,37 @@ public:
         Driver::setPowerOn(true);
     }
 
-    static void sendData(const uint8_t data)
+    static void sendData(uint8_t data, uint8_t bitShift = 0, bool invert = false)
     {
-        Driver::sendData(data);
+        Driver::sendData(data, bitShift, invert);
+    }
+
+    static void sendData(const uint8_t* data, uint8_t length, uint8_t bitShift = 0, bool invert = false)
+    {
+        Driver::sendData(data, length, bitShift, invert);
+    }
+
+    static void setContrast(const uint8_t value)
+    {
+        Driver::setContrast(value);
+    }
+
+    static void setColumn(const uint8_t column)
+    {
+        Driver::setColumn(column);
+    }
+
+    static void setLine(const uint8_t line)
+    {
+        Driver::setLine(line);
     }
 };
 
 // Select default display driver implementation
 #ifdef CONFIG_USE_OLED_SH1106
 #include "Driver_SH1106.h"
-using Display2 = DisplayImpl<Driver::SH1106>;
+using Display = DisplayImpl<Driver::SH1106>;
 #else
 #include "Driver_SSD1306.h"
-using Display2 = DisplayImpl<Driver::SSD1306>;
+using Display = DisplayImpl<Driver::SSD1306>;
 #endif

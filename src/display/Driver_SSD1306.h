@@ -15,7 +15,8 @@ public:
         PageAddressing
     };
 
-    static constexpr uint8_t Columns = 128;
+    static constexpr uint8_t Height = 64;
+    static constexpr uint8_t Width = 128;
     static constexpr uint8_t Lines = 8;
 
     static void init();
@@ -25,8 +26,8 @@ public:
     static void sendCommand(uint8_t code);
     static void sendCommand(uint8_t code, uint8_t arg);
 
-    static void sendData(uint8_t data);
-    static void sendData(const uint8_t* data, uint8_t length, uint8_t bitShift, bool invert);
+    static void sendData(uint8_t data, uint8_t bitShift = 0, bool invert = false);
+    static void sendData(const uint8_t* data, uint8_t length, uint8_t bitShift = 0, bool invert = false);
 
     static void setPowerOn(bool on);
     static void setComPadsAltHwConfig(uint8_t value);

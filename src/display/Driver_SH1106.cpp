@@ -93,11 +93,18 @@ void SH1106::sendCommand(uint8_t code, uint8_t arg)
     Wire.endTransmission();
 }
 
-void SH1106::sendData(uint8_t data)
+void SH1106::sendData(uint8_t data, const uint8_t bitShift, const bool invert)
 {
     Wire.beginTransmission(SH1106_I2C_ADDRESS);
 
     Wire.write(SH1106_I2C_DC_FLAG);
+
+    if (bitShift > 0)
+        data <<= bitShift;
+
+    if (invert)
+        data = ~data;
+
     Wire.write(&data, 1);
 
     Wire.endTransmission();

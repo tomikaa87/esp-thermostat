@@ -22,10 +22,10 @@
 #define ESP_THERMOSTAT_DISPLAY_H
 
 
-class Display
+class DisplayInitializer
 {
 public:
-    Display();
+    DisplayInitializer();
 };
 
 

@@ -1,6 +1,6 @@
 #include "BlynkHandler.h"
 #include "clock.h"
-#include "Display.h"
+#include "DisplayInitializer.h"
 #include "ds1307.h"
 #include "ds18x20.h"
 #include "heat_ctl.h"
@@ -9,6 +9,8 @@
 #include "settings.h"
 #include "ui.h"
 #include "wifi_screen.h"
+
+#include "display/Display.h"
 
 // This header must contain the following configuration values:
 // namespace PrivateConfig {
@@ -29,7 +31,7 @@
 
 #include <ctime>
 
-static Display* display = nullptr;
+static DisplayInitializer* display = nullptr;
 static DS1307* rtc = nullptr;
 static BlynkHandler* blynk = nullptr;
 static NTPClient* ntp = nullptr;
@@ -85,8 +87,10 @@ void setup()
     // Be safe with 400 kHz, it can produce RTC errors and OLED artifacts
     Wire.setClock(200000);
 
-    Serial.println("Initializing Display...");
-    static Display sDisplay;
+    Display::init();
+
+    Serial.println("Initializing DisplayInitializer...");
+    static DisplayInitializer sDisplay;
     display = &sDisplay;
 
     Serial.println("Initializing RTC...");

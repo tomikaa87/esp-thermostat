@@ -13,3 +13,8 @@ PrivateConfig.h
 *.gbr
 *.drl
 pcb/**/*.zip
+platformio.sln
+platformio.vcxproj*
+Debug/
+.vs/
+.piolibdeps/

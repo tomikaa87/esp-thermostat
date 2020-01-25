@@ -131,11 +131,18 @@ void SSD1306::sendCommand(uint8_t code, uint8_t arg)
     Wire.endTransmission();
 }
 
-void SSD1306::sendData(const uint8_t data)
+void SSD1306::sendData(uint8_t data, const uint8_t bitShift, const bool invert)
 {
     Wire.beginTransmission(SSD1306_I2C_ADDRESS);
 
     Wire.write(SSD1306_I2C_DC_FLAG);
+
+    if (bitShift > 0)
+        data <<= bitShift;
+
+    if (invert)
+        data = ~data;
+
     Wire.write(&data, 1);
 
     Wire.endTransmission();
