@@ -29,6 +29,8 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 
+#include "Peripherals.h"
+
 #include <ctime>
 
 static DisplayInitializer* display = nullptr;
@@ -76,6 +78,8 @@ void connect_wifi()
 
 void setup()
 {
+    Peripherals::Sensors::MainTemperature::update();
+
     timer1_isr_init();
     timer1_attachInterrupt(timer1_isr);
     timer1_enable(TIM_DIV256, TIM_EDGE, TIM_LOOP);
@@ -86,6 +90,10 @@ void setup()
     Wire.begin();
     // Be safe with 400 kHz, it can produce RTC errors and OLED artifacts
     Wire.setClock(200000);
+
+    Peripherals::Storage::EERAM::StatusReg eeramStatus;
+    eeramStatus.ase = 1;
+    Peripherals::Storage::EERAM::setStatus(eeramStatus);
 
     Display::init();
 
@@ -117,13 +125,15 @@ void setup()
     Serial.println("Loading settings...");
     settings_init(
         [](const uint8_t address) {
-            const auto data = rtc->readRam(address);
+            uint8_t data;
+            if (Peripherals::Storage::EERAM::read(address, &data, 1) != 1)
+                Serial.printf("EERAM read failure at %02xh\n", address);
             Serial.printf("RAM[%02xh] -> %02xh\n", address, data);
             return data;
         },
         [](const uint8_t address, const uint8_t data) {
             Serial.printf("RAM[%02xh] <- %02xh\n", address, data);
-            rtc->writeRam(address, data);
+            Peripherals::Storage::EERAM::write(address, &data, 1);
         }
     );
     settings_load();

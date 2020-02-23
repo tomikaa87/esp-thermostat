@@ -23,7 +23,6 @@
 #include "keypad.h"
 #include "text.h"
 #include "text_input.h"
-#include "wifi.h"
 #include "wifi_screen.h"
 
 #include <string.h>
