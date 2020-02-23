@@ -61,7 +61,6 @@ public:
     static uint8_t read(uint16_t address, uint8_t* buffer, uint16_t length);
     static void write(uint16_t address, const uint8_t* data, uint16_t length);
 
-    static uint8_t readControlReg(Register reg);
     static void writeControlReg(Register reg, uint8_t value);
 
     static StatusReg getStatus();

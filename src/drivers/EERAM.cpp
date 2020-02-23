@@ -20,6 +20,7 @@
 
 #include "EERAM.h"
 
+#include <Arduino.h>
 #include <Wire.h>
 
 using namespace Drivers;
@@ -28,22 +29,28 @@ namespace ControlBytes
 {
     namespace Detail
     {
-        static constexpr auto ChipSelect = (EERAM::A1 << 2) | (EERAM::A2 << 3);
+        static constexpr auto ChipSelect = (EERAM::A1 << 1) | (EERAM::A2 << 2);
     }
 
-    static constexpr auto SramRead          = 0b01010001 | Detail::ChipSelect;
-    static constexpr auto SramWrite         = 0b01010000 | Detail::ChipSelect;
-    static constexpr auto ControlRegRead    = 0b00110001 | Detail::ChipSelect;
-    static constexpr auto ControlRegWrite   = 0b00110000 | Detail::ChipSelect;
+    // LSB is omitted since Wire will shift this address and add the direction bit
+    static constexpr auto SramAccess        = 0b1010000 | Detail::ChipSelect;
+    static constexpr auto ControlRegAccess  = 0b0011000 | Detail::ChipSelect;
 }
 
 uint8_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
 {
-    Wire.beginTransmission(ControlBytes::SramWrite);
-    Wire.write(address);
+    Wire.beginTransmission(ControlBytes::SramAccess);
+    Wire.write(static_cast<uint8_t>(address >> 8));
+    Wire.write(static_cast<uint8_t>(address & 0xff));
     Wire.endTransmission();
 
-    const auto available = Wire.requestFrom(ControlBytes::SramRead, length);
+    const auto available = Wire.requestFrom(ControlBytes::SramAccess, length);
+
+    if (available == 0) {
+        Serial.println("EERAM: read failed");
+        return 0;
+    }
+
     for (auto i = 0; i < available; ++i) {
         buffer[i] = Wire.read();
     }
@@ -53,37 +60,35 @@ uint8_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
 
 void EERAM::write(uint16_t address, const uint8_t* data, uint16_t length)
 {
-    Wire.beginTransmission(ControlBytes::SramWrite);
-    Wire.write(address);
+    Wire.beginTransmission(ControlBytes::SramAccess);
+    Wire.write(static_cast<uint8_t>(address >> 8));
+    Wire.write(static_cast<uint8_t>(address & 0xff));
     Wire.write(data, length);
     Wire.endTransmission();
 }
 
-uint8_t EERAM::readControlReg(Register reg)
-{
-    Wire.beginTransmission(ControlBytes::ControlRegWrite);
-    Wire.write(static_cast<int>(reg));
-    Wire.endTransmission();
-    
-    const auto available = Wire.requestFrom(ControlBytes::ControlRegRead, 1);
-    if (available == 0)
-        return 0;
-
-    return Wire.read();
-}
-
 void EERAM::writeControlReg(Register reg, uint8_t value)
 {
-    Wire.beginTransmission(ControlBytes::ControlRegWrite);
-    Wire.write(static_cast<int>(reg));
+    Wire.beginTransmission(ControlBytes::ControlRegAccess);
+    Wire.write(static_cast<uint8_t>(reg));
     Wire.write(value);
     Wire.endTransmission();
+
+    // T(recall) for 47X16
+    delay(25);
 }
 
 EERAM::StatusReg EERAM::getStatus()
 {
+    const auto available = Wire.requestFrom(ControlBytes::ControlRegAccess, 1);
+    if (available == 0) {
+        Serial.println("EERAM: getStatus failed");
+        return{};
+    }
+
     StatusReg sr;
-    sr.value = readControlReg(Register::Status);
+    sr.value = Wire.read();
+
     return sr;
 }
 

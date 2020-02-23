@@ -88,12 +88,20 @@ void setup()
     Serial.begin(115200);
 
     Wire.begin();
-    // Be safe with 400 kHz, it can produce RTC errors and OLED artifacts
+    // Be cautious with 400 kHz, it can produce RTC errors and OLED artifacts
     Wire.setClock(200000);
 
-    Peripherals::Storage::EERAM::StatusReg eeramStatus;
+    auto eeramStatus = Peripherals::Storage::EERAM::getStatus();
+    Serial.printf("EERAM status: AM=%u, BP=%u, ASE=%u, EVENT=%u\n",
+        eeramStatus.am, eeramStatus.bp, eeramStatus.ase, eeramStatus.event
+    );
+    eeramStatus.value = 0;
     eeramStatus.ase = 1;
     Peripherals::Storage::EERAM::setStatus(eeramStatus);
+    eeramStatus = Peripherals::Storage::EERAM::getStatus();
+    Serial.printf("EERAM status: AM=%u, BP=%u, ASE=%u, EVENT=%u\n",
+        eeramStatus.am, eeramStatus.bp, eeramStatus.ase, eeramStatus.event
+    );
 
     Display::init();
 
