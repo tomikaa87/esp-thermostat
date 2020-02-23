@@ -154,20 +154,30 @@ ui_result main_screen_handle_keys(uint16_t keys)
 	// 5: daytime manual override -> back to automatic
 	// 6: nighttime manual override -> back to automatic
 
-	if (keys & KEY_1) {
+	if (keys & KEY_PLUS) {
 		heatctl_inc_target_temp();
-	} else if (keys & KEY_2) {
+	} else if (keys & KEY_MINUS) {
 		heatctl_dec_target_temp();
-	} else if (keys & KEY_3) {
-		return UI_RESULT_SWITCH_MENU_SCREEN;
-	} else if (keys & KEY_4) {
-		if (!heatctl_is_boost_active())
-			heatctl_activate_boost();
-		else
-			heatctl_extend_boost();
-	} else if (keys & KEY_5) {
-		heatctl_deactivate_boost();
-	} else if (keys & KEY_6) {
+	} else if (keys & KEY_MENU) {
+		// Avoid entering the menu while exiting
+		// from another screen with long press
+		if (!(keys & KEY_LONG_PRESS)) {
+			return UI_RESULT_SWITCH_MENU_SCREEN;
+		}
+	} else if (keys & KEY_BOOST) {
+		if (keys & KEY_LONG_PRESS) {
+			if (heatctl_is_boost_active()) {
+				heatctl_deactivate_boost();
+			}
+		} else {
+			if (!heatctl_is_boost_active())
+				heatctl_activate_boost();
+			else
+				heatctl_extend_boost();
+		}
+	// } else if (keys & KEY_LEFT) {
+	// 	heatctl_deactivate_boost();
+	} else if (keys & KEY_RIGHT) {
 		return UI_RESULT_SWITCH_SCHEDULING_SCREEN;
 	}
 

@@ -41,6 +41,7 @@ static struct {
 	uint8_t day;
 	uint8_t intval_idx;
 	schedule_day_data days_data[7];
+	uint8_t menu_press_cnt;
 } sch_screen;
 
 static void draw_day_name();
@@ -86,25 +87,35 @@ ui_result scheduling_screen_handle_keys(uint16_t keys)
 	// 5: set nighttime mode + advance 15 minutes
 	// 6: set daytime mode + advance 15 minutes
 	
-	if (keys & KEY_1) {
-		if (keys & KEY_LONG_PRESS)
-			prev_interval();
-		else
-			next_interval();
-	} else if (keys & KEY_2) {
-		if (keys & KEY_LONG_PRESS)
-			prev_day();
-		else
-			next_day();
-	} else if (keys & KEY_3) {
-		apply_changes();
-		return UI_RESULT_SWITCH_MAIN_SCREEN;
-	} else if (keys & KEY_4) {
-		return UI_RESULT_SWITCH_MAIN_SCREEN;
-	} else if (keys & KEY_5) {
-		set_mode_and_advance(false);
-	} else if (keys & KEY_6) {
+	if (keys & KEY_PLUS) {
 		set_mode_and_advance(true);
+		// if (keys & KEY_LONG_PRESS)
+		// 	prev_interval();
+		// else
+		// 	next_interval();
+	} else if (keys & KEY_MINUS) {
+		set_mode_and_advance(false);
+		// if (keys & KEY_LONG_PRESS)
+		// 	prev_day();
+		// else
+		// 	next_day();
+	} else if (keys & KEY_MENU) {
+		if (++sch_screen.menu_press_cnt == 2) {
+			sch_screen.menu_press_cnt = 0;
+			if (!(keys & KEY_LONG_PRESS)) {
+				apply_changes();
+			}	
+			return UI_RESULT_SWITCH_MAIN_SCREEN;
+		}
+	} else if (keys & KEY_BOOST) {
+		next_day();
+		// return UI_RESULT_SWITCH_MAIN_SCREEN;
+	} else if (keys & KEY_LEFT) {
+		prev_interval();
+		// set_mode_and_advance(false);
+	} else if (keys & KEY_RIGHT) {
+		next_interval();
+		// set_mode_and_advance(true);
 	}
 	
 	return UI_RESULT_IDLE;

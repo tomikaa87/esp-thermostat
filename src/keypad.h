@@ -37,12 +37,12 @@ extern "C" {
 #define KEY_CODE_MASK                   0x7FFF
 
 enum {
-	KEY_1 = KEY_R1_C1,
-	KEY_2 = KEY_R1_C2,
-	KEY_3 = KEY_R1_C3,
-	KEY_4 = KEY_R2_C1,
-	KEY_5 = KEY_R2_C2,
-	KEY_6 = KEY_R2_C3
+	KEY_PLUS = KEY_R1_C1,
+	KEY_MINUS = KEY_R1_C2,
+	KEY_MENU = KEY_R2_C1,
+	KEY_BOOST = KEY_R1_C3,
+	KEY_LEFT = KEY_R2_C3,
+	KEY_RIGHT = KEY_R2_C2
 };
 
 void keypad_init();

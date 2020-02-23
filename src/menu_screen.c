@@ -185,34 +185,34 @@ ui_result menu_screen_handle_handle_keys(uint16_t keys)
 		// 5: navigate to previous page
 		// 6: navigate to next page
 
-		if (keys & KEY_1) {
+		if (keys & KEY_PLUS) {
 			adjust_value(1);
-		} else if (keys & KEY_2) {
+		} else if (keys & KEY_MINUS) {
 			adjust_value(-1);
-		} else if (keys & KEY_3) {
+		} else if (keys & KEY_MENU) {
 			apply_settings();
 			return UI_RESULT_SWITCH_MAIN_SCREEN;
-		} else if (keys & KEY_4) {
+		} else if (keys & KEY_BOOST) {
 			revert_settings();
 			return UI_RESULT_SWITCH_MAIN_SCREEN;
-		} else if (keys & KEY_5) {
+		} else if (keys & KEY_LEFT) {
 			previous_page();
-		} else if (keys & KEY_6) {
+		} else if (keys & KEY_RIGHT) {
 			next_page();
 		}
 	} else if (menu.page == PAGE_WIFI_PASSWORD) {
 		ti_key_event_t key_event;
 		bool valid_key = true;
 
-		if (keys & KEY_1) {
+		if (keys & KEY_PLUS) {
 			key_event = TI_KE_UP;
-		} else if (keys & KEY_2) {
+		} else if (keys & KEY_MINUS) {
 			key_event = TI_KE_DOWN;
-		} else if (keys & KEY_3) {
+		} else if (keys & KEY_MENU) {
 			key_event = TI_KE_SELECT;
-		} else if (keys & KEY_5) {
+		} else if (keys & KEY_LEFT) {
 			key_event = TI_KE_LEFT;
-		} else if (keys & KEY_6) {
+		} else if (keys & KEY_RIGHT) {
 			key_event = TI_KE_RIGHT;
 		} else {
 			valid_key = false;

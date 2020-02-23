@@ -141,13 +141,13 @@ void wifi_screen_key_event(uint16_t keys)
     switch (state.screen) {
     case SCR_MAIN:
         // + -> Down
-        if (keys & KEY_1) {
+        if (keys & KEY_PLUS) {
             if (++state.list_pos >= 3) {
                 state.list_pos = 0;
             }
             update_needed = true;
         // - -> Up
-        } else if (keys & KEY_2) {
+        } else if (keys & KEY_MINUS) {
             if (state.list_pos == 0) {
                 state.list_pos = 2;
             } else {
@@ -155,14 +155,14 @@ void wifi_screen_key_event(uint16_t keys)
             }
             update_needed = true;
         // Right -> Select
-        } else if (keys & KEY_6) {
+        } else if (keys & KEY_RIGHT) {
             select_item();
         }
         break;
 
     case SCR_SCAN:
         // + -> Down
-        if (keys & KEY_1) {
+        if (keys & KEY_PLUS) {
             if (state.list_pos < state.ap_cnt) {
                 ++state.list_pos;
                 if (state.list_pos - state.list_offs > 6) {
@@ -171,7 +171,7 @@ void wifi_screen_key_event(uint16_t keys)
             }
             update_needed = true;
         // - -> Up
-        } else if (keys & KEY_2) {
+        } else if (keys & KEY_MINUS) {
             if (state.list_pos > 0) {
                 --state.list_pos;
                 if (state.list_pos - state.list_offs < 0) {
@@ -179,7 +179,7 @@ void wifi_screen_key_event(uint16_t keys)
                 }
             }
             update_needed = true;
-        } else if (keys & KEY_6) {
+        } else if (keys & KEY_RIGHT) {
             select_item();
         }
 
@@ -187,15 +187,15 @@ void wifi_screen_key_event(uint16_t keys)
         ti_key_event_t key_event;
 		bool valid_key = true;
 
-		if (keys & KEY_1) {
+		if (keys & KEY_PLUS) {
 			key_event = TI_KE_UP;
-		} else if (keys & KEY_2) {
+		} else if (keys & KEY_MINUS) {
 			key_event = TI_KE_DOWN;
-		} else if (keys & KEY_3) {
+		} else if (keys & KEY_MENU) {
 			key_event = TI_KE_SELECT;
-		} else if (keys & KEY_5) {
+		} else if (keys & KEY_LEFT) {
 			key_event = TI_KE_LEFT;
-		} else if (keys & KEY_6) {
+		} else if (keys & KEY_RIGHT) {
 			key_event = TI_KE_RIGHT;
 		} else {
 			valid_key = false;
