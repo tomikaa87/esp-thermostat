@@ -1,0 +1,257 @@
+/*
+    This file is part of esp-thermostat.
+
+    esp-thermostat is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    esp-thermostat is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
+
+    Author: Tamas Karpati
+    Created on 2020-02-24
+*/
+
+#include "MCP7940N.h"
+
+#include <Wire.h>
+
+using namespace Drivers;
+
+bool MCP7940N::isOscillatorRunning()
+{
+    uint8_t value = 0;
+    read(Register::RTCWKDAY, &value, 1);
+    return (value & (1 << 5)) > 0;
+}
+
+void MCP7940N::setOscillatorEnabled(bool enabled)
+{
+    uint8_t value = 0;
+    read(Register::RTCSEC, &value, 1);
+    value = enabled ? value | (1 << 7) : value & ~(1 << 7);
+    write(Register::RTCSEC, &value, 1);
+}
+
+bool MCP7940N::isOscillatorEnabled()
+{
+    uint8_t value = 0;
+    read(Register::RTCSEC, &value, 1);
+    return (value & (1 << 7)) > 0;
+}
+
+void MCP7940N::clearPowerFailFlag()
+{
+    uint8_t value = 0;
+    read(Register::RTCWKDAY, &value, 1);
+    value &= ~(1 << 4);
+    write(Register::RTCWKDAY, &value, 1);
+}
+
+bool MCP7940N::getPowerFailFlag()
+{
+    uint8_t value = 0;
+    read(Register::RTCWKDAY, &value, 1);
+    return (value & (1 << 4)) > 0;
+}
+
+void MCP7940N::setBatteryEnabled(const bool enabled)
+{
+    uint8_t value = 0;
+    read(Register::RTCWKDAY, &value, 1);
+    value = enabled ? value | (1 << 3) : value & ~(1 << 3);
+    write(Register::RTCWKDAY, &value, 1);
+}
+
+bool MCP7940N::isBatteryEnabled()
+{
+    uint8_t value = 0;
+    read(Register::RTCWKDAY, &value, 1);
+    return (value & (1 << 3)) > 0;
+}
+
+void MCP7940N::set12HoursEnabled(bool enabled)
+{
+
+}
+
+bool MCP7940N::is12HoursEnabled()
+{
+
+}
+
+void MCP7940N::setDateTime(const DateTime& dt)
+{
+    setOscillatorEnabled(false);
+
+    uint8_t data[7] = { 0 };
+    if (read(Register::RTCSEC, data, sizeof(data)) != sizeof(data)) {
+        setOscillatorEnabled(true);
+        return;
+    }
+
+    // RTSEC, keep ST bit
+    data[0] = (data[0] & (1 << 7)) | (toBcd(dt.seconds) & 0x7f);
+
+    // RTCMIN
+    data[1] = toBcd(dt.minutes) & 0x7f;
+    
+    // RTCHOUR
+    if (dt.is12Hours) {
+        data[2] = (1 << 6) | (dt.pm ? 1 << 5 : 0) | (toBcd(dt.hours) & 0x1f);
+    } else {
+        data[2] = toBcd(dt.hours) & 0x3f;
+    }
+
+    // RTCWKDAY
+    data[3] = toBcd(dt.weekday) & 0x07;
+
+    // RTCDATE
+    data[4] = toBcd(dt.date) & 0x3f;
+
+    // RTCMTH
+    data[5] = toBcd(dt.month) & 0x1f;
+
+    // RTCYEAR
+    data[6] = toBcd(dt.year);
+
+    write(Register::RTCSEC, data, sizeof(data));
+
+    setOscillatorEnabled(true);
+}
+
+MCP7940N::DateTime MCP7940N::getDateTime()
+{
+    uint8_t data[7] = { 0 };
+    if (read(Register::RTCSEC, data, sizeof(data)) != sizeof(data)) {
+        setOscillatorEnabled(true);
+        return{};
+    }
+
+    DateTime dt;
+    dt.seconds = fromBcd(data[0] & 0x7f);
+    dt.minutes = fromBcd(data[1] & 0x7f);
+
+    if (data[2] & (1 << 6)) {
+        // 12-hours mode
+        dt.is12Hours = true;
+        dt.pm = (data[2] & (1 << 5)) > 0;
+        dt.hours = fromBcd(data[2] & 0x1f);
+    } else {
+        dt.is12Hours = false;
+        dt.pm = false;
+        dt.hours = data[2] & 0x3f;
+    }
+
+    dt.weekday = data[3] & 0x07;
+    dt.date = fromBcd(data[4] & 0x3f);
+    dt.month = fromBcd(data[5] & 0x1f);
+    dt.leapYear = (data[5] & (1 << 5)) > 0;
+    dt.year = fromBcd(data[6]);
+
+    return dt;
+}
+
+void MCP7940N::setAlarm(AlarmModule module, const Alarm& alarm)
+{
+
+}
+
+MCP7940N::Alarm MCP7940N::getAlarm(AlarmModule module)
+{
+
+}
+
+void MCP7940N::setOutputConfig(OutputConfig config)
+{
+
+}
+
+MCP7940N::OutputConfig MCP7940N::getOutputConfig()
+{
+
+}
+
+void MCP7940N::setDigitalTrimming(int8_t ppm)
+{
+
+}
+
+int8_t MCP7940N::getDigitalTrimming()
+{
+
+}
+
+MCP7940N::PowerFailTimestamp MCP7940N::getPowerDownTimestamp()
+{
+
+}
+
+MCP7940N::PowerFailTimestamp MCP7940N::getPowerUpTimestamp()
+{
+
+}
+
+bool MCP7940N::writeSram(uint8_t address, uint8_t value)
+{
+
+}
+
+uint8_t MCP7940N::writeSram(uint8_t address, const uint8_t* buffer, uint8_t length)
+{
+
+}
+
+uint8_t MCP7940N::readSram(uint8_t address)
+{
+
+}
+
+uint8_t MCP7940N::readSram(uint8_t address, uint8_t* buffer, uint8_t length)
+{
+
+}
+
+uint8_t MCP7940N::fromBcd(uint8_t value)
+{
+
+}
+
+uint8_t MCP7940N::toBcd(uint8_t value)
+{
+
+}
+
+uint8_t MCP7940N::write(uint8_t address, const uint8_t* buffer, uint8_t length)
+{
+    Wire.beginTransmission(ControlByte);
+    Wire.write(address);
+    Wire.write(reinterpret_cast<const char*>(buffer), length);
+    const auto written = Wire.endTransmission();
+    return written - sizeof(address);
+}
+
+uint8_t MCP7940N::write(Register reg, const uint8_t* buffer, uint8_t length)
+{
+    return write(static_cast<uint8_t>(reg), buffer, length);
+}
+
+uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
+{
+    Wire.beginTransmission(ControlByte);
+    Wire.write(address);
+    Wire.endTransmission();
+    const auto read = Wire.requestFrom(ControlByte, length);
+    return read;
+}
+
+uint8_t MCP7940N::read(Register reg, uint8_t* buffer, uint8_t length)
+{
+    return read(static_cast<uint8_t>(reg), buffer, length);
+}
