@@ -26,53 +26,53 @@ using namespace Drivers;
 
 bool MCP7940N::isOscillatorRunning()
 {
-    uint8_t value = 0;
-    read(Register::RTCWKDAY, &value, 1);
+    uint8_t value = read(Register::RTCWKDAY);
     return (value & (1 << 5)) > 0;
 }
 
 void MCP7940N::setOscillatorEnabled(bool enabled)
 {
-    uint8_t value = 0;
-    read(Register::RTCSEC, &value, 1);
+    uint8_t value = read(Register::RTCSEC);
     value = enabled ? value | (1 << 7) : value & ~(1 << 7);
-    write(Register::RTCSEC, &value, 1);
+    write(Register::RTCSEC, value);
 }
 
 bool MCP7940N::isOscillatorEnabled()
 {
-    uint8_t value = 0;
-    read(Register::RTCSEC, &value, 1);
+    uint8_t value = read(Register::RTCSEC);
     return (value & (1 << 7)) > 0;
+}
+
+void MCP7940N::setExternalOscillatorEnabled(bool enabled)
+{
+    uint8_t value = read(Register::CONTROL);
+    value = enabled ? value | (1 << 3) : value & ~(1 << 3);
+    write(Register::CONTROL, value);
 }
 
 void MCP7940N::clearPowerFailFlag()
 {
-    uint8_t value = 0;
-    read(Register::RTCWKDAY, &value, 1);
+    uint8_t value = read(Register::RTCWKDAY);
     value &= ~(1 << 4);
-    write(Register::RTCWKDAY, &value, 1);
+    write(Register::RTCWKDAY, value);
 }
 
 bool MCP7940N::getPowerFailFlag()
 {
-    uint8_t value = 0;
-    read(Register::RTCWKDAY, &value, 1);
+    uint8_t value = read(Register::RTCWKDAY);
     return (value & (1 << 4)) > 0;
 }
 
 void MCP7940N::setBatteryEnabled(const bool enabled)
 {
-    uint8_t value = 0;
-    read(Register::RTCWKDAY, &value, 1);
+    uint8_t value = read(Register::RTCWKDAY);
     value = enabled ? value | (1 << 3) : value & ~(1 << 3);
-    write(Register::RTCWKDAY, &value, 1);
+    write(Register::RTCWKDAY, value);
 }
 
 bool MCP7940N::isBatteryEnabled()
 {
-    uint8_t value = 0;
-    read(Register::RTCWKDAY, &value, 1);
+    uint8_t value = read(Register::RTCWKDAY);
     return (value & (1 << 3)) > 0;
 }
 
@@ -170,22 +170,47 @@ MCP7940N::Alarm MCP7940N::getAlarm(AlarmModule module)
 
 void MCP7940N::setOutputConfig(OutputConfig config)
 {
-
+    uint8_t value = read(Register::CONTROL);
+    value &= ~(0b111 << 4);
+    value |= static_cast<uint8_t>(config) << 4;
+    write(Register::CONTROL, value);
 }
 
 MCP7940N::OutputConfig MCP7940N::getOutputConfig()
 {
+    uint8_t value = read(Register::CONTROL);
+    return static_cast<OutputConfig>((value >> 4) & 0b111);
+}
 
+void MCP7940N::setSquareWaveOutputFrequency(SquareWaveFrequency frequency)
+{
+    uint8_t value = read(Register::CONTROL);
+    value &= ~(0b11);
+    value |= static_cast<uint8_t>(frequency) & 0b11;
+}
+
+void MCP7940N::writeGpo(bool high)
+{
+    uint8_t value = read(Register::CONTROL);
+    value = high ? value | (1 << 7) : value & ~(1 << 7);
+    write(Register::CONTROL, value);
 }
 
 void MCP7940N::setDigitalTrimming(int8_t ppm)
 {
-
+    write(Register::OSCTRIM, static_cast<uint8_t>(ppm));
 }
 
 int8_t MCP7940N::getDigitalTrimming()
 {
+    return static_cast<int8_t>(read(Register::OSCTRIM));
+}
 
+void MCP7940N::setCoarseTrimmingEnabled(bool enabled)
+{
+    uint8_t value = read(Register::CONTROL);
+    value = enabled ? value | (1 << 2) : value & ~(1 << 2);
+    write(Register::CONTROL, value);
 }
 
 MCP7940N::PowerFailTimestamp MCP7940N::getPowerDownTimestamp()
@@ -242,6 +267,11 @@ uint8_t MCP7940N::write(Register reg, const uint8_t* buffer, uint8_t length)
     return write(static_cast<uint8_t>(reg), buffer, length);
 }
 
+bool MCP7940N::write(const Register reg, uint8_t value)
+{
+    return write(reg, &value, 1) == 1;
+}
+
 uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
 {
     Wire.beginTransmission(ControlByte);
@@ -254,4 +284,10 @@ uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
 uint8_t MCP7940N::read(Register reg, uint8_t* buffer, uint8_t length)
 {
     return read(static_cast<uint8_t>(reg), buffer, length);
+}
+
+uint8_t MCP7940N::read(const Register reg)
+{
+    uint8_t value = 0;
+    return read(reg, &value, 1) == 1 ? value : 0;
 }

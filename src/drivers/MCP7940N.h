@@ -21,7 +21,6 @@
 #pragma once
 
 #include <cstdint>
-#include <initializer_list>
 
 namespace Drivers
 {
@@ -76,10 +75,19 @@ public:
         SquareWave      = 0b100
     };
 
+    enum class SquareWaveFrequency : uint8_t
+    {
+        Output1Hz,
+        Output4096Hz,
+        Output8192Hz,
+        Output32768Hz
+    };
+
     static bool isOscillatorRunning();
 
     static void setOscillatorEnabled(bool enabled);
     static bool isOscillatorEnabled();
+    static void setExternalOscillatorEnabled(bool enabled);
 
     static void clearPowerFailFlag();
     static bool getPowerFailFlag();
@@ -98,9 +106,13 @@ public:
 
     static void setOutputConfig(OutputConfig config);
     static OutputConfig getOutputConfig();
+    static void setSquareWaveOutputFrequency(SquareWaveFrequency frequency);
+
+    static void writeGpo(bool high);
 
     static void setDigitalTrimming(int8_t ppm);
     static int8_t getDigitalTrimming();
+    static void setCoarseTrimmingEnabled(bool enabled);
 
     static PowerFailTimestamp getPowerDownTimestamp();
     static PowerFailTimestamp getPowerUpTimestamp();
@@ -165,11 +177,11 @@ private:
 
     static uint8_t write(uint8_t address, const uint8_t* buffer, uint8_t length);
     static uint8_t write(Register reg, const uint8_t* buffer, uint8_t length);
+    static bool write(Register reg, uint8_t value);
 
     static uint8_t read(uint8_t address, uint8_t* buffer, uint8_t length);
     static uint8_t read(Register reg, uint8_t* buffer, uint8_t length);
-
-    static uint8_t toAddress(Register reg);
+    static uint8_t read(Register reg);
 };
 
 }
