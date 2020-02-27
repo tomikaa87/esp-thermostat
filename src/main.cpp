@@ -1,7 +1,6 @@
 #include "BlynkHandler.h"
 #include "clock.h"
 #include "DisplayInitializer.h"
-#include "ds1307.h"
 #include "ds18x20.h"
 #include "heat_ctl.h"
 #include "keypad.h"
@@ -34,12 +33,13 @@
 #include <ctime>
 
 static DisplayInitializer* display = nullptr;
-static DS1307* rtc = nullptr;
 static BlynkHandler* blynk = nullptr;
 static NTPClient* ntp = nullptr;
 
 static constexpr auto LocalTimeOffsetMinutes = 60;
 static constexpr auto LocalTimeDstOffsetMinutes = 60;
+
+static void syncRtc();
 
 void ICACHE_RAM_ATTR timer1_isr()
 {
@@ -110,25 +110,21 @@ void setup()
     display = &sDisplay;
 
     Serial.println("Initializing RTC...");
-    static DS1307 sRtc{
-        // WriteReg
-        [](const uint8_t reg, const uint8_t value) {
-            Wire.beginTransmission(DS1307::Address);
-            Wire.write(reg);
-            Wire.write(value);
-            Wire.endTransmission();
-        },
-        // ReadReg
-        [](const uint8_t reg) {
-            Wire.beginTransmission(DS1307::Address);
-            Wire.write(reg);
-            Wire.endTransmission(false);
-            Wire.requestFrom(DS1307::Address, 1);
-            const auto value = Wire.read();
-            return value;
-        }
-    };
-    rtc = &sRtc;
+
+    using rtc = Peripherals::Clock::Rtc;
+    if (rtc::getPowerFailFlag()) {
+        Serial.println("WARNING: power failure detected");
+        rtc::clearPowerFailFlag();
+    }
+
+    rtc::setBatteryEnabled(true);
+    rtc::setOscillatorEnabled(true);
+
+    if (!rtc::isOscillatorRunning()) {
+        Serial.println("WARNING: RTC oscillator has stopped");
+    }
+
+    syncRtc();
 
     Serial.println("Loading settings...");
     settings_init(
@@ -243,13 +239,17 @@ void updateClock()
 
     const auto tm = gmtime(&utc);
 
-    rtc->setSeconds(tm->tm_sec);
-    rtc->setMinutes(tm->tm_min);
-    rtc->setHours(tm->tm_hour);
-    rtc->setDayOfWeek(tm->tm_wday + 1);
-    rtc->setMonth(tm->tm_mon + 1);
-    rtc->setDate(tm->tm_mday);
-    rtc->setYear(tm->tm_year - 100);
+    using rtc = Peripherals::Clock::Rtc;
+    const rtc::DateTime dt{
+        tm->tm_year - 100,
+        tm->tm_mon + 1,
+        tm->tm_mday,
+        tm->tm_wday + 1,
+        tm->tm_hour,
+        tm->tm_min,
+        tm->tm_sec
+    };
+    rtc::setDateTime(dt);
 
     Serial.printf("NTP synchronization finished. Current time (UTC): %d-%02d-%02d %d:%02d:%02d\n",
         tm->tm_year + 1900,
@@ -259,6 +259,31 @@ void updateClock()
         tm->tm_min,
         tm->tm_sec
     );
+}
+
+static void syncRtc()
+{
+    using rtc = Peripherals::Clock::Rtc;
+    const auto dt = rtc::getDateTime();
+
+    struct tm rtcTm;
+    rtcTm.tm_hour = dt.hours;
+    rtcTm.tm_min = dt.minutes;
+    rtcTm.tm_sec = dt.seconds;
+    rtcTm.tm_mday = dt.date;
+    rtcTm.tm_mon = dt.month - 1;     // DS1307: 1-12, C: 0-11
+    rtcTm.tm_year = dt.year + 100;   // DS1307: 0-99, C: 1900 + value
+
+    Serial.printf("RTC time (UTC): %d-%02d-%02d %d:%02d:%02d\n",
+        rtcTm.tm_year + 1900,
+        rtcTm.tm_mon + 1,
+        rtcTm.tm_mday,
+        rtcTm.tm_hour,
+        rtcTm.tm_min,
+        rtcTm.tm_sec
+    );
+
+    setClockEpoch(mktime(&rtcTm));
 }
 
 void updateBlynk()
@@ -298,28 +323,9 @@ void loop()
     }
 
     if (millis() - lastRtcSync > 10000) {
-        struct tm rtcTm;
-        rtcTm.tm_hour = rtc->getHours();
-        rtcTm.tm_min = rtc->getMinutes();
-        rtcTm.tm_sec = rtc->getSeconds();
-        rtcTm.tm_mday = rtc->getDate();
-        rtcTm.tm_mon = rtc->getMonth() - 1;     // DS1307: 1-12, C: 0-11
-        rtcTm.tm_year = rtc->getYear() + 100;   // DS1307: 0-99, C: 1900 + value
-
-        Serial.printf("RTC time (UTC): %d-%02d-%02d %d:%02d:%02d\n",
-            rtcTm.tm_year + 1900,
-            rtcTm.tm_mon + 1,
-            rtcTm.tm_mday,
-            rtcTm.tm_hour,
-            rtcTm.tm_min,
-            rtcTm.tm_sec
-        );
-
-        setClockEpoch(mktime(&rtcTm));
-
+        syncRtc();
         lastRtcSync = millis();
     }
-
     
     if (millis() - lastNtpSync >= NtpSyncInterval)
     {

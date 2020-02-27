@@ -22,6 +22,7 @@
 
 #include "drivers/DS18B20.h"
 #include "drivers/EERAM.h"
+#include "drivers/MCP7940N.h"
 
 #include <Arduino.h>
 
@@ -34,7 +35,7 @@ namespace Peripherals
 
     namespace Clock
     {
-
+        using Rtc = Drivers::MCP7940N;
     }
 
     namespace Relay

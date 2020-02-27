@@ -40,6 +40,30 @@ public:
         bool is12Hours = false;
         bool pm = false;
         bool leapYear = false;
+
+        DateTime() = default;
+
+        DateTime(
+            const uint8_t year,
+            const uint8_t month,
+            const uint8_t date,
+            const uint8_t weekday,
+            const uint8_t hours,
+            const uint8_t minutes,
+            const uint8_t seconds,
+            const bool is12Hours = false,
+            const bool pm = false
+        )
+            : year{ year }
+            , month{ month }
+            , date{ date }
+            , weekday{ weekday }
+            , hours{ hours }
+            , minutes{ minutes }
+            , seconds{ seconds }
+            , is12Hours{ is12Hours }
+            , pm{ pm }
+        {}
     };
 
     struct Alarm

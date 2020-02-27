@@ -20,6 +20,7 @@
 
 #include "MCP7940N.h"
 
+#include <Arduino.h>
 #include <Wire.h>
 
 using namespace Drivers;
@@ -109,8 +110,8 @@ void MCP7940N::setDateTime(const DateTime& dt)
         data[2] = toBcd(dt.hours) & 0x3f;
     }
 
-    // RTCWKDAY
-    data[3] = toBcd(dt.weekday) & 0x07;
+    // RTCWKDAY, keep PWRFAIL and VBATEN bits
+    data[3] = (data[3] & (0b11 << 3)) | (toBcd(dt.weekday) & 0x07);
 
     // RTCDATE
     data[4] = toBcd(dt.date) & 0x3f;
@@ -146,7 +147,7 @@ MCP7940N::DateTime MCP7940N::getDateTime()
     } else {
         dt.is12Hours = false;
         dt.pm = false;
-        dt.hours = data[2] & 0x3f;
+        dt.hours = fromBcd(data[2] & 0x3f);
     }
 
     dt.weekday = data[3] & 0x07;
@@ -245,20 +246,27 @@ uint8_t MCP7940N::readSram(uint8_t address, uint8_t* buffer, uint8_t length)
 
 uint8_t MCP7940N::fromBcd(uint8_t value)
 {
-
+    return (value & 0x0F) + 10 * (value >> 4);
 }
 
 uint8_t MCP7940N::toBcd(uint8_t value)
 {
-
+    return value % 10 | (value / 10) << 4;
 }
 
 uint8_t MCP7940N::write(uint8_t address, const uint8_t* buffer, uint8_t length)
 {
+    Serial.printf("MCP7940N::write(%02xh,%ph,%u):", address, buffer, length);
+    for (auto i = 0; i < length; ++i) {
+        Serial.printf(" %02xh", buffer[i]);
+    }
+    Serial.println();
+
     Wire.beginTransmission(ControlByte);
     Wire.write(address);
     Wire.write(reinterpret_cast<const char*>(buffer), length);
     const auto written = Wire.endTransmission();
+    Serial.printf("MCP7940N::write: written=%u\n", written);
     return written - sizeof(address);
 }
 
@@ -274,11 +282,21 @@ bool MCP7940N::write(const Register reg, uint8_t value)
 
 uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
 {
+    Serial.printf("MCP7940N::read(%02xh,%ph,%u)\n", address, buffer, length);
+
     Wire.beginTransmission(ControlByte);
     Wire.write(address);
     Wire.endTransmission();
     const auto read = Wire.requestFrom(ControlByte, length);
-    return read;
+    const auto buffered = Wire.readBytes(buffer, length);
+
+    Serial.printf("MCP7940N::read: read=%u, buffered=%u, data:", read, buffered);
+        for (auto i = 0; i < length; ++i) {
+        Serial.printf(" %02xh", buffer[i]);
+    }
+    Serial.println();
+
+    return buffered;
 }
 
 uint8_t MCP7940N::read(Register reg, uint8_t* buffer, uint8_t length)
