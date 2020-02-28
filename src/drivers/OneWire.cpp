@@ -24,6 +24,8 @@ using namespace Drivers;
 
 uint8_t Detail::OneWireImpl::reset(const int pin)
 {
+	noInterrupts();
+
 	busFloat(pin);
 	busLow(pin);
 	delayMicroseconds(600);
@@ -33,11 +35,15 @@ uint8_t Detail::OneWireImpl::reset(const int pin)
 	delayMicroseconds(600);
 	const auto temp = busRead(pin);
 
+	interrupts();
+
 	return !temp ? 2 : presence;
 }
 
 void Detail::OneWireImpl::writeBit(const int pin, const uint8_t b)
 {
+	noInterrupts();
+
     busFloat(pin);
 	busLow(pin);
 	delayMicroseconds(5);
@@ -46,6 +52,8 @@ void Detail::OneWireImpl::writeBit(const int pin, const uint8_t b)
 	delayMicroseconds(60);
 	busHigh(pin);
 	delayMicroseconds(5);
+
+	interrupts();
 }
 
 void Detail::OneWireImpl::writeByte(const int pin, uint8_t b)
@@ -58,6 +66,8 @@ void Detail::OneWireImpl::writeByte(const int pin, uint8_t b)
 
 uint8_t Detail::OneWireImpl::readBit(const int pin)
 {
+	noInterrupts();
+
     busFloat(pin);
     busLow(pin);
 	delayMicroseconds(10);
@@ -65,6 +75,8 @@ uint8_t Detail::OneWireImpl::readBit(const int pin)
 	delayMicroseconds(10);
 	const auto data = busRead(pin);
 	delayMicroseconds(40);
+
+	interrupts();
 
 	return data;
 }
