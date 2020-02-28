@@ -23,10 +23,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define KEY_R1_C1                       1
 #define KEY_R1_C2                       2
 #define KEY_R1_C3                       4
@@ -47,9 +43,5 @@ enum {
 
 void keypad_init();
 uint16_t keypad_task();
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // KEYPAD_H

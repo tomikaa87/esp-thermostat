@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     TI_KE_UP,
     TI_KE_DOWN,
@@ -20,7 +16,3 @@ typedef enum {
 
 void text_input_init(char* buf, int maxlen, const char *title);
 ti_key_event_result_t text_input_key_event(ti_key_event_t event);
-
-#ifdef __cplusplus
-}
-#endif

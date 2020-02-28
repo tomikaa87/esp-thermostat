@@ -73,14 +73,14 @@ void ui_init()
 void ui_update()
 {
 	switch (ui.screen) {
-	case SCR_MAIN:
+	case ui_s::SCR_MAIN:
 		main_screen_update();
 		break;
 
-	case SCR_MENU:
+	case ui_s::SCR_MENU:
 		break;
 
-	case SCR_SCHEDULING:
+	case ui_s::SCR_SCHEDULING:
 		break;
 	}
 
@@ -115,15 +115,15 @@ void ui_handle_keys(uint16_t keys)
 	ui_result result = UI_RESULT_IDLE;
 
 	switch (ui.screen) {
-	case SCR_MAIN:
+	case ui_s::SCR_MAIN:
 		result = main_screen_handle_keys(keys);
 		break;
 
-	case SCR_MENU:
+	case ui_s::SCR_MENU:
 		result = menu_screen_handle_handle_keys(keys);
 		break;
 
-	case SCR_SCHEDULING:
+	case ui_s::SCR_SCHEDULING:
 		result = scheduling_screen_handle_keys(keys);
 		break;
 	}
@@ -149,18 +149,18 @@ void ui_handle_keys(uint16_t keys)
 
 	switch (result) {
 	case UI_RESULT_SWITCH_MAIN_SCREEN:
-		ui.screen = SCR_MAIN;
+		ui.screen = ui_s::SCR_MAIN;
 		main_screen_draw();
 		break;
 
 	case UI_RESULT_SWITCH_MENU_SCREEN:
-		ui.screen = SCR_MENU;
+		ui.screen = ui_s::SCR_MENU;
 		menu_screen_init();
 		menu_screen_draw();
 		break;
 
 	case UI_RESULT_SWITCH_SCHEDULING_SCREEN:
-		ui.screen = SCR_SCHEDULING;
+		ui.screen = ui_s::SCR_SCHEDULING;
 		scheduling_screen_init();
 		scheduling_screen_draw();
 		break;

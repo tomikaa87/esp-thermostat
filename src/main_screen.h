@@ -20,10 +20,6 @@
 
 #ifndef MAIN_SCREEN_H
 #define	MAIN_SCREEN_H
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
 	
 #include "ui_result.h"
 #include <stdint.h>
@@ -32,10 +28,6 @@ void main_screen_init();
 void main_screen_draw();
 void main_screen_update();
 ui_result main_screen_handle_keys(uint16_t keys);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* MAIN_SCREEN_H */
 

@@ -21,20 +21,12 @@
 #ifndef SCHEDULING_SCREEN_H
 #define	SCHEDULING_SCREEN_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include "ui_result.h"
 #include <stdint.h>
 	
 void scheduling_screen_init();
 void scheduling_screen_draw();
 ui_result scheduling_screen_handle_keys(uint16_t keys);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* SCHEDULING_SCREEN_H */
 

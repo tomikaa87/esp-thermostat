@@ -20,10 +20,6 @@
 
 #ifndef EXTRAS_H
 #define	EXTRAS_H
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
 	
 #include <stdint.h>
 
@@ -40,10 +36,6 @@ extern "C" {
 	((_VAL) = (_VAL) >= (_MAX) ? (_MAX) : ((_VAL) <= (_MIN) ? (_MIN) : (_VAL)))
 	
 uint8_t calculate_schedule_intval_idx(uint8_t hours, uint8_t minutes);
-	
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* EXTRAS_H */
 

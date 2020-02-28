@@ -21,10 +21,6 @@
 #ifndef SETTINGS_H
 #define	SETTINGS_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 
 typedef uint8_t schedule_day_data[6];
@@ -98,10 +94,6 @@ void settings_init(settings_read_func_t read_func, settings_write_func_t write_f
 void settings_load();
 void settings_save();
 void settings_save_heatctl();
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* SETTINGS_H */
 

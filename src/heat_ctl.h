@@ -21,10 +21,6 @@
 #ifndef HEAT_CTL_H
 #define	HEAT_CTL_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
@@ -81,10 +77,6 @@ void heatctl_extend_boost();
 
 bool heatctl_has_daytime_schedule();
 struct heatctl_next_switch heatctl_next_state();
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* HEAT_CTL_H */
 

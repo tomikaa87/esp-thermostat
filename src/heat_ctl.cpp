@@ -19,7 +19,6 @@
 */
 
 #include "heat_ctl.h"
-#include "ds18x20.h"
 #include "clock.h"
 #include "config.h"
 #include "extras.h"
@@ -30,6 +29,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+
+#include "Peripherals.h"
 
 //#define HEATCL_DEBUG
 
@@ -55,10 +56,10 @@ static struct {
 static void start_heating();
 static void stop_heating();
 static void clamp_target_temp();
-static inline bool is_mode_save_needed();
-static inline void mark_settings_changed();
-static inline bool is_custom_temp_reset_needed();
-static inline void mark_custom_temp_set();
+static bool is_mode_save_needed();
+static void mark_settings_changed();
+static bool is_custom_temp_reset_needed();
+static void mark_custom_temp_set();
 
 void heatctl_init()
 {
@@ -78,7 +79,7 @@ void heatctl_task()
 	}
 
 	// Read temperature sensor and store it in tenths of degrees
-	heatctl.sensor_temp = ds18x20_last_reading / 10;
+	heatctl.sensor_temp = Peripherals::Sensors::MainTemperature::lastReading() / 10;
 
 #ifdef HEATCL_DEBUG
 	printf("heatctl: s_tmp=%d\r\n", sensor_temp);
@@ -202,7 +203,7 @@ heatctl_mode_t heatctl_mode()
 		return HC_MODE_BOOST;
 	}
 
-	return settings.heatctl.mode;
+	return static_cast<heatctl_mode_t>(settings.heatctl.mode);
 }
 
 void heatctl_set_mode(heatctl_mode_t mode)
@@ -244,12 +245,12 @@ void heatctl_dec_target_temp()
         mark_custom_temp_set();
 }
 
-inline bool heatctl_is_active()
+bool heatctl_is_active()
 {
 	return heatctl.heating_active;
 }
 
-inline bool heatctl_is_boost_active()
+bool heatctl_is_boost_active()
 {
 	return heatctl.boost_active;
 }
@@ -262,7 +263,7 @@ time_t heatctl_boost_remaining_secs()
 	return heatctl.boost_end - clock_epoch;
 }
 
-inline tenths_of_degrees_t heatctl_target_temp()
+tenths_of_degrees_t heatctl_target_temp()
 {
 	return heatctl.target_temp;
 }
@@ -275,7 +276,7 @@ void heatctl_set_target_temp(tenths_of_degrees_t value)
         mark_custom_temp_set();
 }
 
-inline tenths_of_degrees_t heatctl_daytime_temp()
+tenths_of_degrees_t heatctl_daytime_temp()
 {
 	return settings.heatctl.day_temp;
 }
@@ -291,7 +292,7 @@ void heatctl_set_daytime_temp(tenths_of_degrees_t value)
 	mark_settings_changed();
 }
 
-inline tenths_of_degrees_t heatctl_night_time_temp()
+tenths_of_degrees_t heatctl_night_time_temp()
 {
 	return settings.heatctl.night_temp;
 }
@@ -307,7 +308,7 @@ void heatctl_set_night_time_temp(tenths_of_degrees_t value)
 	mark_settings_changed();
 }
 
-inline tenths_of_degrees_t heatctl_current_temp()
+tenths_of_degrees_t heatctl_current_temp()
 {
 	return heatctl.sensor_temp;
 }
@@ -450,7 +451,7 @@ static void clamp_target_temp()
 	}
 }
 
-static inline bool is_mode_save_needed()
+static bool is_mode_save_needed()
 {
 	// Mode change should be saved after a few seconds.
 	// This delay could spare EEPROM write cycles if the mode is being
@@ -464,13 +465,13 @@ static inline bool is_mode_save_needed()
 	return false;
 }
 
-static inline void mark_settings_changed()
+static void mark_settings_changed()
 {
 	heatctl.settings_changed = 1;
 	heatctl.last_settings_change_time = clock_epoch;
 }
 
-static inline bool is_custom_temp_reset_needed()
+static bool is_custom_temp_reset_needed()
 {
         if (!heatctl.custom_temp_set || settings.heatctl.custom_temp_timeout == 0) {
             return false;
@@ -480,7 +481,7 @@ static inline bool is_custom_temp_reset_needed()
                 + settings.heatctl.custom_temp_timeout * 60);
 }
 
-static inline void mark_custom_temp_set()
+static void mark_custom_temp_set()
 {
         heatctl.custom_temp_set = 1;
         heatctl.last_set_temp_change_time = clock_epoch;

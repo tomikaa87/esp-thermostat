@@ -21,10 +21,6 @@
 #ifndef GRAPHICS_H
 #define	GRAPHICS_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 
 extern const uint8_t graphics_flame_icon_20x3p[];
@@ -43,10 +39,6 @@ void graphics_draw_multipage_bitmap(
 	uint8_t page_count,
 	uint8_t x,
 	uint8_t start_page);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* GRAPHICS_H */
 

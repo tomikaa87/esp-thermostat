@@ -21,10 +21,6 @@
 #ifndef DRAW_HELPER_H
 #define	DRAW_HELPER_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -41,10 +37,6 @@ void draw_mode_indicator(mode_indicator_t indicator);
 void draw_schedule_bar(schedule_day_data sday);
 void draw_schedule_indicator(uint8_t sch_intval_idx);
 void draw_temperature_value(uint8_t x, int8_t int_part, int8_t frac_part);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* DRAW_HELPER_H */
 

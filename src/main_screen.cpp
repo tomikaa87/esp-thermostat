@@ -21,7 +21,6 @@
 #include "config.h"
 #include "main_screen.h"
 #include "text.h"
-#include "ds18x20.h"
 #include "graphics.h"
 #include "clock.h"
 #include "heat_ctl.h"
@@ -33,6 +32,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "Peripherals.h"
+
 static struct {
 	unsigned indicator: 2;
 	unsigned boost_indicator: 1;
@@ -43,8 +44,9 @@ static struct {
 
 static void draw_temperature_display()
 {
-	draw_temperature_value(10, ds18x20_last_reading / 100,
-		(ds18x20_last_reading % 100) / 10);
+	const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
+	draw_temperature_value(10, reading / 100,
+		(reading % 100) / 10);
 }
 
 static void update_mode_indicator()
@@ -75,7 +77,7 @@ static void update_mode_indicator()
 		}
 	}
 
-	draw_mode_indicator(state.indicator);
+	draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
 }
 
 static void update_schedule_bar()
@@ -133,7 +135,7 @@ void main_screen_draw()
 
 	update_schedule_bar();
 	main_screen_update();
-	draw_mode_indicator(state.indicator);
+	draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
 }
 
 void main_screen_update()

@@ -21,10 +21,6 @@
 #ifndef UI_RESULT_H
 #define	UI_RESULT_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 typedef enum {
 	UI_RESULT_IDLE,
 	UI_RESULT_UPDATE,
@@ -32,10 +28,6 @@ typedef enum {
 	UI_RESULT_SWITCH_MENU_SCREEN,
 	UI_RESULT_SWITCH_SCHEDULING_SCREEN
 } ui_result;
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* UI_RESULT_H */
 

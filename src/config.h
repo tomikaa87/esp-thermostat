@@ -21,18 +21,10 @@
 #ifndef CONFIG_H
 #define	CONFIG_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #define CONFIG_HEATCTL_SETTINGS_BASE_ADDR	0x00
 #define CONFIG_SCHEDULER_SETTINGS_BASE_ADDR	0x10
 
 #define CONFIG_USE_OLED_SH1106
-	
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* CONFIG_H */
 

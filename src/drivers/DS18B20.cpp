@@ -20,6 +20,8 @@
 
 #include "DS18B20.h"
 
+#include <Arduino.h>
+
 using namespace Drivers;
 
 int16_t DS18B20::_lastReading = 0;
@@ -35,6 +37,8 @@ void DS18B20::update()
 
 		// t += settings.heatctl.temp_correction * 10;
 		_lastReading = t;
+
+		Serial.printf("DS18B20::update: %i\n", t);
 	}
 	
 	convert = !convert;
@@ -73,6 +77,8 @@ int16_t DS18B20::readSensor()
 	
 	if (value & 0x8000)
 		celsius *= -1;
+
+	Serial.printf("DS18B20::readSensor: %i\n", celsius);
 
 	return celsius;
 }

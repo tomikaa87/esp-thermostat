@@ -39,7 +39,7 @@
 #include <stdio.h>
 
 static struct menu_s {
-	enum {
+	enum Page{
 		PAGE_FIRST = 0,
 
 		PAGE_HEATCTL_MODE = PAGE_FIRST,
@@ -97,7 +97,7 @@ static void adjust_value(int8_t amount);
 
 void menu_screen_init()
 {
-	menu.page = PAGE_FIRST;
+	menu.page = menu_s::PAGE_FIRST;
 	revert_settings();
 }
 
@@ -110,66 +110,66 @@ void menu_screen_draw()
 #endif
 
 	switch (menu.page) {
-	case PAGE_HEATCTL_MODE:
+	case menu_s::PAGE_HEATCTL_MODE:
 		draw_page_heatctl_mode();
 		break;
 
-	case PAGE_DAYTIME_TEMP:
+	case menu_s::PAGE_DAYTIME_TEMP:
 		draw_page_daytime_temp();
 		break;
 
-	case PAGE_NIGHTTIME_TEMP:
+	case menu_s::PAGE_NIGHTTIME_TEMP:
 		draw_page_nighttime_temp();
 		break;
 
-	case PAGE_TEMP_OVERSHOOT:
+	case menu_s::PAGE_TEMP_OVERSHOOT:
 		draw_page_temp_overshoot();
 		break;
 
-	case PAGE_TEMP_UNDERSHOOT:
+	case menu_s::PAGE_TEMP_UNDERSHOOT:
 		draw_page_temp_undershoot();
 		break;
 
-	case PAGE_BOOST_INTVAL:
+	case menu_s::PAGE_BOOST_INTVAL:
 		draw_page_boost_intval();
 		break;
 
-	case PAGE_CUSTOM_TEMP_TIMEOUT:
+	case menu_s::PAGE_CUSTOM_TEMP_TIMEOUT:
 		draw_page_custom_temp_timeout();
 		break;
 
-	case PAGE_DISPLAY_BRIGHTNESS:
+	case menu_s::PAGE_DISPLAY_BRIGHTNESS:
 		draw_page_display_brightness();
 		break;
 
-	case PAGE_DISPLAY_TIMEOUT:
+	case menu_s::PAGE_DISPLAY_TIMEOUT:
 		draw_page_display_timeout();
 		break;
 
-	case PAGE_TEMP_CORRECTION:
+	case menu_s::PAGE_TEMP_CORRECTION:
 		draw_page_temp_correction();
 		break;
 
-	case PAGE_WIFI:
+	case menu_s::PAGE_WIFI:
 		draw_page_wifi();
 		break;
 
-	case PAGE_WIFI_PASSWORD:
+	case menu_s::PAGE_WIFI_PASSWORD:
 		draw_page_wifi_password();
 		break;
 
-	case PAGE_LAST:
+	case menu_s::PAGE_LAST:
 		break;
 	}
 
-	if (menu.page != PAGE_WIFI) {
+	if (menu.page != menu_s::PAGE_WIFI) {
 		// "<-" previous page indicator
-		if (menu.page > PAGE_FIRST) {
+		if (menu.page > menu_s::PAGE_FIRST) {
 			text_draw("<-", 7, 0, 0, false);
 		}
 
 		// "->" next page indicator
-		if (menu.page < PAGE_LAST - 1) {
+		if (menu.page < menu_s::PAGE_LAST - 1) {
 			text_draw("->", 7, 115, 0, false);
 		}
 	}
@@ -177,7 +177,7 @@ void menu_screen_draw()
 
 ui_result menu_screen_handle_handle_keys(uint16_t keys)
 {
-	if (menu.page != PAGE_WIFI_PASSWORD && menu.page != PAGE_WIFI) {
+	if (menu.page != menu_s::PAGE_WIFI_PASSWORD && menu.page != menu_s::PAGE_WIFI) {
 		// 1: increment current value
 		// 2: decrement current value
 		// 3: save and exit
@@ -200,7 +200,7 @@ ui_result menu_screen_handle_handle_keys(uint16_t keys)
 		} else if (keys & KEY_RIGHT) {
 			next_page();
 		}
-	} else if (menu.page == PAGE_WIFI_PASSWORD) {
+	} else if (menu.page == menu_s::PAGE_WIFI_PASSWORD) {
 		ti_key_event_t key_event;
 		bool valid_key = true;
 
@@ -222,11 +222,11 @@ ui_result menu_screen_handle_handle_keys(uint16_t keys)
 			const ti_key_event_result_t res = text_input_key_event(key_event);
 
 			if (res != TI_KE_NO_ACTION) {
-				menu.page = PAGE_WIFI;
+				menu.page = menu_s::PAGE_WIFI;
 				menu_screen_draw();
 			}
 		}
-	} else if (menu.page == PAGE_WIFI) {
+	} else if (menu.page == menu_s::PAGE_WIFI) {
 		wifi_screen_key_event(keys);
 	}
 
@@ -415,16 +415,16 @@ static void draw_page_title(const char* text)
 
 static void next_page()
 {
-	if (menu.page < PAGE_LAST - 1) {
-		++menu.page;
+	if (menu.page < menu_s::PAGE_LAST - 1) {
+		menu.page = static_cast<menu_s::Page>(static_cast<int>(menu.page) + 1);
 		menu_screen_draw();
 	}
 }
 
 static void previous_page()
 {
-	if (menu.page > PAGE_FIRST) {
-		--menu.page;
+	if (menu.page > menu_s::PAGE_FIRST) {
+		menu.page = static_cast<menu_s::Page>(static_cast<int>(menu.page) - 1);
 		menu_screen_draw();
 	}
 }
@@ -449,7 +449,7 @@ static void revert_settings()
 static void adjust_value(int8_t amount)
 {
 	switch (menu.page) {
-	case PAGE_HEATCTL_MODE:
+	case menu_s::PAGE_HEATCTL_MODE:
 		if (menu.new_settings.heatctl.mode == 0 && amount > 0) {
 			menu.new_settings.heatctl.mode = 2;
 		} else if (menu.new_settings.heatctl.mode == 2 && amount < 0) {
@@ -458,7 +458,7 @@ static void adjust_value(int8_t amount)
 		update_page_heatctl_mode();
 		break;
 
-	case PAGE_DAYTIME_TEMP:
+	case menu_s::PAGE_DAYTIME_TEMP:
 		menu.new_settings.heatctl.day_temp += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.day_temp,
 			SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MIN,
@@ -466,7 +466,7 @@ static void adjust_value(int8_t amount)
 		update_page_daytime_temp();
 		break;
 
-	case PAGE_NIGHTTIME_TEMP:
+	case menu_s::PAGE_NIGHTTIME_TEMP:
 		menu.new_settings.heatctl.night_temp += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.night_temp,
 			SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MIN,
@@ -474,7 +474,7 @@ static void adjust_value(int8_t amount)
 		update_page_nighttime_temp();
 		break;
 
-	case PAGE_TEMP_OVERSHOOT:
+	case menu_s::PAGE_TEMP_OVERSHOOT:
 		menu.new_settings.heatctl.overshoot += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.overshoot,
 			SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MIN,
@@ -482,7 +482,7 @@ static void adjust_value(int8_t amount)
 		update_page_temp_overshoot();
 		break;
 
-	case PAGE_TEMP_UNDERSHOOT:
+	case menu_s::PAGE_TEMP_UNDERSHOOT:
 		menu.new_settings.heatctl.undershoot += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.undershoot,
 			SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MIN,
@@ -490,7 +490,7 @@ static void adjust_value(int8_t amount)
 		update_page_temp_undershoot();
 		break;
 
-	case PAGE_BOOST_INTVAL:
+	case menu_s::PAGE_BOOST_INTVAL:
 		menu.new_settings.heatctl.boost_intval += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.boost_intval,
 			SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MIN,
@@ -498,7 +498,7 @@ static void adjust_value(int8_t amount)
 		update_page_boost_intval();
 		break;
 
-	case PAGE_CUSTOM_TEMP_TIMEOUT:
+	case menu_s::PAGE_CUSTOM_TEMP_TIMEOUT:
 		menu.new_settings.heatctl.custom_temp_timeout += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.custom_temp_timeout,
 			SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MIN,
@@ -506,17 +506,17 @@ static void adjust_value(int8_t amount)
 		update_page_custom_temp_timeout();
 		break;
 
-	case PAGE_DISPLAY_BRIGHTNESS:
+	case menu_s::PAGE_DISPLAY_BRIGHTNESS:
 		menu.new_settings.display.brightness += amount;
 		update_page_display_brightness();
 		break;
 
-	case PAGE_DISPLAY_TIMEOUT:
+	case menu_s::PAGE_DISPLAY_TIMEOUT:
 		menu.new_settings.display.timeout_secs += amount;
 		update_page_display_timeout();
 		break;
 
-	case PAGE_TEMP_CORRECTION:
+	case menu_s::PAGE_TEMP_CORRECTION:
 		menu.new_settings.heatctl.temp_correction += amount;
 		CLAMP_VALUE(menu.new_settings.heatctl.temp_correction,
 			SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MIN,
@@ -525,13 +525,13 @@ static void adjust_value(int8_t amount)
 		break;
 
 	// TODO dummy implementation
-	case PAGE_WIFI:
-		menu.page = PAGE_WIFI_PASSWORD;
+	case menu_s::PAGE_WIFI:
+		menu.page = menu_s::PAGE_WIFI_PASSWORD;
 		draw_page_wifi_password();
 		break;
 
-	case PAGE_LAST:
-	case PAGE_WIFI_PASSWORD:
+	case menu_s::PAGE_LAST:
+	case menu_s::PAGE_WIFI_PASSWORD:
 		break;
 	}
 }

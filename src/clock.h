@@ -21,19 +21,11 @@
 #ifndef CLOCK_H
 #define	CLOCK_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdbool.h>
 #include <time.h>
 
 extern time_t clock_epoch;
 extern bool clock_synced;
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* CLOCK_H */
 

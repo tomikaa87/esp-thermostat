@@ -21,20 +21,12 @@
 #ifndef TEXT_H
 #define	TEXT_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdbool.h>
 #include <stdint.h>
     
 uint8_t text_draw(const char* s, uint8_t line, uint8_t x, uint8_t y_offset, bool invert);
 void text_draw_char(char c, uint8_t line, uint8_t x, uint8_t y_offset, bool invert);
 void text_draw_7seg_large(const char* number, uint8_t line, uint8_t x);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* TEXT_H */
 

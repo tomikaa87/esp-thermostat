@@ -95,38 +95,38 @@ uint16_t keypad_task()
 	uint16_t scanned_keys = scan();
 
 	switch (keypad.state) {
-	case S_IDLE:
+	case keypad_s::S_IDLE:
 		// If there is a pressed key, start measuring the
 		// duration until we activate long press mode
 		if (scanned_keys > 0) {
-			keypad.state = S_PRESSED;
+			keypad.state = keypad_s::S_PRESSED;
 			keypad.press_duration = 0;
 			keypad.pressed_keys = scanned_keys;
 			return keypad.pressed_keys;
 		}
 		break;
 
-	case S_PRESSED:
+	case keypad_s::S_PRESSED:
 		// If there was a change, reset the state machine
 		// and wait a little bit
 		if (keypad.pressed_keys != scanned_keys) {
-			keypad.state = S_IDLE;
+			keypad.state = keypad_s::S_IDLE;
 			keypad.delay_duration = RESET_DELAY_AFTER_KEYS_CHANGED;
 		} else {
 			// The keys are pressed long enough to start repeating
 			if (keypad.press_duration > PRESS_DURATION_UNTIL_REPEAT) {
-				keypad.state = S_REPEAT;
+				keypad.state = keypad_s::S_REPEAT;
 				keypad.delay_duration = REPEAT_INTERVAL;
 				return keypad.pressed_keys | KEY_LONG_PRESS;
 			}
 		}
 		break;
 
-	case S_REPEAT:
+	case keypad_s::S_REPEAT:
 		// If there was a change, reset the state machine
 		// and wait a little bit
 		if (keypad.pressed_keys != scanned_keys) {
-			keypad.state = S_IDLE;
+			keypad.state = keypad_s::S_IDLE;
 			keypad.delay_duration = RESET_DELAY_AFTER_KEYS_CHANGED;
 		} else {
 			// Keep on repeating and resetting the delay counter

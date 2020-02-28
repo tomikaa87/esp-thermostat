@@ -1,7 +1,6 @@
 #include "BlynkHandler.h"
 #include "clock.h"
 #include "DisplayInitializer.h"
-#include "ds18x20.h"
 #include "heat_ctl.h"
 #include "keypad.h"
 #include "main.h"
@@ -311,7 +310,8 @@ void loop()
     static auto lastBlynkUpdate = 1000u;
 
     if (millis() - lastUpdate > 500) {
-        ds18x20_update();
+        // ds18x20_update();
+        Peripherals::Sensors::MainTemperature::update();
         heatctl_task();
         ui_update();
         lastUpdate = millis();

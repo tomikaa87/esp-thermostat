@@ -20,20 +20,12 @@
 
 #ifndef UI_H
 #define	UI_H
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
 	
 #include <stdint.h>
 
 void ui_init();
 void ui_update();
 void ui_handle_keys(uint16_t keys);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* UI_H */
 
