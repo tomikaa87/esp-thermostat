@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "keypad.h"
+
 #include <stdint.h>
 
 typedef int8_t (* wifi_scan_cb)();
@@ -33,4 +35,4 @@ void wifi_screen_set_is_open_cb(wifi_is_open_cb cb);
 void wifi_screen_init();
 void wifi_screen_update();
 void wifi_screen_leave();
-void wifi_screen_key_event(uint16_t keys);
+void wifi_screen_key_event(Keypad::Keys keys);

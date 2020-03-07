@@ -131,7 +131,7 @@ void wifi_screen_leave()
     printf("wifi_screen::leave\n");
 }
 
-void wifi_screen_key_event(uint16_t keys)
+void wifi_screen_key_event(Keypad::Keys keys)
 {
     printf("wifi_screen::key_event: keys=0x%x\n", keys);
 
@@ -140,13 +140,13 @@ void wifi_screen_key_event(uint16_t keys)
     switch (state.screen) {
     case SCR_MAIN:
         // + -> Down
-        if (keys & KEY_PLUS) {
+        if (keys & Keypad::Keys::Plus) {
             if (++state.list_pos >= 3) {
                 state.list_pos = 0;
             }
             update_needed = true;
         // - -> Up
-        } else if (keys & KEY_MINUS) {
+        } else if (keys & Keypad::Keys::Minus) {
             if (state.list_pos == 0) {
                 state.list_pos = 2;
             } else {
@@ -154,14 +154,14 @@ void wifi_screen_key_event(uint16_t keys)
             }
             update_needed = true;
         // Right -> Select
-        } else if (keys & KEY_RIGHT) {
+        } else if (keys & Keypad::Keys::Right) {
             select_item();
         }
         break;
 
     case SCR_SCAN:
         // + -> Down
-        if (keys & KEY_PLUS) {
+        if (keys & Keypad::Keys::Plus) {
             if (state.list_pos < state.ap_cnt) {
                 ++state.list_pos;
                 if (state.list_pos - state.list_offs > 6) {
@@ -170,7 +170,7 @@ void wifi_screen_key_event(uint16_t keys)
             }
             update_needed = true;
         // - -> Up
-        } else if (keys & KEY_MINUS) {
+        } else if (keys & Keypad::Keys::Minus) {
             if (state.list_pos > 0) {
                 --state.list_pos;
                 if (state.list_pos - state.list_offs < 0) {
@@ -178,7 +178,7 @@ void wifi_screen_key_event(uint16_t keys)
                 }
             }
             update_needed = true;
-        } else if (keys & KEY_RIGHT) {
+        } else if (keys & Keypad::Keys::Right) {
             select_item();
         }
 
@@ -186,15 +186,15 @@ void wifi_screen_key_event(uint16_t keys)
         ti_key_event_t key_event;
 		bool valid_key = true;
 
-		if (keys & KEY_PLUS) {
+		if (keys & Keypad::Keys::Plus) {
 			key_event = TI_KE_UP;
-		} else if (keys & KEY_MINUS) {
+		} else if (keys & Keypad::Keys::Minus) {
 			key_event = TI_KE_DOWN;
-		} else if (keys & KEY_MENU) {
+		} else if (keys & Keypad::Keys::Menu) {
 			key_event = TI_KE_SELECT;
-		} else if (keys & KEY_LEFT) {
+		} else if (keys & Keypad::Keys::Left) {
 			key_event = TI_KE_LEFT;
-		} else if (keys & KEY_RIGHT) {
+		} else if (keys & Keypad::Keys::Right) {
 			key_event = TI_KE_RIGHT;
 		} else {
 			valid_key = false;

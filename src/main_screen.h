@@ -18,16 +18,15 @@
     Created on 2017-01-02
 */
 
-#ifndef MAIN_SCREEN_H
-#define	MAIN_SCREEN_H
-	
+#pragma once
+
+#include "keypad.h"
 #include "ui_result.h"
+
 #include <stdint.h>
 
 void main_screen_init();
 void main_screen_draw();
 void main_screen_update();
-ui_result main_screen_handle_keys(uint16_t keys);
-
-#endif	/* MAIN_SCREEN_H */
+ui_result main_screen_handle_keys(Keypad::Keys keys);
 

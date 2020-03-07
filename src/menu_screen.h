@@ -18,15 +18,13 @@
     Created on 2017-01-08
 */
 
-#ifndef MENU_SCREEN_H
-#define	MENU_SCREEN_H
+#pragma once
 
+#include "keypad.h"
 #include "ui_result.h"
+
 #include <stdint.h>
 
 void menu_screen_init();
 void menu_screen_draw();
-ui_result menu_screen_handle_handle_keys(uint16_t keys);
-
-#endif	/* MENU_SCREEN_H */
-
+ui_result menu_screen_handle_handle_keys(Keypad::Keys keys);

@@ -78,7 +78,7 @@ void scheduling_screen_draw()
 	update_schedule_bar();
 }
 
-ui_result scheduling_screen_handle_keys(uint16_t keys)
+ui_result scheduling_screen_handle_keys(Keypad::Keys keys)
 {
 	// 1: advance 15 minutes (long: go back 15 minutes)
 	// 2: advance 1 day (long: go back 1 day)
@@ -87,33 +87,33 @@ ui_result scheduling_screen_handle_keys(uint16_t keys)
 	// 5: set nighttime mode + advance 15 minutes
 	// 6: set daytime mode + advance 15 minutes
 	
-	if (keys & KEY_PLUS) {
+	if (keys & Keypad::Keys::Plus) {
 		set_mode_and_advance(true);
 		// if (keys & KEY_LONG_PRESS)
 		// 	prev_interval();
 		// else
 		// 	next_interval();
-	} else if (keys & KEY_MINUS) {
+	} else if (keys & Keypad::Keys::Minus) {
 		set_mode_and_advance(false);
 		// if (keys & KEY_LONG_PRESS)
 		// 	prev_day();
 		// else
 		// 	next_day();
-	} else if (keys & KEY_MENU) {
+	} else if (keys & Keypad::Keys::Menu) {
 		if (++sch_screen.menu_press_cnt == 2) {
 			sch_screen.menu_press_cnt = 0;
-			if (!(keys & KEY_LONG_PRESS)) {
+			if (!(keys & Keypad::Keys::LongPress)) {
 				apply_changes();
 			}	
 			return UI_RESULT_SWITCH_MAIN_SCREEN;
 		}
-	} else if (keys & KEY_BOOST) {
+	} else if (keys & Keypad::Keys::Boost) {
 		next_day();
 		// return UI_RESULT_SWITCH_MAIN_SCREEN;
-	} else if (keys & KEY_LEFT) {
+	} else if (keys & Keypad::Keys::Left) {
 		prev_interval();
 		// set_mode_and_advance(false);
-	} else if (keys & KEY_RIGHT) {
+	} else if (keys & Keypad::Keys::Right) {
 		next_interval();
 		// set_mode_and_advance(true);
 	}

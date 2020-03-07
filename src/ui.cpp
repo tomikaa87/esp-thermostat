@@ -87,9 +87,9 @@ void ui_update()
 	update_display_active_state();
 }
 
-void ui_handle_keys(uint16_t keys)
+void ui_handle_keys(Keypad::Keys keys)
 {
-	static uint16_t last_keys = 0;
+	static auto last_keys = Keypad::Keys::None;
 	if (last_keys != keys) {
 #ifdef ENABLE_DEBUG
 		printf("keys: %04X\r\n", keys);
@@ -97,7 +97,7 @@ void ui_handle_keys(uint16_t keys)
 		last_keys = keys;
 	}
 
-	if (keys == 0)
+	if (keys == Keypad::Keys::None)
 		return;
 
 	ui.last_keypress_time = clock_epoch;

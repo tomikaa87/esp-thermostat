@@ -147,7 +147,7 @@ void main_screen_update()
 	update_schedule_bar();
 }
 
-ui_result main_screen_handle_keys(uint16_t keys)
+ui_result main_screen_handle_keys(Keypad::Keys keys)
 {
 	// 1: increase temperature (long: repeat)
 	// 2: decrease temperature (long: repeat)
@@ -156,18 +156,18 @@ ui_result main_screen_handle_keys(uint16_t keys)
 	// 5: daytime manual override -> back to automatic
 	// 6: nighttime manual override -> back to automatic
 
-	if (keys & KEY_PLUS) {
+	if (keys & Keypad::Keys::Plus) {
 		heatctl_inc_target_temp();
-	} else if (keys & KEY_MINUS) {
+	} else if (keys & Keypad::Keys::Minus) {
 		heatctl_dec_target_temp();
-	} else if (keys & KEY_MENU) {
+	} else if (keys & Keypad::Keys::Menu) {
 		// Avoid entering the menu while exiting
 		// from another screen with long press
-		if (!(keys & KEY_LONG_PRESS)) {
+		if (!(keys & Keypad::Keys::LongPress)) {
 			return UI_RESULT_SWITCH_MENU_SCREEN;
 		}
-	} else if (keys & KEY_BOOST) {
-		if (keys & KEY_LONG_PRESS) {
+	} else if (keys & Keypad::Keys::Boost) {
+		if (keys & Keypad::Keys::LongPress) {
 			if (heatctl_is_boost_active()) {
 				heatctl_deactivate_boost();
 			}
@@ -179,7 +179,7 @@ ui_result main_screen_handle_keys(uint16_t keys)
 		}
 	// } else if (keys & KEY_LEFT) {
 	// 	heatctl_deactivate_boost();
-	} else if (keys & KEY_RIGHT) {
+	} else if (keys & Keypad::Keys::Right) {
 		return UI_RESULT_SWITCH_SCHEDULING_SCREEN;
 	}
 

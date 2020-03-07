@@ -18,15 +18,13 @@
     Created on 2017-01-07
 */
 
-#ifndef SCHEDULING_SCREEN_H
-#define	SCHEDULING_SCREEN_H
+#pragma once
 
+#include "keypad.h"
 #include "ui_result.h"
+
 #include <stdint.h>
 	
 void scheduling_screen_init();
 void scheduling_screen_draw();
-ui_result scheduling_screen_handle_keys(uint16_t keys);
-
-#endif	/* SCHEDULING_SCREEN_H */
-
+ui_result scheduling_screen_handle_keys(Keypad::Keys keys);

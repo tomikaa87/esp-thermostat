@@ -175,7 +175,7 @@ void menu_screen_draw()
 	}
 }
 
-ui_result menu_screen_handle_handle_keys(uint16_t keys)
+ui_result menu_screen_handle_handle_keys(Keypad::Keys keys)
 {
 	if (menu.page != menu_s::PAGE_WIFI_PASSWORD && menu.page != menu_s::PAGE_WIFI) {
 		// 1: increment current value
@@ -185,34 +185,34 @@ ui_result menu_screen_handle_handle_keys(uint16_t keys)
 		// 5: navigate to previous page
 		// 6: navigate to next page
 
-		if (keys & KEY_PLUS) {
+		if (keys & Keypad::Keys::Plus) {
 			adjust_value(1);
-		} else if (keys & KEY_MINUS) {
+		} else if (keys & Keypad::Keys::Minus) {
 			adjust_value(-1);
-		} else if (keys & KEY_MENU) {
+		} else if (keys & Keypad::Keys::Menu) {
 			apply_settings();
 			return UI_RESULT_SWITCH_MAIN_SCREEN;
-		} else if (keys & KEY_BOOST) {
+		} else if (keys & Keypad::Keys::Boost) {
 			revert_settings();
 			return UI_RESULT_SWITCH_MAIN_SCREEN;
-		} else if (keys & KEY_LEFT) {
+		} else if (keys & Keypad::Keys::Left) {
 			previous_page();
-		} else if (keys & KEY_RIGHT) {
+		} else if (keys & Keypad::Keys::Right) {
 			next_page();
 		}
 	} else if (menu.page == menu_s::PAGE_WIFI_PASSWORD) {
 		ti_key_event_t key_event;
 		bool valid_key = true;
 
-		if (keys & KEY_PLUS) {
+		if (keys & Keypad::Keys::Plus) {
 			key_event = TI_KE_UP;
-		} else if (keys & KEY_MINUS) {
+		} else if (keys & Keypad::Keys::Minus) {
 			key_event = TI_KE_DOWN;
-		} else if (keys & KEY_MENU) {
+		} else if (keys & Keypad::Keys::Menu) {
 			key_event = TI_KE_SELECT;
-		} else if (keys & KEY_LEFT) {
+		} else if (keys & Keypad::Keys::Left) {
 			key_event = TI_KE_LEFT;
-		} else if (keys & KEY_RIGHT) {
+		} else if (keys & Keypad::Keys::Right) {
 			key_event = TI_KE_RIGHT;
 		} else {
 			valid_key = false;

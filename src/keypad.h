@@ -18,8 +18,7 @@
     Created on 2016-12-30
 */
 
-#ifndef KEYPAD_H
-#define KEYPAD_H
+#pragma once
 
 #include <stdint.h>
 
@@ -44,4 +43,67 @@ enum {
 void keypad_init();
 uint16_t keypad_task();
 
-#endif // KEYPAD_H
+class Keypad
+{
+public:
+    enum class Keys : uint8_t
+    {
+        None,
+
+        Row1Col1        = 1 << 0,
+        Row1Col2        = 1 << 1,
+        Row1Col3        = 1 << 2,
+
+        Row2Col1        = 1 << 3,
+        Row2Col2        = 1 << 4,
+        Row2Col3        = 1 << 5,
+
+        KeycodeMask     = 0x3f,
+        LongPress       = 0x80,
+
+        // Mapping
+        Plus            = Row1Col1,
+        Minus           = Row1Col2,
+        Boost           = Row1Col3,
+        Menu            = Row2Col1,
+        Right           = Row2Col2,
+        Left            = Row2Col3
+    };
+
+    Keypad();
+
+    Keys scan();
+
+private:
+    enum class State
+    {
+        Idle,
+        Pressed,
+        Repeating
+    };
+
+    State _state = State::Idle;
+    Keys _pressedKeys = Keys::None;
+    uint8_t _pressDuration = 0;
+    uint8_t _delay = 0;
+    uint32_t _lastScanTimestamp = 0;
+
+    Keys readInputs() const;
+    void tick();
+};
+
+inline Keypad::Keys operator |(const Keypad::Keys k1, const Keypad::Keys k2)
+{
+    return static_cast<Keypad::Keys>(static_cast<uint8_t>(k1) | static_cast<uint8_t>(k2));
+}
+
+inline bool operator &(const Keypad::Keys k1, const Keypad::Keys k2)
+{
+    return static_cast<Keypad::Keys>(static_cast<uint8_t>(k1) & static_cast<uint8_t>(k2)) != Keypad::Keys::None;
+}
+
+inline Keypad::Keys& operator |=(Keypad::Keys& keys, const Keypad::Keys& k)
+{
+    keys = keys | k;
+    return keys;
+}

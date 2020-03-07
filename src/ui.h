@@ -18,14 +18,12 @@
     Created on 2017-01-07
 */
 
-#ifndef UI_H
-#define	UI_H
+#pragma once
+
+#include "keypad.h"
 	
 #include <stdint.h>
 
 void ui_init();
 void ui_update();
-void ui_handle_keys(uint16_t keys);
-
-#endif	/* UI_H */
-
+void ui_handle_keys(Keypad::Keys keys);

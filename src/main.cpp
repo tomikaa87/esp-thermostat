@@ -30,10 +30,12 @@
 #include "Peripherals.h"
 
 #include <ctime>
+#include <memory>
 
 static DisplayInitializer* display = nullptr;
 static BlynkHandler* blynk = nullptr;
 static NTPClient* ntp = nullptr;
+static std::unique_ptr<Keypad> keypad;
 
 static constexpr auto LocalTimeOffsetMinutes = 60;
 static constexpr auto LocalTimeDstOffsetMinutes = 60;
@@ -142,7 +144,7 @@ void setup()
     settings_load();
 
     Serial.println("Initializing keypad...");
-    keypad_init();
+    keypad.reset(new Keypad);
 
     Serial.println("Initializing HeatCtl...");
     heatctl_init();
@@ -341,7 +343,7 @@ void loop()
         }
     }
 
-    const auto pressedKeys = keypad_task();
+    const auto pressedKeys = keypad->scan();
     ui_handle_keys(pressedKeys);
 
     blynk->task();
