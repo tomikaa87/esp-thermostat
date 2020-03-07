@@ -36,6 +36,7 @@ static DisplayInitializer* display = nullptr;
 static BlynkHandler* blynk = nullptr;
 static NTPClient* ntp = nullptr;
 static std::unique_ptr<Keypad> keypad;
+static std::unique_ptr<Ui> ui;
 
 static constexpr auto LocalTimeOffsetMinutes = 60;
 static constexpr auto LocalTimeDstOffsetMinutes = 60;
@@ -150,7 +151,7 @@ void setup()
     heatctl_init();
 
     Serial.println("Initializing UI...");
-    ui_init();
+    ui.reset(new Ui);
 
     connect_wifi();
 
@@ -242,13 +243,13 @@ void updateClock()
 
     using rtc = Peripherals::Clock::Rtc;
     const rtc::DateTime dt{
-        tm->tm_year - 100,
-        tm->tm_mon + 1,
-        tm->tm_mday,
-        tm->tm_wday + 1,
-        tm->tm_hour,
-        tm->tm_min,
-        tm->tm_sec
+        static_cast<uint8_t>(tm->tm_year - 100),
+        static_cast<uint8_t>(tm->tm_mon + 1),
+        static_cast<uint8_t>(tm->tm_mday),
+        static_cast<uint8_t>(tm->tm_wday + 1),
+        static_cast<uint8_t>(tm->tm_hour),
+        static_cast<uint8_t>(tm->tm_min),
+        static_cast<uint8_t>(tm->tm_sec)
     };
     rtc::setDateTime(dt);
 
@@ -297,7 +298,7 @@ void updateBlynk()
     blynk->updateIsHeatingActive(heatctl_is_active());
     blynk->updateMode(heatctl_mode());
     blynk->updateNightTimeTemperature(heatctl_night_time_temp() / 10.f);
-    
+
     const auto ns = heatctl_next_state();
     blynk->updateNextSwitch(ns.state, ns.weekday, ns.hour, ns.minute);
 }
@@ -315,7 +316,7 @@ void loop()
         // ds18x20_update();
         Peripherals::Sensors::MainTemperature::update();
         heatctl_task();
-        ui_update();
+        ui->update();
         lastUpdate = millis();
     }
 
@@ -328,7 +329,7 @@ void loop()
         syncRtc();
         lastRtcSync = millis();
     }
-    
+
     if (millis() - lastNtpSync >= NtpSyncInterval)
     {
         if (ntp->forceUpdate())
@@ -344,7 +345,7 @@ void loop()
     }
 
     const auto pressedKeys = keypad->scan();
-    ui_handle_keys(pressedKeys);
+    ui->handleKeyPress(pressedKeys);
 
     blynk->task();
 }

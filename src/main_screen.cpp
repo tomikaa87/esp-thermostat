@@ -35,153 +35,153 @@
 #include "Peripherals.h"
 
 static struct {
-	unsigned indicator: 2;
-	unsigned boost_indicator: 1;
-	unsigned: 0;
+    unsigned indicator: 2;
+    unsigned boost_indicator: 1;
+    unsigned: 0;
 
-	uint8_t last_schedule_index;
+    uint8_t last_schedule_index;
 } state;
 
 static void draw_temperature_display()
 {
-	const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
-	draw_temperature_value(10, reading / 100,
-		(reading % 100) / 10);
+    const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
+    draw_temperature_value(10, reading / 100,
+        (reading % 100) / 10);
 }
 
 static void update_mode_indicator()
 {
-	switch (heatctl_mode())
-	{
-	case HC_MODE_BOOST:
-	case HC_MODE_NORMAL:
-		if (heatctl_is_active()) {
-			if (state.indicator != DH_MODE_HEATING)
-				state.indicator = DH_MODE_HEATING;
-			else
-				return;
-		} else {
-			if (state.indicator != DH_NO_INDICATOR)
-				state.indicator = DH_NO_INDICATOR;
-			else
-				return;
-		}
-		break;
+    switch (heatctl_mode())
+    {
+    case HC_MODE_BOOST:
+    case HC_MODE_NORMAL:
+        if (heatctl_is_active()) {
+            if (state.indicator != DH_MODE_HEATING)
+                state.indicator = DH_MODE_HEATING;
+            else
+                return;
+        } else {
+            if (state.indicator != DH_NO_INDICATOR)
+                state.indicator = DH_NO_INDICATOR;
+            else
+                return;
+        }
+        break;
 
-	case HC_MODE_OFF:
-		if (state.indicator != DH_MODE_OFF) {
-			state.indicator = DH_MODE_OFF;
-			break;
-		} else {
-			return;
-		}
-	}
+    case HC_MODE_OFF:
+        if (state.indicator != DH_MODE_OFF) {
+            state.indicator = DH_MODE_OFF;
+            break;
+        } else {
+            return;
+        }
+    }
 
-	draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
+    draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
 }
 
 static void update_schedule_bar()
 {
-	const struct tm* t = gmtime(&clock_epoch);
+    const struct tm* t = gmtime(&clock_epoch);
 
-	draw_schedule_bar(settings.schedule.days[t->tm_wday]);
+    draw_schedule_bar(settings.schedule.days[t->tm_wday]);
 
-	uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
+    uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
 
-	if (idx != state.last_schedule_index) {
-		state.last_schedule_index = idx;
-		draw_schedule_indicator(idx);
-	}
+    if (idx != state.last_schedule_index) {
+        state.last_schedule_index = idx;
+        draw_schedule_indicator(idx);
+    }
 }
 
 static void draw_target_temp_boost_indicator()
 {
-	char s[15] = "";
+    char s[15] = "";
 
-	if (!heatctl_is_boost_active()) {
-		uint16_t temp = heatctl_target_temp();
-		sprintf(s, "     %2d.%d C", temp / 10, temp % 10);
-	} else {
-		time_t secs = heatctl_boost_remaining_secs();
-		uint16_t minutes = secs / 60;
-		secs -= minutes * 60;
+    if (!heatctl_is_boost_active()) {
+        uint16_t temp = heatctl_target_temp();
+        sprintf(s, "     %2d.%d C", temp / 10, temp % 10);
+    } else {
+        time_t secs = heatctl_boost_remaining_secs();
+        uint16_t minutes = secs / 60;
+        secs -= minutes * 60;
 
-		sprintf(s, " BST %3u:%02ld", minutes, secs);
-	}
+        sprintf(s, " BST %3u:%02ld", minutes, secs);
+    }
 
-	text_draw(s, 0, 60, 0, false);
+    text_draw(s, 0, 60, 0, false);
 }
 
 static void draw_clock()
 {
-	const struct tm* t = gmtime(&clock_epoch);
+    const struct tm* t = gmtime(&clock_epoch);
 
-	char time_fmt[10] = { 6 };
-	sprintf(time_fmt, "%02d:%02d", t->tm_hour, t->tm_min);
+    char time_fmt[10] = { 6 };
+    sprintf(time_fmt, "%02d:%02d", t->tm_hour, t->tm_min);
 
-	text_draw(time_fmt, 0, 0, 0, false);
-	draw_weekday(33, t->tm_wday);
+    text_draw(time_fmt, 0, 0, 0, false);
+    draw_weekday(33, t->tm_wday);
 }
 
 void main_screen_init()
 {
-	state.indicator = 0;
-	state.boost_indicator = 0;
+    state.indicator = 0;
+    state.boost_indicator = 0;
 }
 
 void main_screen_draw()
 {
-	state.last_schedule_index = 255;
+    state.last_schedule_index = 255;
 
-	update_schedule_bar();
-	main_screen_update();
-	draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
+    update_schedule_bar();
+    main_screen_update();
+    draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
 }
 
 void main_screen_update()
 {
-	draw_temperature_display();
-	draw_clock();
-	update_mode_indicator();
-	draw_target_temp_boost_indicator();
-	update_schedule_bar();
+    draw_temperature_display();
+    draw_clock();
+    update_mode_indicator();
+    draw_target_temp_boost_indicator();
+    update_schedule_bar();
 }
 
-ui_result main_screen_handle_keys(Keypad::Keys keys)
+UiResult main_screen_handle_keys(Keypad::Keys keys)
 {
-	// 1: increase temperature (long: repeat)
-	// 2: decrease temperature (long: repeat)
-	// 3: menu
-	// 4: boost start, extend x minutes (long: stop)
-	// 5: daytime manual override -> back to automatic
-	// 6: nighttime manual override -> back to automatic
+    // 1: increase temperature (long: repeat)
+    // 2: decrease temperature (long: repeat)
+    // 3: menu
+    // 4: boost start, extend x minutes (long: stop)
+    // 5: daytime manual override -> back to automatic
+    // 6: nighttime manual override -> back to automatic
 
-	if (keys & Keypad::Keys::Plus) {
-		heatctl_inc_target_temp();
-	} else if (keys & Keypad::Keys::Minus) {
-		heatctl_dec_target_temp();
-	} else if (keys & Keypad::Keys::Menu) {
-		// Avoid entering the menu while exiting
-		// from another screen with long press
-		if (!(keys & Keypad::Keys::LongPress)) {
-			return UI_RESULT_SWITCH_MENU_SCREEN;
-		}
-	} else if (keys & Keypad::Keys::Boost) {
-		if (keys & Keypad::Keys::LongPress) {
-			if (heatctl_is_boost_active()) {
-				heatctl_deactivate_boost();
-			}
-		} else {
-			if (!heatctl_is_boost_active())
-				heatctl_activate_boost();
-			else
-				heatctl_extend_boost();
-		}
-	// } else if (keys & KEY_LEFT) {
-	// 	heatctl_deactivate_boost();
-	} else if (keys & Keypad::Keys::Right) {
-		return UI_RESULT_SWITCH_SCHEDULING_SCREEN;
-	}
+    if (keys & Keypad::Keys::Plus) {
+        heatctl_inc_target_temp();
+    } else if (keys & Keypad::Keys::Minus) {
+        heatctl_dec_target_temp();
+    } else if (keys & Keypad::Keys::Menu) {
+        // Avoid entering the menu while exiting
+        // from another screen with long press
+        if (!(keys & Keypad::Keys::LongPress)) {
+            return UiResult::SwitchMainScreen;
+        }
+    } else if (keys & Keypad::Keys::Boost) {
+        if (keys & Keypad::Keys::LongPress) {
+            if (heatctl_is_boost_active()) {
+                heatctl_deactivate_boost();
+            }
+        } else {
+            if (!heatctl_is_boost_active())
+                heatctl_activate_boost();
+            else
+                heatctl_extend_boost();
+        }
+    // } else if (keys & KEY_LEFT) {
+    // 	heatctl_deactivate_boost();
+    } else if (keys & Keypad::Keys::Right) {
+        return UiResult::SwitchSchedulingScreen;
+    }
 
-	return UI_RESULT_UPDATE;
+    return UiResult::Update;
 }

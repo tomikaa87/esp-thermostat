@@ -18,3 +18,9 @@ platformio.vcxproj*
 Debug/
 .vs/
 .piolibdeps/
+*.stl
+*.factory
+*.out
+*.spt
+*.FCStd1
+backup/

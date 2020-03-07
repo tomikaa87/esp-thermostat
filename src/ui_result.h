@@ -13,21 +13,17 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-08
 */
 
-#ifndef UI_RESULT_H
-#define	UI_RESULT_H
+#pragma once
 
-typedef enum {
-	UI_RESULT_IDLE,
-	UI_RESULT_UPDATE,
-	UI_RESULT_SWITCH_MAIN_SCREEN,
-	UI_RESULT_SWITCH_MENU_SCREEN,
-	UI_RESULT_SWITCH_SCHEDULING_SCREEN
-} ui_result;
-
-#endif	/* UI_RESULT_H */
-
+enum class UiResult {
+    Idle,
+    Update,
+    SwitchMainScreen,
+    SwitchMenuScreen,
+    SwitchSchedulingScreen
+};

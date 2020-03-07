@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2020-01-08
 */
@@ -184,24 +184,24 @@ void wifi_screen_key_event(Keypad::Keys keys)
 
     case SCR_PASSWORD: {
         ti_key_event_t key_event;
-		bool valid_key = true;
+        bool valid_key = true;
 
-		if (keys & Keypad::Keys::Plus) {
-			key_event = TI_KE_UP;
-		} else if (keys & Keypad::Keys::Minus) {
-			key_event = TI_KE_DOWN;
-		} else if (keys & Keypad::Keys::Menu) {
-			key_event = TI_KE_SELECT;
-		} else if (keys & Keypad::Keys::Left) {
-			key_event = TI_KE_LEFT;
-		} else if (keys & Keypad::Keys::Right) {
-			key_event = TI_KE_RIGHT;
-		} else {
-			valid_key = false;
-		}
+        if (keys & Keypad::Keys::Plus) {
+            key_event = TI_KE_UP;
+        } else if (keys & Keypad::Keys::Minus) {
+            key_event = TI_KE_DOWN;
+        } else if (keys & Keypad::Keys::Menu) {
+            key_event = TI_KE_SELECT;
+        } else if (keys & Keypad::Keys::Left) {
+            key_event = TI_KE_LEFT;
+        } else if (keys & Keypad::Keys::Right) {
+            key_event = TI_KE_RIGHT;
+        } else {
+            valid_key = false;
+        }
 
-		if (valid_key) {
-			const ti_key_event_result_t res = text_input_key_event(key_event);
+        if (valid_key) {
+            const ti_key_event_result_t res = text_input_key_event(key_event);
 
             switch (res) {
             case TI_KE_ACCEPT:
@@ -219,7 +219,7 @@ void wifi_screen_key_event(Keypad::Keys keys)
             default:
                 break;
             }
-		}
+        }
         break;
     }        
     }

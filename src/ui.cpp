@@ -20,7 +20,6 @@
 
 #include "config.h"
 #include "ui.h"
-#include "keypad.h"
 #include "settings.h"
 #include "clock.h"
 
@@ -34,173 +33,154 @@
 #include "menu_screen.h"
 #include "scheduling_screen.h"
 
-#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include <time.h>
 
 // #define ENABLE_DEBUG
 
-static void update_display_active_state();
-static bool is_ui_active();
-
-static struct ui_s {
-	enum {
-		SCR_MAIN = 0,
-		SCR_MENU,
-		SCR_SCHEDULING
-	} screen;
-
-	time_t last_keypress_time;
-} ui;
-
-void ui_init()
+Ui::Ui()
 {
-	memset(&ui, 0, sizeof(struct ui_s));
-
 #ifndef CONFIG_USE_OLED_SH1106
-	ssd1306_init();
-	ssd1306_set_brightness(settings.display.brightness);
+    ssd1306_init();
+    ssd1306_set_brightness(settings.display.brightness);
 #else
-	sh1106_init();
-	sh1106_set_contrast(settings.display.brightness);
+    sh1106_init();
+    sh1106_set_contrast(settings.display.brightness);
 #endif
 
-	main_screen_init();
-	main_screen_draw();
+    main_screen_init();
+    main_screen_draw();
 }
 
-void ui_update()
+void Ui::update()
 {
-	switch (ui.screen) {
-	case ui_s::SCR_MAIN:
-		main_screen_update();
-		break;
+    switch (_screen)
+    {
+        case Screen::Main:
+            main_screen_update();
+            break;
 
-	case ui_s::SCR_MENU:
-		break;
+        case Screen::Menu:
+            break;
 
-	case ui_s::SCR_SCHEDULING:
-		break;
-	}
+        case Screen::Scheduler:
+            break;
+    }
 
-	update_display_active_state();
+    updateActiveState();
 }
 
-void ui_handle_keys(Keypad::Keys keys)
+void Ui::handleKeyPress(const Keypad::Keys keys)
 {
-	static auto last_keys = Keypad::Keys::None;
-	if (last_keys != keys) {
-#ifdef ENABLE_DEBUG
-		printf("keys: %04X\r\n", keys);
-#endif
-		last_keys = keys;
-	}
+    if (keys == Keypad::Keys::None)
+        return;
 
-	if (keys == Keypad::Keys::None)
-		return;
+    _lastKeyPressTime = clock_epoch;
 
-	ui.last_keypress_time = clock_epoch;
-
-	// If the display is sleeping, use this keypress to wake it up,
-	// but don't interact with the UI while it's invisible.
+    // If the display is sleeping, use this keypress to wake it up,
+    // but don't interact with the UI while it's invisible.
 #ifndef CONFIG_USE_OLED_SH1106	
-	if (!ssd1306_is_display_enabled()) {
+    if (!ssd1306_is_display_enabled()) {
 #else
-	if (!sh1106_is_display_on()) {
+    if (!sh1106_is_display_on()) {
 #endif
-		return;
-	}
+        return;
+    }
 
-	ui_result result = UI_RESULT_IDLE;
+    auto result = UiResult::Idle;
 
-	switch (ui.screen) {
-	case ui_s::SCR_MAIN:
-		result = main_screen_handle_keys(keys);
-		break;
+    switch (_screen)
+    {
+        case Screen::Main:
+            result = main_screen_handle_keys(keys);
+            break;
 
-	case ui_s::SCR_MENU:
-		result = menu_screen_handle_handle_keys(keys);
-		break;
+        case Screen::Menu:
+            result = menu_screen_handle_handle_keys(keys);
+            break;
 
-	case ui_s::SCR_SCHEDULING:
-		result = scheduling_screen_handle_keys(keys);
-		break;
-	}
+        case Screen::Scheduler:
+            result = scheduling_screen_handle_keys(keys);
+            break;
+    }
 
 #ifdef ENABLE_DEBUG
-	printf("ui_result=%d\r\n", result);
+    printf("ui_result=%d\r\n", result);
 #endif
 
-	if (result == UI_RESULT_IDLE)
-		return;
+    if (result == UiResult::Idle)
+        return;
 
-	if (result == UI_RESULT_UPDATE) {
-		ui_update();
-		return;
-	}
+    if (result == UiResult::Update) {
+        update();
+        return;
+    }
 
-	// Clear the screen before switching
+    // Clear the screen before switching
 #ifndef CONFIG_USE_OLED_SH1106
-	ssd1306_clear();
+    ssd1306_clear();
 #else
-	sh1106_clear();
+    sh1106_clear();
 #endif
 
-	switch (result) {
-	case UI_RESULT_SWITCH_MAIN_SCREEN:
-		ui.screen = ui_s::SCR_MAIN;
-		main_screen_draw();
-		break;
+    switch (result)
+    {
+        case UiResult::SwitchMainScreen:
+            _screen = Screen::Main;
+            main_screen_draw();
+            break;
 
-	case UI_RESULT_SWITCH_MENU_SCREEN:
-		ui.screen = ui_s::SCR_MENU;
-		menu_screen_init();
-		menu_screen_draw();
-		break;
+        case UiResult::SwitchMenuScreen:
+            _screen = Screen::Menu;
+            menu_screen_init();
+            menu_screen_draw();
+            break;
 
-	case UI_RESULT_SWITCH_SCHEDULING_SCREEN:
-		ui.screen = ui_s::SCR_SCHEDULING;
-		scheduling_screen_init();
-		scheduling_screen_draw();
-		break;
-	}
+        case UiResult::SwitchSchedulingScreen:
+            _screen = Screen::Scheduler;
+            scheduling_screen_init();
+            scheduling_screen_draw();
+            break;
+
+        default:
+            break;
+    }
 
 #ifdef ENABLE_DEBUG
-	printf("ui.screen=%d\r\n", ui.screen);
+    printf("ui.screen=%d\r\n", ui.screen);
 #endif
 }
 
-static void update_display_active_state()
+void Ui::updateActiveState()
 {
 #ifndef CONFIG_USE_OLED_SH1106
-	if (is_ui_active()) {
-		if (!ssd1306_is_display_enabled()) {
-			ssd1306_set_display_enabled(1);
-		}
-	} else {
-		if (ssd1306_is_display_enabled()) {
-			ssd1306_set_display_enabled(0);
-		}
-	}
+    if (isActive()) {
+        if (!ssd1306_is_display_enabled()) {
+            ssd1306_set_display_enabled(1);
+        }
+    } else {
+        if (ssd1306_is_display_enabled()) {
+            ssd1306_set_display_enabled(0);
+        }
+    }
 #else
-	if (is_ui_active()) {
-		if (!sh1106_is_display_on()) {
-			sh1106_set_display_on(true);
-		}
-	} else {
-		if (sh1106_is_display_on()) {
-			sh1106_set_display_on(false);
-		}
-	}
+    if (isActive()) {
+        if (!sh1106_is_display_on()) {
+            sh1106_set_display_on(true);
+        }
+    } else {
+        if (sh1106_is_display_on()) {
+            sh1106_set_display_on(false);
+        }
+    }
 #endif
 }
 
-static bool is_ui_active()
+bool Ui::isActive() const
 {
-	if (settings.display.timeout_secs == 0) {
-		return true;
-	}
+    if (settings.display.timeout_secs == 0) {
+        return true;
+    }
 
-	return (clock_epoch - ui.last_keypress_time) < (time_t)(settings.display.timeout_secs);
+    return (clock_epoch - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
 }

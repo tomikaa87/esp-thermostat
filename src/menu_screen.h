@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-08
 */
@@ -27,4 +27,4 @@
 
 void menu_screen_init();
 void menu_screen_draw();
-ui_result menu_screen_handle_handle_keys(Keypad::Keys keys);
+UiResult menu_screen_handle_handle_keys(Keypad::Keys keys);

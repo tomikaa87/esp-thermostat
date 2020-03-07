@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-07
 */
@@ -24,7 +24,7 @@
 #include "ui_result.h"
 
 #include <stdint.h>
-	
+
 void scheduling_screen_init();
 void scheduling_screen_draw();
-ui_result scheduling_screen_handle_keys(Keypad::Keys keys);
+UiResult scheduling_screen_handle_keys(Keypad::Keys keys);

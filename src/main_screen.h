@@ -28,5 +28,5 @@
 void main_screen_init();
 void main_screen_draw();
 void main_screen_update();
-ui_result main_screen_handle_keys(Keypad::Keys keys);
+UiResult main_screen_handle_keys(Keypad::Keys keys);
 

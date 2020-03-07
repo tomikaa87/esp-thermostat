@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-07
 */
@@ -21,9 +21,27 @@
 #pragma once
 
 #include "keypad.h"
-	
-#include <stdint.h>
 
-void ui_init();
-void ui_update();
-void ui_handle_keys(Keypad::Keys keys);
+#include <ctime>
+
+class Ui
+{
+public:
+    Ui();
+
+    void update();
+    void handleKeyPress(Keypad::Keys keys);
+
+private:
+    std::time_t _lastKeyPressTime = 0;
+
+    enum class Screen
+    {
+        Main,
+        Menu,
+        Scheduler
+    } _screen = Screen::Main;
+
+    void updateActiveState();
+    bool isActive() const;
+};
