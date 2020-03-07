@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2016-12-30
 */
@@ -25,25 +25,25 @@
 
 namespace Params
 {
-	static constexpr auto ScanSampleCount = 10;
-	static constexpr auto ScanReadDelay = 4;
-	static constexpr auto ScanDriveDelay = 7;
-	
-	static constexpr auto PressDurationToRepeat = 15;
-	static constexpr auto ResetDelayAfterKeysChanged = 3;
-	static constexpr auto RepeatInterval = 3;
+    static constexpr auto ScanSampleCount = 10;
+    static constexpr auto ScanReadDelay = 4;
+    static constexpr auto ScanDriveDelay = 7;
 
-	static constexpr auto DriveDelay = 7;
+    static constexpr auto PressDurationToRepeat = 15;
+    static constexpr auto ResetDelayAfterKeysChanged = 3;
+    static constexpr auto RepeatInterval = 3;
+
+    static constexpr auto DriveDelay = 7;
 }
 
 Keypad::Keypad()
 {
-	// TODO move pin numbers to a common config file
-	pinMode(D0, INPUT_PULLUP);
-	pinMode(D3, INPUT_PULLUP);
-	pinMode(D4, INPUT_PULLUP);
-	pinMode(D5, INPUT_PULLUP);
-	pinMode(D6, INPUT_PULLUP);
+    // TODO move pin numbers to a common config file
+    pinMode(D0, INPUT_PULLUP);
+    pinMode(D3, INPUT_PULLUP);
+    pinMode(D4, INPUT_PULLUP);
+    pinMode(D5, INPUT_PULLUP);
+    pinMode(D6, INPUT_PULLUP);
 }
 
 Keypad::Keys Keypad::scan()
@@ -53,55 +53,55 @@ Keypad::Keys Keypad::scan()
         _lastScanTimestamp = millis();
     }
 
-	if (_delay > 0)
-		return Keys::None;
+    if (_delay > 0)
+        return Keys::None;
 
-	const auto readKeys = readInputs();
+    const auto readKeys = readInputs();
 
-	switch (_state)
-	{
-		case State::Idle:
-			// If there is a pressed key, start measuring the
-			// duration until we activate long press mode
-			if (readKeys != Keys::None) {
-				_state = State::Pressed;
-				_pressDuration = 0;
-				_pressedKeys = readKeys;
-				return _pressedKeys;
-			}
-			break;
+    switch (_state)
+    {
+        case State::Idle:
+            // If there is a pressed key, start measuring the
+            // duration until we activate long press mode
+            if (readKeys != Keys::None) {
+                _state = State::Pressed;
+                _pressDuration = 0;
+                _pressedKeys = readKeys;
+                return _pressedKeys;
+            }
+            break;
 
-		case State::Pressed:
-			// If there was a change, reset the state machine
-			// and wait a little bit
-			if (_pressedKeys != readKeys) {
-				_state = State::Idle;
-				_delay = Params::ResetDelayAfterKeysChanged;
-			} else {
-				// The keys are pressed long enough to start repeating
-				if (_pressDuration > Params::PressDurationToRepeat) {
-					_state = State::Repeating;
-					_delay = Params::RepeatInterval;
-					return _pressedKeys | Keys::LongPress;
-				}
-			}
-			break;
+        case State::Pressed:
+            // If there was a change, reset the state machine
+            // and wait a little bit
+            if (_pressedKeys != readKeys) {
+                _state = State::Idle;
+                _delay = Params::ResetDelayAfterKeysChanged;
+            } else {
+                // The keys are pressed long enough to start repeating
+                if (_pressDuration > Params::PressDurationToRepeat) {
+                    _state = State::Repeating;
+                    _delay = Params::RepeatInterval;
+                    return _pressedKeys | Keys::LongPress;
+                }
+            }
+            break;
 
-		case State::Repeating:
-			// If there was a change, reset the state machine
-			// and wait a little bit
-			if (_pressedKeys != readKeys) {
-				_state = State::Idle;
-				_delay = Params::ResetDelayAfterKeysChanged;
-			} else {
-				// Keep on repeating and resetting the delay counter
-				_delay = Params::RepeatInterval;
-				return _pressedKeys | Keys::LongPress;
-			}
-			break;
-	}
+        case State::Repeating:
+            // If there was a change, reset the state machine
+            // and wait a little bit
+            if (_pressedKeys != readKeys) {
+                _state = State::Idle;
+                _delay = Params::ResetDelayAfterKeysChanged;
+            } else {
+                // Keep on repeating and resetting the delay counter
+                _delay = Params::RepeatInterval;
+                return _pressedKeys | Keys::LongPress;
+            }
+            break;
+    }
 
-	return Keys::None;
+    return Keys::None;
 }
 
 /**
@@ -109,13 +109,13 @@ Keypad::Keys Keypad::scan()
  */
 Keypad::Keys Keypad::readInputs() const
 {
-	Keys pressed = Keys::None;
+    Keys pressed = Keys::None;
 
-	for (uint8_t samples = 0; samples < Params::ScanSampleCount; ++samples) {
-		Keys readKeys = Keys::None;
+    for (uint8_t samples = 0; samples < Params::ScanSampleCount; ++samples) {
+        Keys readKeys = Keys::None;
 
-		// Row 1
-		digitalWrite(D5, LOW);
+        // Row 1
+        digitalWrite(D5, LOW);
         pinMode(D5, OUTPUT);
 
         // Col 1
@@ -140,7 +140,7 @@ Keypad::Keys Keypad::readInputs() const
         delayMicroseconds(Params::ScanReadDelay);
         delayMicroseconds(Params::ScanDriveDelay);
 
-		// Row 2
+        // Row 2
         digitalWrite(D6, LOW);
         pinMode(D6, OUTPUT);
 
@@ -166,16 +166,16 @@ Keypad::Keys Keypad::readInputs() const
         delayMicroseconds(Params::ScanReadDelay);
 
         pressed |= readKeys;
-	}
+    }
 
-	return pressed;
+    return pressed;
 }
 
 void Keypad::tick()
 {
-	if (_pressDuration < 255)
-		++_pressDuration;
+    if (_pressDuration < 255)
+        ++_pressDuration;
 
-	if (_delay > 0)
-		--_delay;
+    if (_delay > 0)
+        --_delay;
 }
