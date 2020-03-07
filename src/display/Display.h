@@ -30,6 +30,10 @@ class DisplayImpl
 public:
     using Driver = DriverImpl;
 
+    static constexpr auto Width = Driver::Width;
+    static constexpr auto Height = Driver::Height;
+    static constexpr auto Lines = Driver::Lines;
+
     DisplayImpl() = delete;
 
     static void init()
@@ -73,6 +77,11 @@ public:
                 Driver::sendData(pattern);
             }
         }
+    }
+
+    static bool isPoweredOn()
+    {
+        return Driver::isPoweredOn();
     }
 
     static void powerOff()

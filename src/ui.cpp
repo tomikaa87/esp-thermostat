@@ -18,21 +18,17 @@
     Created on 2017-01-07
 */
 
-#include "config.h"
 #include "ui.h"
 #include "settings.h"
 #include "clock.h"
 
-#ifndef CONFIG_USE_OLED_SH1106
-#include "ssd1306.h"
-#else
-#include "sh1106.h"
-#endif
+#include "display/Display.h"
 
 #include "main_screen.h"
 #include "menu_screen.h"
 #include "scheduling_screen.h"
 
+#include <iostream>
 #include <string.h>
 #include <stdio.h>
 
@@ -40,13 +36,7 @@
 
 Ui::Ui()
 {
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_init();
-    ssd1306_set_brightness(settings.display.brightness);
-#else
-    sh1106_init();
-    sh1106_set_contrast(settings.display.brightness);
-#endif
+    Display::setContrast(settings.display.brightness);
 
     main_screen_init();
     main_screen_draw();
@@ -79,11 +69,8 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
 
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
-#ifndef CONFIG_USE_OLED_SH1106	
-    if (!ssd1306_is_display_enabled()) {
-#else
-    if (!sh1106_is_display_on()) {
-#endif
+    if (!Display::isPoweredOn()) {
+        std::cout << "Ui::handleKeyPress: display is off, ignoring" << std::endl;
         return;
     }
 
@@ -117,11 +104,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     }
 
     // Clear the screen before switching
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_clear();
-#else
-    sh1106_clear();
-#endif
+    Display::clear();
 
     switch (result)
     {
@@ -153,27 +136,15 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
 
 void Ui::updateActiveState()
 {
-#ifndef CONFIG_USE_OLED_SH1106
     if (isActive()) {
-        if (!ssd1306_is_display_enabled()) {
-            ssd1306_set_display_enabled(1);
+        if (!Display::isPoweredOn()) {
+            Display::powerOn();
         }
     } else {
-        if (ssd1306_is_display_enabled()) {
-            ssd1306_set_display_enabled(0);
+        if (Display::isPoweredOn()) {
+            Display::powerOff();
         }
     }
-#else
-    if (isActive()) {
-        if (!sh1106_is_display_on()) {
-            sh1106_set_display_on(true);
-        }
-    } else {
-        if (sh1106_is_display_on()) {
-            sh1106_set_display_on(false);
-        }
-    }
-#endif
 }
 
 bool Ui::isActive() const

@@ -1,7 +1,8 @@
 #include "config.h"
-#include "disp_helper.h"
-#include "text.h"
 #include "text_input.h"
+
+#include "display/Display.h"
+#include "display/Text.h"
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -207,7 +208,7 @@ void text_input_init(char *buf, int buflen, const char* title)
     memset(buf, 0, buflen);
 
     printf("text_input::text_input_init: clearing the display...\n");
-    disp_clear();
+    Display::clear();
 
     printf("text_input::text_input_init: drawing UI elements...\n");
     draw_header();
@@ -254,8 +255,6 @@ static void draw()
     printf("text_input::draw: key_mtx size: %ux%u\n", TI_KEY_MTX_COLS, TI_KEY_MTX_ROWS);
 #endif
 
-    disp_set_page_addressing();
-
     for (uint8_t row = 0; row < TI_KEY_MTX_ROWS; ++row) {
         for (uint8_t col = 0; col < TI_KEY_MTX_COLS; ++col) {
             const uint8_t x = col * (TI_CHAR_WIDTH + TI_SPACE_WIDTH) + TI_ROW_LEFT_OFFSET;
@@ -271,7 +270,7 @@ static void draw()
 #ifdef DEBUG
                 printf("text_input::draw(): col=%d, row=%d, x=%d, y=%d, c='%c'\n", col, row, x, y, c);
 #endif
-                text_draw_char(
+                Text::draw(
                     is_shifted() ? toupper(c) : c,
                     y,
                     x,
@@ -298,7 +297,7 @@ static void draw_input_field()
     printf("text_input::draw_input_field: text offset: %d\n", ctx.txt_offset);
 #endif
 
-    const uint8_t last_col = text_draw(ctx.buf + ctx.txt_offset, TI_ROW_OFFSET, 1, 0, false);
+    const uint8_t last_col = Text::draw(ctx.buf + ctx.txt_offset, TI_ROW_OFFSET, 1, 0, false);
 
     // Fill the remaining space
     if (last_col < 128) {
@@ -310,37 +309,34 @@ static void draw_header()
 {
     printf("text_input::draw_header: drawing title\n");
 
-    text_draw(ctx.title ? ctx.title : "Input text:", 0, 1, 0, false);
+    Text::draw(ctx.title ? ctx.title : "Input text:", 0, 1, 0, false);
 
     printf("text_input::draw_header: drawing separator\n");
 
-    disp_set_page_addressing();
-    disp_goto_row(TI_ROW_OFFSET + 1);
-    disp_goto_col(0);
+    Display::setLine(TI_ROW_OFFSET + 1);
+    Display::setColumn(0);
 
     const uint8_t pattern = 0b00000010;
 
     for (uint8_t i = 0; i < 128; ++i) {
-        disp_send_data(&pattern, 1, 0, false);
+        Display::sendData(&pattern, 1, 0, false);
     }
 }
 
 static void draw_ctrl_keys(int key)
 {
-    disp_set_page_addressing();
-
     // Shift
-    disp_goto_row(TI_ROW_OFFSET + 4);
-    disp_goto_col(1);
-    disp_send_data(
+    Display::setLine(TI_ROW_OFFSET + 4);
+    Display::setColumn(1);
+    Display::sendData(
         key_shift[0],
         sizeof(key_shift[0]) / sizeof(key_shift[0][0]),
         0,
         key == K_SHIFT
     );
-    disp_goto_row(TI_ROW_OFFSET + 5);
-    disp_goto_col(1);
-    disp_send_data(
+    Display::setLine(TI_ROW_OFFSET + 5);
+    Display::setColumn(1);
+    Display::sendData(
         key_shift[1],
         sizeof(key_shift[0]) / sizeof(key_shift[0][0]),
         0,
@@ -348,17 +344,17 @@ static void draw_ctrl_keys(int key)
     );
 
     // Backspace
-    disp_goto_row(TI_ROW_OFFSET + 4);
-    disp_goto_col(105);
-    disp_send_data(
+    Display::setLine(TI_ROW_OFFSET + 4);
+    Display::setColumn(105);
+    Display::sendData(
         key_bckspc[0],
         sizeof(key_bckspc[0]) / sizeof(key_bckspc[0][0]),
         0,
         key == K_BCKSPC
     );
-    disp_goto_row(TI_ROW_OFFSET + 5);
-    disp_goto_col(105);
-    disp_send_data(
+    Display::setLine(TI_ROW_OFFSET + 5);
+    Display::setColumn(105);
+    Display::sendData(
         key_bckspc[1],
         sizeof(key_bckspc[0]) / sizeof(key_bckspc[0][0]),
         0,
@@ -366,14 +362,14 @@ static void draw_ctrl_keys(int key)
     );
 
     // OK
-    text_draw("OK", TI_ROW_OFFSET + 6, 1, 0, key == K_OK);
+    Text::draw("OK", TI_ROW_OFFSET + 6, 1, 0, key == K_OK);
 
     // CANCEL
-    text_draw("CANCEL", TI_ROW_OFFSET + 6, 92, 0, key == K_CANCEL);
+    Text::draw("CANCEL", TI_ROW_OFFSET + 6, 92, 0, key == K_CANCEL);
 
     // Space
     draw_background(TI_ROW_OFFSET + 6, 13, 36, key == ' ' ? 0xff : 0);
-    disp_send_data(key_space, sizeof(key_space) / sizeof(key_space[0]), 0, key == ' ');
+    Display::sendData(key_space, sizeof(key_space) / sizeof(key_space[0]), 0, key == ' ');
     draw_background(TI_ROW_OFFSET + 6, 54, 37, key == ' ' ? 0xff : 0);
 }
 
@@ -384,10 +380,10 @@ static void draw_background(
     const uint8_t pattern
 )
 {
-    disp_goto_row(line);
-    disp_goto_col(start_col);
+    Display::setLine(line);
+    Display::setColumn(start_col);
     for (uint8_t i = 0; i < width; ++i) {
-        disp_send_data(&pattern, 1, 0, false);
+        Display::sendData(&pattern, 1, 0, false);
     }
 }
 
@@ -516,10 +512,10 @@ static ti_key_event_result_t select_key()
             on_bckspc_pressed();
             break;
         case K_OK:
-            disp_clear();
+            Display::clear();
             return TI_KE_ACCEPT;
         case K_CANCEL:
-            disp_clear();
+            Display::clear();
             return TI_KE_CANCEL;
         }
     }

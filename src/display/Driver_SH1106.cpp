@@ -23,6 +23,8 @@
 
 using namespace Driver;
 
+bool SH1106::_poweredOn = false;
+
 enum {
     SH1106_I2C_ADDRESS = 0x3Cu,
     SH1106_I2C_DC_FLAG = 0x40u,
@@ -158,8 +160,14 @@ void SH1106::sendData(const uint8_t* data, const uint8_t length, const uint8_t b
     }
 }
 
+bool SH1106::isPoweredOn()
+{
+    return _poweredOn;
+}
+
 void SH1106::setPowerOn(const bool on)
 {
+    _poweredOn = on;
     sendCommand(SH1106_CMD_SET_DISPLAY_OFF_ON | (on ? 1u : 0u));
 }
 

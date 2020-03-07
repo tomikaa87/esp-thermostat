@@ -1,6 +1,5 @@
 #include "BlynkHandler.h"
 #include "clock.h"
-#include "DisplayInitializer.h"
 #include "heat_ctl.h"
 #include "keypad.h"
 #include "main.h"
@@ -32,7 +31,6 @@
 #include <ctime>
 #include <memory>
 
-static DisplayInitializer* display = nullptr;
 static BlynkHandler* blynk = nullptr;
 static NTPClient* ntp = nullptr;
 static std::unique_ptr<Keypad> keypad;
@@ -105,11 +103,8 @@ void setup()
         eeramStatus.am, eeramStatus.bp, eeramStatus.ase, eeramStatus.event
     );
 
+    Serial.println("Initializing Display...");
     Display::init();
-
-    Serial.println("Initializing DisplayInitializer...");
-    static DisplayInitializer sDisplay;
-    display = &sDisplay;
 
     Serial.println("Initializing RTC...");
 

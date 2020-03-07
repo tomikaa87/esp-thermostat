@@ -18,9 +18,7 @@
     Created on 2017-01-08
 */
 
-#include "config.h"
 #include "menu_screen.h"
-#include "text.h"
 #include "keypad.h"
 #include "draw_helper.h"
 #include "heat_ctl.h"
@@ -30,11 +28,8 @@
 #include "text_input.h"
 #include "wifi_screen.h"
 
-#ifndef CONFIG_USE_OLED_SH1106
-#include "ssd1306.h"
-#else
-#include "sh1106.h"
-#endif
+#include "display/Display.h"
+#include "display/Text.h"
 
 #include <stdio.h>
 
@@ -103,11 +98,7 @@ void menu_screen_init()
 
 void menu_screen_draw()
 {
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_clear();
-#else
-    sh1106_clear();
-#endif
+    Display::clear();
 
     switch (menu.page) {
     case menu_s::PAGE_HEATCTL_MODE:
@@ -165,12 +156,12 @@ void menu_screen_draw()
     if (menu.page != menu_s::PAGE_WIFI) {
         // "<-" previous page indicator
         if (menu.page > menu_s::PAGE_FIRST) {
-            text_draw("<-", 7, 0, 0, false);
+            Text::draw("<-", 7, 0, 0, false);
         }
 
         // "->" next page indicator
         if (menu.page < menu_s::PAGE_LAST - 1) {
-            text_draw("->", 7, 115, 0, false);
+            Text::draw("->", 7, 115, 0, false);
         }
     }
 }
@@ -310,22 +301,18 @@ static void update_page_heatctl_mode()
     char num[3] = { 0 };
     sprintf(num, "%2d", menu.new_settings.heatctl.mode);
 
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_fill_area(0, 3, 128, 3, 0);
-#else
-    sh1106_fill_area(0, 3, 128, 3, 0);
-#endif
+    Display::fillArea(0, 3, 128, 3, 0);
 
     switch (menu.new_settings.heatctl.mode) {
     case HC_MODE_NORMAL:
         graphics_draw_multipage_bitmap(graphics_calendar_icon_20x3p, 20, 3, 20, 2);
-        text_draw("NORMAL", 3, 50, 0, false);
-        text_draw("(SCHEDULE)", 4, 50, 0, false);
+        Text::draw("NORMAL", 3, 50, 0, false);
+        Text::draw("(SCHEDULE)", 4, 50, 0, false);
         break;
 
     case HC_MODE_OFF:
         graphics_draw_multipage_bitmap(graphics_off_icon_20x3p, 20, 3, 20, 2);
-        text_draw("OFF", 3, 50, 0, false);
+        Text::draw("OFF", 3, 50, 0, false);
         break;
     }
 }
@@ -362,14 +349,14 @@ static void update_page_boost_intval()
 {
     char num[3] = { 0 };
     sprintf(num, "%2d", menu.new_settings.heatctl.boost_intval);
-    text_draw_7seg_large(num, 2, 20);
+    Text::draw7Seg(num, 2, 20);
 }
 
 static void update_page_custom_temp_timeout()
 {
     char num[5] = { 0 };
     sprintf(num, "%4u", menu.new_settings.heatctl.custom_temp_timeout);
-    text_draw_7seg_large(num, 2, 20);
+    Text::draw7Seg(num, 2, 20);
 }
 
 static void update_page_temp_correction()
@@ -383,34 +370,30 @@ static void update_page_display_brightness()
 {
     char num[4] = { 0 };
     sprintf(num, "%3d", menu.new_settings.display.brightness);
-    text_draw_7seg_large(num, 2, 20);
+    Text::draw7Seg(num, 2, 20);
 
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_set_brightness(menu.new_settings.display.brightness);
-#else
-    sh1106_set_contrast(menu.new_settings.display.brightness);
-#endif
+    Display::setContrast(menu.new_settings.display.brightness);
 }
 
 static void update_page_display_timeout()
 {
     char num[4] = { 0 };
     sprintf(num, "%3d", menu.new_settings.display.timeout_secs);
-    text_draw_7seg_large(num, 2, 20);
+    Text::draw7Seg(num, 2, 20);
 }
 
 static void update_page_wifi()
 {
-    // text_draw("CONNECTED: YES", 2, 0, 0, false);
-    // text_draw("NETWORK:", 4, 0, 0, false);
-    // text_draw("<SSID>", 5, 0, 0, false);
+    // Text::draw("CONNECTED: YES", 2, 0, 0, false);
+    // Text::draw("NETWORK:", 4, 0, 0, false);
+    // Text::draw("<SSID>", 5, 0, 0, false);
 
     wifi_screen_update();
 }
 
 static void draw_page_title(const char* text)
 {
-    text_draw(text, 0, 0, 0, false);
+    Text::draw(text, 0, 0, 0, false);
 }
 
 static void next_page()
@@ -439,11 +422,7 @@ static void revert_settings()
 {
     menu.new_settings = settings;
 
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_set_brightness(settings.display.brightness);
-#else
-    sh1106_set_contrast(settings.display.brightness);
-#endif
+    Display::setContrast(settings.display.brightness);
 }
 
 static void adjust_value(int8_t amount)

@@ -18,20 +18,15 @@
     Created on 2017-01-07
 */
 
-#include "config.h"
 #include "scheduling_screen.h"
 #include "keypad.h"
-#include "text.h"
 #include "graphics.h"
 #include "settings.h"
 #include "draw_helper.h"
 #include "clock.h"
 
-#ifndef CONFIG_USE_OLED_SH1106
-#include "ssd1306.h"
-#else
-#include "sh1106.h"
-#endif
+#include "display/Display.h"
+#include "display/Text.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -66,11 +61,7 @@ void scheduling_screen_init()
 
 void scheduling_screen_draw()
 {
-#ifndef CONFIG_USE_OLED_SH1106
-    ssd1306_clear();
-#else
-    sh1106_clear();
-#endif
+    Display::clear();
 
     draw_day_name();
     draw_interval_display();
@@ -130,11 +121,11 @@ static void draw_interval_display()
 {
     uint8_t hours = sch_screen.intval_idx >> 1;
     uint8_t mins = (sch_screen.intval_idx & 1) * 30;
-    
+
     char s[6] = { 0 };
     sprintf(s, "%02u %02u", hours, mins);
-    
-    text_draw_7seg_large(s, 2, 29);
+
+    Text::draw7Seg(s, 2, 29);
 }
 
 static void draw_interval_indicator()

@@ -18,15 +18,15 @@
     Created on 2017-01-02
 */
 
-#include "config.h"
 #include "main_screen.h"
-#include "text.h"
 #include "graphics.h"
 #include "clock.h"
 #include "heat_ctl.h"
 #include "draw_helper.h"
 #include "keypad.h"
 #include "extras.h"
+
+#include "display/Text.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -109,7 +109,7 @@ static void draw_target_temp_boost_indicator()
         sprintf(s, " BST %3u:%02ld", minutes, secs);
     }
 
-    text_draw(s, 0, 60, 0, false);
+    Text::draw(s, 0, 60, 0, false);
 }
 
 static void draw_clock()
@@ -119,7 +119,7 @@ static void draw_clock()
     char time_fmt[10] = { 6 };
     sprintf(time_fmt, "%02d:%02d", t->tm_hour, t->tm_min);
 
-    text_draw(time_fmt, 0, 0, 0, false);
+    Text::draw(time_fmt, 0, 0, 0, false);
     draw_weekday(33, t->tm_wday);
 }
 
@@ -164,7 +164,7 @@ UiResult main_screen_handle_keys(Keypad::Keys keys)
         // Avoid entering the menu while exiting
         // from another screen with long press
         if (!(keys & Keypad::Keys::LongPress)) {
-            return UiResult::SwitchMainScreen;
+            return UiResult::SwitchMenuScreen;
         }
     } else if (keys & Keypad::Keys::Boost) {
         if (keys & Keypad::Keys::LongPress) {

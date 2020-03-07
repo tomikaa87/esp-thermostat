@@ -24,6 +24,8 @@
 
 using namespace Driver;
 
+bool SSD1306::_poweredOn = false;
+
 #define SSD1306_128_64
 
 enum {
@@ -196,8 +198,14 @@ void SSD1306::sendData(const uint8_t* data, const uint8_t length, const uint8_t 
     }
 }
 
+bool SSD1306::isPoweredOn()
+{
+    return _poweredOn;
+}
+
 void SSD1306::setPowerOn(const bool on)
 {
+    _poweredOn = on;
     sendCommand(SSD1306_CMD_DISPLAYOFF | (on ? 1u : 0u));
 }
 

@@ -18,12 +18,12 @@
     Created on 2020-01-08
 */
 
-#include "config.h"
-#include "disp_helper.h"
 #include "keypad.h"
-#include "text.h"
 #include "text_input.h"
 #include "wifi_screen.h"
+
+#include "display/Display.h"
+#include "display/Text.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -233,27 +233,27 @@ static void draw()
 {
     printf("wifi_screen::draw: screen=%d\n", state.screen);
 
-    disp_clear();
+    Display::clear();
 
     switch (state.screen) {
     case SCR_MAIN:
-        text_draw("WiFi Connection", 0, 0, 0, false);
-        text_draw("Connected to:", 1, 0, 0, false);
-        text_draw("IP:", 3, 0, 0, false);
-        text_draw("Disconnect", 5, 10, 0, false);
-        text_draw("Scan", 6, 10, 0, false);
-        text_draw("Leave", 7, 10, 0, false);
+        Text::draw("WiFi Connection", 0, 0, 0, false);
+        Text::draw("Connected to:", 1, 0, 0, false);
+        Text::draw("IP:", 3, 0, 0, false);
+        Text::draw("Disconnect", 5, 10, 0, false);
+        Text::draw("Scan", 6, 10, 0, false);
+        Text::draw("Leave", 7, 10, 0, false);
         break;
 
     case SCR_SCAN:
-        text_draw("WiFi Networks", 0, 0, 0, false);
+        Text::draw("WiFi Networks", 0, 0, 0, false);
         switch (state.scan) {
         case SCN_IDLE:
-            text_draw("Idle", 2, 10, 0, false);
+            Text::draw("Idle", 2, 10, 0, false);
             break;
 
         case SCN_SCANNING:
-            text_draw("Scanning...", 2, 10, 0, false);
+            Text::draw("Scanning...", 2, 10, 0, false);
             break;
         }
         break;
@@ -273,7 +273,7 @@ static void update()
     switch (state.screen) {
     case SCR_MAIN:
         for (int i = 0; i < 3; ++i) {
-            text_draw(i == state.list_pos ? ">" : " ", i + 5, 0, 0, false);
+            Text::draw(i == state.list_pos ? ">" : " ", i + 5, 0, 0, false);
         }
         break;
 
@@ -286,23 +286,23 @@ static void update()
                 );
 
                 // Clear the row
-                disp_goto_col(10);
-                disp_goto_row(line);
+                Display::setColumn(10);
+                Display::setLine(line);
                 for (int i = 0; i < 118; ++i) {
                     static const uint8_t pattern = 0;
-                    disp_send_data(&pattern, 1, 0, false);
+                    Display::sendData(&pattern, 1, 0, false);
                 }
 
                 if (i == 0) {
-                    text_draw("<< Back", line, 10, 0, false);
+                    Text::draw("<< Back", line, 10, 0, false);
                 } else {
                     if (callbacks.read_ssid) {
                         char buf[32] = { 0 };
                         callbacks.read_ssid(i - 1, buf);
-                        text_draw(buf, line, 10, 0, false);
+                        Text::draw(buf, line, 10, 0, false);
                     }
                 }
-                text_draw(i == state.list_pos ? ">" : " ", line, 0, 0, false);
+                Text::draw(i == state.list_pos ? ">" : " ", line, 0, 0, false);
             }
             break;
         }

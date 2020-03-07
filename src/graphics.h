@@ -28,17 +28,17 @@ extern const uint8_t graphics_off_icon_20x3p[];
 extern const uint8_t graphics_calendar_icon_20x3p[];
 
 void graphics_draw_bitmap(
-	const uint8_t* bitmap,
-	uint8_t width,
-	uint8_t x,
-	uint8_t page);
+    const uint8_t* bitmap,
+    uint8_t width,
+    uint8_t x,
+    uint8_t line);
 
 void graphics_draw_multipage_bitmap(
-	const uint8_t* mp_bitmap,
-	uint8_t width,
-	uint8_t page_count,
-	uint8_t x,
-	uint8_t start_page);
+    const uint8_t* mp_bitmap,
+    uint8_t width,
+    uint8_t page_count,
+    uint8_t x,
+    uint8_t start_page);
 
 #endif	/* GRAPHICS_H */
 

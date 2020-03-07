@@ -49,6 +49,7 @@ public:
     static void sendData(uint8_t data, uint8_t bitShift = 0, bool invert = false);
     static void sendData(const uint8_t* data, uint8_t length, uint8_t bitShift = 0, bool invert = false);
 
+    static bool isPoweredOn();
     static void setPowerOn(bool on);
     static void setComPadsAltHwConfig(uint8_t value);
     static void setComScanInverted(bool inverted);
@@ -67,6 +68,9 @@ public:
 
     static void setColumn(uint8_t column);
     static void setLine(uint8_t line);
+
+private:
+    static bool _poweredOn;
 };
 
 }
