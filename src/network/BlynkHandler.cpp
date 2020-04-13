@@ -19,6 +19,7 @@
 */
 
 #include "BlynkHandler.h"
+#include "HeatingController.h"
 
 #define ENABLE_DEBUG
 
@@ -80,14 +81,11 @@ HANDLE_BLYNK_WRITE(PIN_TARGET_TEMPERATURE)
 
 static WidgetTerminal gs_terminal{ V64 };
 
-BlynkHandler::BlynkHandler(const char* appToken/*, const char* wifiSSID, const char* wifiPassword*/)
+BlynkHandler::BlynkHandler(const char* appToken, HeatingController& heatingController)
+    : _heatingController(heatingController)
 {
     g_blynkHandler = this;
     Blynk.config(appToken, "blynk-server.home", 8080);
-    // Blynk.begin(appToken, wifiSSID, wifiPassword, "blynk-server.home", 8080);
-
-    // WiFi.setPhyMode(WIFI_PHY_MODE_11N);
-    // WiFi.setOutputPower(20.5);
 }
 
 BlynkHandler::~BlynkHandler()
@@ -325,17 +323,25 @@ void BlynkHandler::terminalPrintln(const char* msg)
 
 void BlynkHandler::processButtonCallbackRequests()
 {
-    if (m_callIncrementTempCb && m_incrementTempCb)
-        m_incrementTempCb();
+    if (m_callIncrementTempCb) {
+        _heatingController.incTargetTemp();
+    }
 
-    if (m_callDecrementTempCb && m_decrementTempCb)
-        m_decrementTempCb();
+    if (m_callDecrementTempCb) {
+        _heatingController.decTargetTemp();
+    }
 
-    if (m_callActivateBoostCb && m_activateBoostCb)
-        m_activateBoostCb();
+    if (m_callActivateBoostCb) {
+        if (!_heatingController.isBoostActive()) {
+            _heatingController.activateBoost();
+        } else {
+            _heatingController.extendBoost();
+        }
+    }
 
-    if (m_callDeactivateBoostCb && m_deactivateBoostCb)
-        m_deactivateBoostCb();
+    if (m_callDeactivateBoostCb && _heatingController.isBoostActive()) {
+        _heatingController.deactivateBoost();
+    }
 
     m_callIncrementTempCb = false;
     m_callDecrementTempCb = false;
@@ -345,17 +351,21 @@ void BlynkHandler::processButtonCallbackRequests()
 
 void BlynkHandler::processValueUpdates()
 {
-    if (m_mode.changed())
-        m_modeChangedCallback(m_mode);
+    if (m_mode.changed()) {
+        _heatingController.setMode(static_cast<HeatingController::Mode>(m_mode.value()));
+    }
 
-    if (m_targetTemperature.changed())
-        m_targetTemperatureChangedCb(m_targetTemperature);
+    if (m_targetTemperature.changed()) {
+        _heatingController.setTargetTemp(m_targetTemperature * 10);
+    }
 
-    if (m_nightTimeTemperature.changed())
-        m_nightTimeTemperatureChangedCb(m_nightTimeTemperature);
+    if (m_nightTimeTemperature.changed()) {
+        _heatingController.setNightTimeTemp(m_nightTimeTemperature * 10);
+    }
 
-    if (m_daytimeTemperature.changed())
-        m_daytimeTemperatureChangedCb(m_daytimeTemperature);
+    if (m_daytimeTemperature.changed()) {
+        _heatingController.setDaytimeTemp(m_daytimeTemperature * 10);
+    }
 }
 
 template <typename T, int size>

@@ -46,6 +46,11 @@ struct TrackedVariable
 
     operator T()
     {
+        return value();
+    }
+
+    T value()
+    {
         m_changed = false;
         return m_value;
     }

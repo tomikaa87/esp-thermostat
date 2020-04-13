@@ -19,7 +19,7 @@
 */
 
 #include "settings.h"
-#include "heat_ctl.h"
+#include "HeatingController.h"
 #include "Peripherals.h"
 
 #include <stdbool.h>

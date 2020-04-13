@@ -27,12 +27,15 @@
 class Ui
 {
 public:
-    Ui();
+    Ui(Keypad& keypad);
+
+    void task();
 
     void update();
     void handleKeyPress(Keypad::Keys keys);
 
 private:
+    Keypad& _keypad;
     std::time_t _lastKeyPressTime = 0;
 
     enum class Screen

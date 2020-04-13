@@ -35,12 +35,19 @@
 
 // #define ENABLE_DEBUG
 
-Ui::Ui()
+Ui::Ui(Keypad& keypad)
+    : _keypad(keypad)
 {
     Display::setContrast(settings.display.brightness);
 
     // main_screen_init();
     // main_screen_draw();
+}
+
+void Ui::task()
+{
+    const auto pressedKeys = _keypad.scan();
+    handleKeyPress(pressedKeys);
 }
 
 void Ui::update()

@@ -21,7 +21,7 @@
 #include "main_screen.h"
 #include "graphics.h"
 #include "clock.h"
-#include "heat_ctl.h"
+#include "HeatingController.h"
 #include "draw_helper.h"
 #include "keypad.h"
 #include "extras.h"

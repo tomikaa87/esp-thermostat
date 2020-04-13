@@ -18,7 +18,7 @@
     Created on 2017-01-04
 */
 
-#include "heat_ctl.h"
+#include "HeatingController.h"
 #include "clock.h"
 #include "config.h"
 #include "extras.h"

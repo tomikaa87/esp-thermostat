@@ -26,11 +26,12 @@
 #include <stdint.h>
 
 class BlynkParam;
+class HeatingController;
 
 class BlynkHandler
 {
 public:
-    BlynkHandler(const char* appToken/*, const char* wifiSSID, const char* wifiPassword*/);
+    BlynkHandler(const char* appToken, HeatingController& heatingController);
     ~BlynkHandler();
 
     void task();
@@ -50,30 +51,10 @@ public:
     void updateMode(uint8_t mode);
     void updateNextSwitch(uint8_t state, uint8_t weekday, uint8_t hour, uint8_t minute);
 
-    using Callback = std::function<void()>;
-
-    void setIncrementTempCallback(Callback&& cb) { m_incrementTempCb = std::move(cb); }
-    void setDecrementTempCallback(Callback&& cb) { m_decrementTempCb = std::move(cb); }
-    void setActivateBoostCallback(Callback&& cb) { m_activateBoostCb = std::move(cb); }
-    void setDeactivateBoostCallback(Callback&& cb) { m_deactivateBoostCb = std::move(cb); }
-
-    void setTargetTemperatureChangedCallback(std::function<void(float)>&& cb) { m_targetTemperatureChangedCb = std::move(cb); }
-    void setDaytimeTemperatureChangedCallback(std::function<void(float)>&& cb) { m_daytimeTemperatureChangedCb = std::move(cb); }
-    void setNightTimeTemperatureChangedCallback(std::function<void(float)>&& cb) { m_nightTimeTemperatureChangedCb = std::move(cb); }
-
-    void setModeChangedCallback(std::function<void(uint8_t)>&& cb) { m_modeChangedCallback = std::move(cb); }
-
     void terminalPrintln(const char* msg);
 
 private:
-    Callback m_incrementTempCb;
-    Callback m_decrementTempCb;
-    Callback m_activateBoostCb;
-    Callback m_deactivateBoostCb;
-    std::function<void(float)> m_targetTemperatureChangedCb;
-    std::function<void(float)> m_daytimeTemperatureChangedCb;
-    std::function<void(float)> m_nightTimeTemperatureChangedCb;
-    std::function<void(uint8_t)> m_modeChangedCallback;
+    HeatingController& _heatingController;
 
     bool m_callIncrementTempCb = false;
     bool m_callDecrementTempCb = false;

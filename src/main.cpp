@@ -1,11 +1,65 @@
+#include "main.h"
+#include "Thermostat.h"
+
+#include <Arduino.h>
+#include <Wire.h>
+
+static Thermostat* _thermostat = nullptr;
+
+void ICACHE_RAM_ATTR timer1Isr()
+{
+    if (_thermostat) {
+        _thermostat->epochTimerIsr();
+    }
+}
+
+void initializeEpochTimer()
+{
+    timer1_isr_init();
+    timer1_attachInterrupt(timer1Isr);
+    timer1_enable(TIM_DIV256, TIM_EDGE, TIM_LOOP);
+    timer1_write(100);
+}
+
+void initializeWire()
+{
+    Wire.begin();
+
+    // Be cautious with higher speeds,
+    // it can produce RTC errors and OLED artifacts
+    Wire.setClock(800000);
+}
+
+void initializeSerial()
+{
+    Serial.begin(115200);
+}
+
+void setup()
+{
+    initializeEpochTimer();
+    initializeWire();
+    initializeSerial();
+
+    static Thermostat thermostat{};
+    _thermostat = &thermostat;
+}
+
+void loop()
+{
+    if (_thermostat) {
+        _thermostat->task();
+    }
+}
+
+#if 0
+
 #include "BlynkHandler.h"
 #include "clock.h"
-#include "heat_ctl.h"
+#include "HeatingController.h"
 #include "keypad.h"
 #include "main.h"
 #include "settings.h"
-#include "ui.h"
-#include "wifi_screen.h"
 
 #include "display/Display.h"
 #include "network/NtpClient.h"
@@ -76,10 +130,7 @@ void setup()
 {
     Peripherals::Sensors::MainTemperature::update();
 
-    timer1_isr_init();
-    timer1_attachInterrupt(timer1_isr);
-    timer1_enable(TIM_DIV256, TIM_EDGE, TIM_LOOP);
-    timer1_write(100);
+
 
     Serial.begin(115200);
 
@@ -214,3 +265,4 @@ void loop()
 
     Globals::blynk->task();
 }
+#endif
