@@ -18,105 +18,139 @@
     Created on 2017-01-09
 */
 
-#include "settings.h"
+#include "Settings.h"
 #include "HeatingController.h"
 #include "Peripherals.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <string.h>
+#include <cstring>
 
-struct persistent_settings settings;
+#include <coredecls.h> // crc32()
 
-static settings_read_func_t read_f;
-static settings_write_func_t write_f;
-
-static void check_settings();
-
-void settings_init(settings_read_func_t read_func, settings_write_func_t write_func)
+Settings::Settings()
 {
-    read_f = read_func;
-    write_f = write_func;
+    load();
 }
 
-void settings_load()
+void Settings::load()
 {
-    uint8_t* data = (uint8_t*)&settings;
+    const auto read = Peripherals::Storage::EERAM::read(
+        0,
+        reinterpret_cast<uint8_t*>(&Data),
+        sizeof(PersistentData::Settings)
+    );
 
-    for (uint8_t i = 0; i < sizeof(struct persistent_settings); ++i, ++data) {
-        *data = read_f(i);
+    if (read != sizeof(PersistentData::Settings)) {
+        _log.error("EERAM read failed, read %u of %u Bytes", 
+            read,
+            sizeof(PersistentData::Settings)
+        );
     }
 
-    check_settings();
-}
+    const auto calculatedCrc32 = crc32(
+        reinterpret_cast<const void*>(&Data + sizeof(Data.Crc32)),
+        sizeof(PersistentData::Settings) - sizeof(Data.Crc32)
+    );
 
-void settings_save()
-{
-    const uint8_t* data = (uint8_t*)&settings;
+    if (calculatedCrc32 != Data.Crc32) {
+        _log.warning("data checksum error, calculated: %08xh, loaded: %08xh",
+            calculatedCrc32,
+            Data.Crc32
+        );
 
-    for (uint8_t i = 0; i < sizeof(struct persistent_settings); ++i, ++data) {
-        write_f(i, *data);
+        loadDefaults();
+        save();
     }
 
-    Peripherals::Storage::EERAM::setAseEnabled(true);
+    check();
 }
 
-void settings_save_heatctl()
+void Settings::save()
+{
+    Data.Version = DataVersion;
+    Data.Crc32 = crc32(
+        reinterpret_cast<const void*>(&Data + sizeof(Data.Crc32)),
+        sizeof(PersistentData::Settings) - sizeof(Data.Crc32)
+    );
+
+    const auto written = Peripherals::Storage::EERAM::write(
+        0,
+        reinterpret_cast<uint8_t*>(&Data),
+        sizeof(PersistentData::Settings)
+    );
+
+    if (written != sizeof(PersistentData::Settings)) {
+        _log.error("EERAM write failed, written %u of %u Bytes", 
+            written,
+            sizeof(PersistentData::Settings)
+        );
+
+        return;
+    }
+
+    if (_aseEnabled) {
+        _log.debug("settings changed, enabling ASE");
+
+        _aseEnabled = true;
+        Peripherals::Storage::EERAM::setAseEnabled(true);
+    }
+}
+
+void Settings::saveHeatingControllerSettings()
 {
     // Currently we save settings to the RTC SRAM, no need to do partial writes
     // to save EEPROM program cycles.
-    settings_save();
+    save();
 }
 
-static void check_settings()
+void Settings::check()
 {
     bool modified = false;
 
     // Reset Heat Control mode if it's corrupted
-    if (settings.heatctl.mode > static_cast<uint8_t>(HeatingController::Mode::Off)) {
-        settings.heatctl.mode = static_cast<uint8_t>(HeatingController::Mode::Off);
+    if (Data.HeatingController.Mode > static_cast<uint8_t>(HeatingController::Mode::Off)) {
+        Data.HeatingController.Mode = static_cast<uint8_t>(HeatingController::Mode::Off);
         modified = true;
     }
 
     // If daytime temp is out of range, reset to default
-    if (settings.heatctl.day_temp > SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MAX || settings.heatctl.day_temp < SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MIN) {
-        settings.heatctl.day_temp = SETTINGS_DEFAULT_HEATCTL_DAY_TEMP;
+    if (Data.HeatingController.DaytimeTemp > Limits::HeatingController::DaytimeTempMax || Data.HeatingController.DaytimeTemp < Limits::HeatingController::DaytimeTempMin) {
+        Data.HeatingController.DaytimeTemp = DefaultSettings::HeatingController::DaytimeTemp;
         modified = true;
     }
 
     // If nighttime temp is out of range, reset to default
-    if (settings.heatctl.night_temp > SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MAX || settings.heatctl.night_temp < SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MIN) {
-        settings.heatctl.night_temp = SETTINGS_DEFAULT_HEATCTL_NIGHT_TEMP;
+    if (Data.HeatingController.NightTimeTemp > Limits::HeatingController::NightTimeTempMax || Data.HeatingController.NightTimeTemp < Limits::HeatingController::NightTimeTempMin) {
+        Data.HeatingController.NightTimeTemp = DefaultSettings::HeatingController::NightTimeTemp;
         modified = true;
     }
 
     // If temperature overshoot is out of range, reset to default
-    if (settings.heatctl.overshoot > SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MAX || settings.heatctl.night_temp < SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MIN) {
-        settings.heatctl.overshoot = SETTINGS_DEFAULT_HEATCTL_OVERSHOOT;
+    if (Data.HeatingController.Overshoot > Limits::HeatingController::TempOvershootMax || Data.HeatingController.NightTimeTemp < Limits::HeatingController::TempOvershootMin) {
+        Data.HeatingController.Overshoot = DefaultSettings::HeatingController::TempOvershoot;
         modified = true;
     }
 
     // If temperature undershoot is out of range, reset to default
-    if (settings.heatctl.undershoot > SETTINGS_LIMIT_HEATCTL_UNDERSHOOT_MAX || settings.heatctl.undershoot < SETTINGS_LIMIT_HEATCTL_UNDERSHOOT_MIN) {
-        settings.heatctl.undershoot = SETTINGS_DEFAULT_HEATCTL_UNDERSHOOT;
+    if (Data.HeatingController.Undershoot > Limits::HeatingController::TempUndershootMax || Data.HeatingController.Undershoot < Limits::HeatingController::TempUndershootMin) {
+        Data.HeatingController.Undershoot = DefaultSettings::HeatingController::TempUndershoot;
         modified = true;
     }
 
     // If temperature correction is out of range, reset to default
-    if (settings.heatctl.temp_correction > SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MAX || settings.heatctl.temp_correction < SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MIN) {
-        settings.heatctl.undershoot = SETTINGS_DEFAULT_HEATCTL_TEMP_CORR;
+    if (Data.HeatingController.TempCorrection > Limits::HeatingController::TempCorrectionMax || Data.HeatingController.TempCorrection < Limits::HeatingController::TempCorrectionMin) {
+        Data.HeatingController.TempCorrection = DefaultSettings::HeatingController::TempCorrection;
         modified = true;
     }
 
     // If BOOST interval is out of range, reset to default
-    if (settings.heatctl.boost_intval > SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MAX || settings.heatctl.boost_intval < SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MIN) {
-        settings.heatctl.boost_intval = SETTINGS_DEFAULT_HEATCTL_BOOST_INTVAL;
+    if (Data.HeatingController.BoostIntervalMins > Limits::HeatingController::BoostIntervalMax || Data.HeatingController.BoostIntervalMins < Limits::HeatingController::BoostIntervalMin) {
+        Data.HeatingController.BoostIntervalMins = DefaultSettings::HeatingController::BoostInterval;
         modified = true;
     }
 
     // If Custom Temperature Timeout is out of range, reset to default
-    if (settings.heatctl.custom_temp_timeout > SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MAX || settings.heatctl.custom_temp_timeout < SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MIN) {
-            settings.heatctl.custom_temp_timeout = SETTINGS_DEFAULT_HEATCTL_CUSTOM_TEMP_TIMEOUT;
+    if (Data.HeatingController.CustomTempTimeoutMins > Limits::HeatingController::CustomTempTimeoutMax || Data.HeatingController.CustomTempTimeoutMins < Limits::HeatingController::CustomTempTimeoutMin) {
+            Data.HeatingController.CustomTempTimeoutMins = DefaultSettings::HeatingController::CustomTempTimeout;
             modified = true;
     }
 
@@ -126,8 +160,26 @@ static void check_settings()
     // for backlight level thus we cannot decide if it's corrupted or not.
     // At last, save the corrected values.
     if (modified) {
-        settings.display.brightness = SETTINGS_DEFAULT_DISPLAY_BRIGHTNESS;
-        settings.display.timeout_secs = SETTINGS_DEFAULT_DISPLAY_TIMEOUT_SECS;
-        settings_save();
+        Data.Display.Brightness = DefaultSettings::Display::Brightness;
+        Data.Display.TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
+        save();
     }
+}
+
+void Settings::loadDefaults()
+{
+    _log.warning("loading default settings");
+
+    Data.Display.Brightness = DefaultSettings::Display::Brightness;
+    Data.Display.TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
+
+    Data.HeatingController.BoostIntervalMins = DefaultSettings::HeatingController::BoostInterval;
+    Data.HeatingController.CustomTempTimeoutMins = DefaultSettings::HeatingController::CustomTempTimeout;
+    Data.HeatingController.DaytimeTemp = DefaultSettings::HeatingController::DaytimeTemp;
+    Data.HeatingController.Mode = DefaultSettings::HeatingController::Mode;
+    Data.HeatingController.NightTimeTemp = DefaultSettings::HeatingController::NightTimeTemp;
+    Data.HeatingController.Overshoot = DefaultSettings::HeatingController::TempOvershoot;
+    Data.HeatingController.TargetTemp = DefaultSettings::HeatingController::TargetTemp;
+    Data.HeatingController.TargetTempSetTimestamp = 0;
+    Data.HeatingController.TempCorrection = DefaultSettings::HeatingController::TempCorrection;
 }

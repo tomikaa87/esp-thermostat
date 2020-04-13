@@ -19,7 +19,7 @@
 */
 
 #include "ui.h"
-#include "settings.h"
+#include "Settings.h"
 #include "SystemClock.h"
 #include "main.h"
 
@@ -36,21 +36,23 @@
 
 // #define ENABLE_DEBUG
 
-Ui::Ui(const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController)
-    : _systemClock(systemClock)
+// TODO rename settings_
+Ui::Ui(Settings& settings_, const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController)
+    : _settings(settings_)
+    , _systemClock(systemClock)
     , _keypad(keypad)
     , _heatingController(heatingController)
 {
-    Display::setContrast(settings.display.brightness);
+    Display::setContrast(_settings.Data.Display.Brightness);
 
-    auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_systemClock, _heatingController));
+    auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_settings, _systemClock, _heatingController));
     _mainScreen = mainScreen.get();
     _currentScreen = _mainScreen;
     mainScreen->activate();
     _screens.push_back(std::move(mainScreen));
 
-    _screens.emplace_back(new MenuScreen);
-    _screens.emplace_back(new SchedulingScreen(_systemClock));
+    _screens.emplace_back(new MenuScreen(_settings));
+    _screens.emplace_back(new SchedulingScreen(_settings, _systemClock));
 
     _lastKeyPressTime = _systemClock.utcTime();
 }
@@ -128,11 +130,11 @@ void Ui::updateActiveState()
 
 bool Ui::isActive() const
 {
-    if (settings.display.timeout_secs == 0) {
+    if (_settings.Data.Display.TimeoutSecs == 0) {
         return true;
     }
 
-    return (_systemClock.utcTime() - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
+    return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.Data.Display.TimeoutSecs);
 }
 
 void Ui::navigateForward(const char* name)

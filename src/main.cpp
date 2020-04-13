@@ -66,7 +66,7 @@ void loop()
 #include "HeatingController.h"
 #include "Keypad.h"
 #include "main.h"
-#include "settings.h"
+#include "Settings.h"
 
 #include "display/Display.h"
 #include "network/NtpClient.h"

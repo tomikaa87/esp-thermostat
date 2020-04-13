@@ -18,13 +18,14 @@
     Created on 2017-01-02
 */
 
-#include "MainScreen.h"
-#include "graphics.h"
-#include "SystemClock.h"
-#include "HeatingController.h"
 #include "draw_helper.h"
-#include "Keypad.h"
 #include "extras.h"
+#include "graphics.h"
+#include "HeatingController.h"
+#include "Keypad.h"
+#include "MainScreen.h"
+#include "Settings.h"
+#include "SystemClock.h"
 
 #include "display/Text.h"
 
@@ -34,8 +35,9 @@
 
 #include "Peripherals.h"
 
-MainScreen::MainScreen(const SystemClock& clock, HeatingController& heatingController)
+MainScreen::MainScreen(Settings& settings, const SystemClock& clock, HeatingController& heatingController)
     : Screen("Main")
+    , _settings(settings)
     , _clock(clock)
     , _heatingController(heatingController)
 {}
@@ -141,7 +143,7 @@ void MainScreen::updateScheduleBar()
     const auto localTime = _clock.localTime();
     const struct tm* t = gmtime(&localTime);
 
-    draw_schedule_bar(settings.schedule.days[t->tm_wday]);
+    draw_schedule_bar(_settings.Data.Scheduler.DayData[t->tm_wday]);
 
     uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
 

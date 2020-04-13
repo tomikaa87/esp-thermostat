@@ -18,82 +18,128 @@
     Created on 2017-01-09
 */
 
-#ifndef SETTINGS_H
-#define	SETTINGS_H
+#pragma once
 
-#include <stdint.h>
+#include "Logger.h"
 
-typedef uint8_t schedule_day_data[6];
+#include <cstdint>
+#include <ctime>
 
-struct persistent_settings {
-	struct {
-		uint8_t enabled: 1;
-		uint8_t: 0;
+#define SETTINGS_PACKED __attribute__((__packed__))
 
-		schedule_day_data days[7];
-	} schedule;
+namespace PersistentData
+{
+    using SchedulerDayData = uint8_t[6];
 
-	struct {
-		// Value between 0 and 255
-		uint8_t brightness;
-		uint8_t timeout_secs;
-	} display;
+    struct SchedulerSettings
+    {
+        uint8_t Enabled: 1;
+        uint8_t: 0;
+        SchedulerDayData DayData[7];
+    } SETTINGS_PACKED;
 
-	struct _settings_heatctl {
-		uint8_t mode;
+    struct DisplaySettings
+    {
+        uint8_t Brightness;
+        uint8_t TimeoutSecs;
+    } SETTINGS_PACKED;
 
-		// Temperature values in 0.1 Celsius
-		int16_t day_temp;
-		int16_t night_temp;
+    struct HeatingControllerSettings
+    {
+        uint8_t Mode;
 
-		// Values for histeresis in 0.1 Celsius
-		uint8_t overshoot;
-		uint8_t undershoot;
-		int8_t temp_correction;
+        // Temperature values in 0.1 Celsius
+        int16_t DaytimeTemp;
+        int16_t NightTimeTemp;
 
-		// Values in minutes
-		uint8_t boost_intval;
-        uint16_t custom_temp_timeout;
-	} heatctl;
-} __attribute__((packed));
+        // Target temperature settings
+        int16_t TargetTemp;
+        std::time_t TargetTempSetTimestamp;
 
-#define SETTINGS_TEMP_MIN				100
-#define SETTINGS_TEMP_MAX				300
+        // Values for histeresis in 0.1 Celsius
+        uint8_t Overshoot;
+        uint8_t Undershoot;
+        int8_t TempCorrection;
 
-#define SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MAX		SETTINGS_TEMP_MAX
-#define SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MIN		SETTINGS_TEMP_MIN
-#define SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MAX		SETTINGS_TEMP_MAX
-#define SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MIN		SETTINGS_TEMP_MIN
-#define SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MAX		10
-#define SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MIN		1
-#define SETTINGS_LIMIT_HEATCTL_UNDERSHOOT_MAX		10
-#define SETTINGS_LIMIT_HEATCTL_UNDERSHOOT_MIN		1
-#define SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MAX		60
-#define SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MIN		5
-#define SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MAX		100
-#define SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MIN		-100
-#define SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MIN  0
-#define SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MAX  1440
+        // Values in minutes
+        uint8_t BoostIntervalMins;
+        uint16_t CustomTempTimeoutMins;
+    } SETTINGS_PACKED;
 
-#define SETTINGS_DEFAULT_HEATCTL_DAY_TEMP		220
-#define SETTINGS_DEFAULT_HEATCTL_NIGHT_TEMP		200
-#define SETTINGS_DEFAULT_HEATCTL_OVERSHOOT		5
-#define SETTINGS_DEFAULT_HEATCTL_UNDERSHOOT		5
-#define SETTINGS_DEFAULT_HEATCTL_BOOST_INTVAL		10
-#define SETTINGS_DEFAULT_HEATCTL_CUSTOM_TEMP_TIMEOUT    240
-#define SETTINGS_DEFAULT_HEATCTL_TEMP_CORR		0
-#define SETTINGS_DEFAULT_DISPLAY_BRIGHTNESS		20
-#define SETTINGS_DEFAULT_DISPLAY_TIMEOUT_SECS		15
+    struct Settings
+    {
+        uint32_t Crc32;
+        uint8_t Version;
 
-extern struct persistent_settings settings;
+        SchedulerSettings Scheduler;
+        DisplaySettings Display;
+        HeatingControllerSettings HeatingController;
+    } SETTINGS_PACKED;
+}
 
-typedef uint8_t (* settings_read_func_t)(uint8_t address);
-typedef void (* settings_write_func_t)(uint8_t address, uint8_t data);
+namespace Limits
+{
+    constexpr auto MinimumTemperature = 100;
+    constexpr auto MaximumTemperature = 300;
 
-void settings_init(settings_read_func_t read_func, settings_write_func_t write_func);
-void settings_load();
-void settings_save();
-void settings_save_heatctl();
+    namespace HeatingController
+    {
+        constexpr auto DaytimeTempMax = MaximumTemperature;
+        constexpr auto DaytimeTempMin = MinimumTemperature;
+        constexpr auto NightTimeTempMax = MaximumTemperature;
+        constexpr auto NightTimeTempMin = MinimumTemperature;
+        constexpr auto TempOvershootMax = 10;
+        constexpr auto TempOvershootMin = 1;
+        constexpr auto TempUndershootMax = 10;
+        constexpr auto TempUndershootMin = 1;
+        constexpr auto BoostIntervalMax = 60;
+        constexpr auto BoostIntervalMin = 5;
+        constexpr auto TempCorrectionMax = 100;
+        constexpr auto TempCorrectionMin = -100;
+        constexpr auto CustomTempTimeoutMin = 0;
+        constexpr auto CustomTempTimeoutMax = 1440;
+    }
+}
 
-#endif	/* SETTINGS_H */
+namespace DefaultSettings
+{
+    namespace HeatingController
+    {
+        constexpr auto Mode = 0;
+        constexpr auto DaytimeTemp = 220;
+        constexpr auto NightTimeTemp = 200;
+        constexpr auto TargetTemp = NightTimeTemp;
+        constexpr auto TempOvershoot = 5;
+        constexpr auto TempUndershoot = 5;
+        constexpr auto BoostInterval = 10;
+        constexpr auto CustomTempTimeout = 240;
+        constexpr auto TempCorrection = 0;
+    }
 
+    namespace Display
+    {
+        constexpr auto Brightness = 20;
+        constexpr auto TimeoutSecs = 15;
+    }
+}
+
+class Settings
+{
+public:
+    static constexpr uint8_t DataVersion = 1;
+
+    Settings();
+
+    void load();
+    void loadDefaults();
+    void save();
+    void saveHeatingControllerSettings();
+
+    PersistentData::Settings Data;
+
+private:
+    Logger _log{ "Setting" };
+    bool _aseEnabled = false;
+
+    void check();
+};

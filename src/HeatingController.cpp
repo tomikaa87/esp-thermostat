@@ -22,7 +22,6 @@
 #include "SystemClock.h"
 #include "config.h"
 #include "extras.h"
-#include "settings.h"
 
 #include <Arduino.h>
 
@@ -30,14 +29,17 @@
 
 #define TEMPERATURE_STEP	5
 
-HeatingController::HeatingController(const SystemClock& systemClock)
-    : _systemClock(systemClock)
+HeatingController::HeatingController(Settings& settings, const SystemClock& systemClock)
+    : _settings(settings)
+    , _systemClock(systemClock)
 {
     _log.info("initializing");
 
     // Setup relay control pin
     digitalWrite(D8, LOW);
     pinMode(D8, OUTPUT);
+
+    loadStoredTargetTemp();
 }
 
 void HeatingController::task()
@@ -45,7 +47,8 @@ void HeatingController::task()
     // Only Heat Control settings are auto-saved
     if (isModeSaveNeeded()) {
         _settingsChanged = false;
-        settings_save_heatctl();
+        storeTargetTemp();
+        _settings.saveHeatingControllerSettings();
     }
 
     // Read temperature sensor and store it in tenths of degrees
@@ -82,10 +85,12 @@ void HeatingController::task()
 
             if (_usingDaytimeSchedule) {
                 _log.info("setting daytime temp as target");
-                _targetTemp = settings.heatctl.day_temp;
+                _targetTemp = _settings.Data.HeatingController.DaytimeTemp;
+                storeTargetTemp();
             } else {
                 _log.info("setting night time temp as target");
-                _targetTemp = settings.heatctl.night_temp;
+                _targetTemp = _settings.Data.HeatingController.NightTimeTemp;
+                storeTargetTemp();
             }
         }
     }
@@ -131,7 +136,7 @@ void HeatingController::task()
                 break;
             }
 
-            if (_sensorTemp >= _targetTemp + settings.heatctl.overshoot) {
+            if (_sensorTemp >= _targetTemp + _settings.Data.HeatingController.Overshoot) {
                 _log.info("stopping heating because of high temp");
                 stopHeating();
             }
@@ -146,7 +151,7 @@ void HeatingController::task()
                 break;
             }
 
-            if (_sensorTemp <= _targetTemp - settings.heatctl.undershoot) {
+            if (_sensorTemp <= _targetTemp - _settings.Data.HeatingController.Undershoot) {
                 _log.info("starting heating because of low temp");
                 startHeating();
             }
@@ -161,7 +166,7 @@ HeatingController::Mode HeatingController::mode() const
     if (isBoostActive())
         return Mode::Boost;
 
-    return static_cast<Mode>(settings.heatctl.mode);
+    return static_cast<Mode>(_settings.Data.HeatingController.Mode);
 }
 
 void HeatingController::setMode(Mode mode)
@@ -177,7 +182,7 @@ void HeatingController::setMode(Mode mode)
             deactivateBoost();
         }
 
-        settings.heatctl.mode = static_cast<uint8_t>(mode);
+        _settings.Data.HeatingController.Mode = static_cast<uint8_t>(mode);
 
         markSettingsChanged();
     }
@@ -202,7 +207,7 @@ void HeatingController::activateBoost()
         return;
     }
 
-    _boostEnd = _systemClock.utcTime() + settings.heatctl.boost_intval * 60;
+    _boostEnd = _systemClock.utcTime() + _settings.Data.HeatingController.BoostIntervalMins * 60;
     _boostActive = true;
 }
 
@@ -221,7 +226,7 @@ void HeatingController::deactivateBoost()
 
 void HeatingController::extendBoost()
 {
-    _boostEnd += settings.heatctl.boost_intval * 60;
+    _boostEnd += _settings.Data.HeatingController.BoostIntervalMins * 60;
     _log.info("extending boost, end: %ld", _boostEnd);
 
     // TODO load max value from settings
@@ -263,7 +268,7 @@ void HeatingController::incTargetTemp()
 {
     _log.info("increasing target temp");
 
-    if (_targetTemp >= SETTINGS_TEMP_MAX) {
+    if (_targetTemp >= Limits::MaximumTemperature) {
         return;
     }
 
@@ -276,7 +281,7 @@ void HeatingController::decTargetTemp()
 {
     _log.info("decreasing target temp");
 
-    if (_targetTemp <= SETTINGS_TEMP_MIN) {
+    if (_targetTemp <= Limits::MinimumTemperature) {
         return;
     }
 
@@ -287,33 +292,33 @@ void HeatingController::decTargetTemp()
 
 HeatingController::TenthsOfDegrees HeatingController::daytimeTemp() const
 {
-    return settings.heatctl.day_temp;
+    return _settings.Data.HeatingController.DaytimeTemp;
 }
 
 void HeatingController::setDaytimeTemp(TenthsOfDegrees temp)
 {
     _log.info("setting daytime temp: %d", temp);
 
-    settings.heatctl.day_temp = Extras::clampValue(
+    _settings.Data.HeatingController.DaytimeTemp = Extras::clampValue(
         temp,
-        SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MIN,
-        SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MAX
+        Limits::HeatingController::DaytimeTempMin,
+        Limits::HeatingController::DaytimeTempMin
     );
 }
 
 HeatingController::TenthsOfDegrees HeatingController::nightTimeTemp() const
 {
-    return settings.heatctl.night_temp;
+    return _settings.Data.HeatingController.NightTimeTemp;
 }
 
 void HeatingController::setNightTimeTemp(TenthsOfDegrees temp)
 {
     _log.info("setting night time temp: %d", temp);
 
-    settings.heatctl.night_temp = Extras::clampValue(
+    _settings.Data.HeatingController.NightTimeTemp = Extras::clampValue(
         temp,
-        SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MIN,
-        SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MAX
+        Limits::HeatingController::NightTimeTempMin,
+        Limits::HeatingController::NightTimeTempMax
     );
 }
 
@@ -375,7 +380,7 @@ HeatingController::State HeatingController::scheduledStateAt(uint8_t weekday, ui
     const uint8_t byteIdx = intvalIdx >> 3;
     const uint8_t mask = 1 << bitIdx;
 
-    return ((settings.schedule.days[weekday][byteIdx] & mask) > 0)
+    return ((_settings.Data.Scheduler.DayData[weekday][byteIdx] & mask) > 0)
         ? State::On
         : State::Off;
 }
@@ -399,14 +404,14 @@ void HeatingController::clampTargetTemp()
     if (_usingDaytimeSchedule) {
         _targetTemp = Extras::clampValue(
             _targetTemp,
-            SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MIN,
-            SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MAX
+            Limits::HeatingController::DaytimeTempMin,
+            Limits::HeatingController::DaytimeTempMax
         );
     } else {
         _targetTemp = Extras::clampValue(
             _targetTemp,
-            SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MIN,
-            SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MAX
+            Limits::HeatingController::NightTimeTempMin,
+            Limits::HeatingController::NightTimeTempMax
         );
     }
 }
@@ -429,12 +434,12 @@ void HeatingController::stopHeating()
 
 bool HeatingController::isCustomTempResetNeeded() const
 {
-    if (!_customTempSet || settings.heatctl.custom_temp_timeout == 0) {
+    if (!_customTempSet || _settings.Data.HeatingController.CustomTempTimeoutMins == 0) {
         return false;
     }
 
     return _systemClock.utcTime() >= (_setTempLastChanged 
-        + settings.heatctl.custom_temp_timeout * 60);
+        + _settings.Data.HeatingController.CustomTempTimeoutMins * 60);
 }
 
 bool HeatingController::isModeSaveNeeded() const
@@ -448,4 +453,20 @@ bool HeatingController::isModeSaveNeeded() const
     }
 
     return false;
+}
+
+void HeatingController::storeTargetTemp()
+{
+    _log.debug("storing target temp");
+
+    _settings.Data.HeatingController.TargetTemp = _targetTemp;
+    _settings.Data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
+}
+
+void HeatingController::loadStoredTargetTemp()
+{
+    _log.debug("loading stored target temp");
+
+    _targetTemp = _settings.Data.HeatingController.TargetTemp;
+    clampTargetTemp();
 }

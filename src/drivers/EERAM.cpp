@@ -39,7 +39,7 @@ namespace ControlBytes
     static constexpr auto ControlRegAccess  = 0b0011000 | Detail::ChipSelect;
 }
 
-uint8_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
+uint16_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
 {
     Wire.beginTransmission(ControlBytes::SramAccess);
     Wire.write(static_cast<uint8_t>(address >> 8));
@@ -60,13 +60,15 @@ uint8_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
     return available;
 }
 
-void EERAM::write(uint16_t address, const uint8_t* data, uint16_t length)
+uint16_t EERAM::write(uint16_t address, const uint8_t* data, uint16_t length)
 {
     Wire.beginTransmission(ControlBytes::SramAccess);
     Wire.write(static_cast<uint8_t>(address >> 8));
     Wire.write(static_cast<uint8_t>(address & 0xff));
-    Wire.write(data, length);
+    const auto written = Wire.write(data, length);
     Wire.endTransmission();
+
+    return written;
 }
 
 void EERAM::writeControlReg(Register reg, uint8_t value)

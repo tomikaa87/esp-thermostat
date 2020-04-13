@@ -22,7 +22,7 @@
 #include "Keypad.h"
 #include "draw_helper.h"
 #include "HeatingController.h"
-#include "settings.h"
+#include "Settings.h"
 #include "extras.h"
 #include "graphics.h"
 #include "text_input.h"
@@ -33,8 +33,9 @@
 
 #include <stdio.h>
 
-MenuScreen::MenuScreen()
+MenuScreen::MenuScreen(Settings& settings)
     : Screen("Menu")
+    , _settings(settings)
 {
 }
 
@@ -252,11 +253,11 @@ void MenuScreen::updatePageHeatCtlMode()
     // FIXME: proper mode name must be shown
 
     char num[3] = { 0 };
-    sprintf(num, "%2d", _newSettings.heatctl.mode);
+    sprintf(num, "%2d", _newSettings.HeatingController.Mode);
 
     Display::fillArea(0, 3, 128, 3, 0);
 
-    switch (static_cast<HeatingController::Mode>(_newSettings.heatctl.mode)) {
+    switch (static_cast<HeatingController::Mode>(_newSettings.HeatingController.Mode)) {
     case HeatingController::Mode::Normal:
         graphics_draw_multipage_bitmap(graphics_calendar_icon_20x3p, 20, 3, 20, 2);
         Text::draw("NORMAL", 3, 50, 0, false);
@@ -273,65 +274,65 @@ void MenuScreen::updatePageHeatCtlMode()
 void MenuScreen::updatePageDaytimeTemp()
 {
     draw_temperature_value(20,
-        _newSettings.heatctl.day_temp / 10,
-        _newSettings.heatctl.day_temp % 10);
+        _newSettings.HeatingController.DaytimeTemp / 10,
+        _newSettings.HeatingController.DaytimeTemp % 10);
 }
 
 void MenuScreen::updatePageNightTimeTemp()
 {
     draw_temperature_value(20,
-        _newSettings.heatctl.night_temp / 10,
-        _newSettings.heatctl.night_temp % 10);
+        _newSettings.HeatingController.NightTimeTemp / 10,
+        _newSettings.HeatingController.NightTimeTemp % 10);
 }
 
 void MenuScreen::updatePageTempOvershoot()
 {
     draw_temperature_value(20,
-        _newSettings.heatctl.overshoot / 10,
-        _newSettings.heatctl.overshoot % 10);
+        _newSettings.HeatingController.Overshoot / 10,
+        _newSettings.HeatingController.Overshoot % 10);
 }
 
 void MenuScreen::updatePageTempUndershoot()
 {
     draw_temperature_value(20,
-        _newSettings.heatctl.undershoot / 10,
-        _newSettings.heatctl.undershoot % 10);
+        _newSettings.HeatingController.Undershoot / 10,
+        _newSettings.HeatingController.Undershoot % 10);
 }
 
 void MenuScreen::updatePageBoostIntval()
 {
     char num[3] = { 0 };
-    sprintf(num, "%2d", _newSettings.heatctl.boost_intval);
+    sprintf(num, "%2d", _newSettings.HeatingController.BoostIntervalMins);
     Text::draw7Seg(num, 2, 20);
 }
 
 void MenuScreen::updatePageCustomTempTimeout()
 {
     char num[5] = { 0 };
-    sprintf(num, "%4u", _newSettings.heatctl.custom_temp_timeout);
+    sprintf(num, "%4u", _newSettings.HeatingController.CustomTempTimeoutMins);
     Text::draw7Seg(num, 2, 20);
 }
 
 void MenuScreen::updatePageTempCorrection()
 {
     draw_temperature_value(20,
-        _newSettings.heatctl.temp_correction / 10,
-        _newSettings.heatctl.temp_correction % 10);
+        _newSettings.HeatingController.TempCorrection / 10,
+        _newSettings.HeatingController.TempCorrection% 10);
 }
 
 void MenuScreen::updatePageDisplayBrightness()
 {
     char num[4] = { 0 };
-    sprintf(num, "%3d", _newSettings.display.brightness);
+    sprintf(num, "%3d", _newSettings.Display.Brightness);
     Text::draw7Seg(num, 2, 20);
 
-    Display::setContrast(_newSettings.display.brightness);
+    Display::setContrast(_newSettings.Display.Brightness);
 }
 
 void MenuScreen::updatePageDisplayTimeout()
 {
     char num[4] = { 0 };
-    sprintf(num, "%3d", _newSettings.display.timeout_secs);
+    sprintf(num, "%3d", _newSettings.Display.TimeoutSecs);
     Text::draw7Seg(num, 2, 20);
 }
 
@@ -367,92 +368,92 @@ void MenuScreen::previousPage()
 
 void MenuScreen::applySettings()
 {
-    settings = _newSettings;
-    settings_save();
+    _settings.Data = _newSettings;
+    _settings.save();
 }
 
 void MenuScreen::revertSettings()
 {
-    _newSettings = settings;
+    _newSettings = _settings.Data;
 
-    Display::setContrast(settings.display.brightness);
+    Display::setContrast(_settings.Data.Display.Brightness);
 }
 
 void MenuScreen::adjustValue(int8_t amount)
 {
     switch (_page) {
     case Page::HeatCtlMode:
-        if (_newSettings.heatctl.mode == 0 && amount > 0) {
-            _newSettings.heatctl.mode = 2;
-        } else if (_newSettings.heatctl.mode == 2 && amount < 0) {
-            _newSettings.heatctl.mode = 0;
+        if (_newSettings.HeatingController.Mode == 0 && amount > 0) {
+            _newSettings.HeatingController.Mode = 2;
+        } else if (_newSettings.HeatingController.Mode == 2 && amount < 0) {
+            _newSettings.HeatingController.Mode = 0;
         }
         updatePageHeatCtlMode();
         break;
 
     case Page::DaytimeTemp:
-        _newSettings.heatctl.day_temp += amount;
-        CLAMP_VALUE(_newSettings.heatctl.day_temp,
-            SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MIN,
-            SETTINGS_LIMIT_HEATCTL_DAY_TEMP_MAX);
+        _newSettings.HeatingController.DaytimeTemp += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.DaytimeTemp,
+            Limits::HeatingController::DaytimeTempMin,
+            Limits::HeatingController::DaytimeTempMax);
         updatePageDaytimeTemp();
         break;
 
     case Page::NightTimeTemp:
-        _newSettings.heatctl.night_temp += amount;
-        CLAMP_VALUE(_newSettings.heatctl.night_temp,
-            SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MIN,
-            SETTINGS_LIMIT_HEATCTL_NIGHT_TEMP_MAX);
+        _newSettings.HeatingController.NightTimeTemp += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.NightTimeTemp,
+            Limits::HeatingController::NightTimeTempMin,
+            Limits::HeatingController::NightTimeTempMax);
         updatePageNightTimeTemp();
         break;
 
     case Page::TempOvershoot:
-        _newSettings.heatctl.overshoot += amount;
-        CLAMP_VALUE(_newSettings.heatctl.overshoot,
-            SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MIN,
-            SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MAX);
+        _newSettings.HeatingController.Overshoot += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.Overshoot,
+            Limits::HeatingController::TempOvershootMin,
+            Limits::HeatingController::TempOvershootMax);
         updatePageTempOvershoot();
         break;
 
     case Page::TempUndershoot:
-        _newSettings.heatctl.undershoot += amount;
-        CLAMP_VALUE(_newSettings.heatctl.undershoot,
-            SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MIN,
-            SETTINGS_LIMIT_HEATCTL_OVERSHOOT_MAX);
+        _newSettings.HeatingController.Undershoot += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.Undershoot,
+            Limits::HeatingController::TempUndershootMin,
+            Limits::HeatingController::TempUndershootMax);
         updatePageTempUndershoot();
         break;
 
     case Page::BoostInterval:
-        _newSettings.heatctl.boost_intval += amount;
-        CLAMP_VALUE(_newSettings.heatctl.boost_intval,
-            SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MIN,
-            SETTINGS_LIMIT_HEATCTL_BOOST_INTVAL_MAX);
+        _newSettings.HeatingController.BoostIntervalMins += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.BoostIntervalMins,
+            Limits::HeatingController::BoostIntervalMin,
+            Limits::HeatingController::BoostIntervalMax);
         updatePageBoostIntval();
         break;
 
     case Page::CustomTempTimeout:
-        _newSettings.heatctl.custom_temp_timeout += amount;
-        CLAMP_VALUE(_newSettings.heatctl.custom_temp_timeout,
-            SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MIN,
-            SETTINGS_LIMIT_HEATCTL_CUSTOM_TEMP_TIMEOUT_MAX);
+        _newSettings.HeatingController.CustomTempTimeoutMins += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.CustomTempTimeoutMins,
+            Limits::HeatingController::CustomTempTimeoutMin,
+            Limits::HeatingController::CustomTempTimeoutMax);
         updatePageCustomTempTimeout();
         break;
 
     case Page::DisplayBrightness:
-        _newSettings.display.brightness += amount;
+        _newSettings.Display.Brightness += amount;
         updatePageDisplayBrightness();
         break;
 
     case Page::DisplayTimeout:
-        _newSettings.display.timeout_secs += amount;
+        _newSettings.Display.TimeoutSecs += amount;
         updatePageDisplayTimeout();
         break;
 
     case Page::TempCorrection:
-        _newSettings.heatctl.temp_correction += amount;
-        CLAMP_VALUE(_newSettings.heatctl.temp_correction,
-            SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MIN,
-            SETTINGS_LIMIT_HEATCTL_TEMP_CORR_MAX);
+        _newSettings.HeatingController.TempCorrection += amount;
+        CLAMP_VALUE(_newSettings.HeatingController.TempCorrection,
+            Limits::HeatingController::TempCorrectionMin,
+            Limits::HeatingController::TempCorrectionMax);
         updatePageTempCorrection();
         break;
 

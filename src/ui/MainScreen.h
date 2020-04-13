@@ -27,19 +27,21 @@
 
 #include <cstdint>
 
+class Settings;
 class SystemClock;
 class HeatingController;
 
 class MainScreen : public Screen
 {
 public:
-    MainScreen(const SystemClock& clock, HeatingController& heatingController);
+    MainScreen(Settings& settings, const SystemClock& clock, HeatingController& heatingController);
 
     void activate() override;
     void update() override;
     Action keyPress(Keypad::Keys keys) override;
 
 private:
+    Settings& _settings;
     const SystemClock& _clock;
     HeatingController& _heatingController;
     Logger _log{ "MainScreen" };

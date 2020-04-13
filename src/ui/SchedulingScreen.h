@@ -32,18 +32,19 @@ class SystemClock;
 class SchedulingScreen : public Screen
 {
 public:
-    SchedulingScreen(const SystemClock& systemClock);
+    SchedulingScreen(Settings& settings, const SystemClock& systemClock);
 
     void activate() override;
     void update() override;
     Action keyPress(Keypad::Keys keys) override;
 
 private:
+    Settings& _settings;
     const SystemClock& _systemClock;
 
     uint8_t _day = 0;
     uint8_t _intvalIdx = 0;
-    schedule_day_data _daysData[7];
+    PersistentData::SchedulerDayData _daysData[7];
     uint8_t _menuPressCnt = 0;
 
     void draw();

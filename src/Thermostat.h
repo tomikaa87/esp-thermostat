@@ -1,9 +1,10 @@
 #pragma once
 
-#include "SystemClock.h"
 #include "HeatingController.h"
 #include "Keypad.h"
 #include "Logger.h"
+#include "Settings.h"
+#include "SystemClock.h"
 #include "network/BlynkHandler.h"
 #include "network/NtpClient.h"
 #include "network/OtaUpdater.h"
@@ -18,6 +19,7 @@ public:
     void epochTimerIsr();
 
 private:
+    Settings _settings;
     SystemClock _systemClock;
     Logger _log{ "Thermostat" };
     HeatingController _heatingController;

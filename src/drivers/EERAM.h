@@ -60,8 +60,8 @@ public:
 
     EERAM() = delete;
 
-    static uint8_t read(uint16_t address, uint8_t* buffer, uint16_t length);
-    static void write(uint16_t address, const uint8_t* data, uint16_t length);
+    static uint16_t read(uint16_t address, uint8_t* buffer, uint16_t length);
+    static uint16_t write(uint16_t address, const uint8_t* data, uint16_t length);
 
     static void writeControlReg(Register reg, uint8_t value);
 

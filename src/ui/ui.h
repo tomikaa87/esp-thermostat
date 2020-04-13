@@ -33,10 +33,12 @@
 #include <memory>
 #include <stack>
 
+class Settings;
+
 class Ui
 {
 public:
-    Ui(const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
+    Ui(Settings& settings, const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
 
     void task();
 
@@ -44,6 +46,7 @@ public:
     void handleKeyPress(Keypad::Keys keys);
 
 private:
+    Settings& _settings;
     const SystemClock& _systemClock;
     Keypad& _keypad;
     HeatingController& _heatingController;

@@ -12,10 +12,10 @@
 #include <ESP8266WiFiScan.h>
 
 Thermostat::Thermostat()
-    : _heatingController(_systemClock)
+    : _heatingController(_settings, _systemClock)
     , _ntpClient(_systemClock)
     , _blynk(PrivateConfig::BlynkAppToken, _heatingController)
-    , _ui(_systemClock, _keypad, _heatingController)
+    , _ui(_settings, _systemClock, _keypad, _heatingController)
     , _otaUpdater("http://tomikaa.noip.me:8001/esp-thermostat/update", _systemClock)
 {
     _log.info("initializing, firmware version: %d.%d.%d", FW_VER_MAJOR, FW_VER_MINOR, FW_VER_PATCH);
@@ -34,22 +34,6 @@ Thermostat::Thermostat()
 
     _log.info("initializing Display");
     Display::init();
-
-    _log.info("loading settings...");
-    settings_init(
-        [](const uint8_t address) {
-            uint8_t data;
-            if (Peripherals::Storage::EERAM::read(address, &data, 1) != 1)
-                Serial.printf("EERAM read failure at %02xh\n", address);
-            Serial.printf("RAM[%02xh] -> %02xh\n", address, data);
-            return data;
-        },
-        [](const uint8_t address, const uint8_t data) {
-            Serial.printf("RAM[%02xh] <- %02xh\n", address, data);
-            Peripherals::Storage::EERAM::write(address, &data, 1);
-        }
-    );
-    settings_load();
 
     _updateCheckTimer = millis();
 }

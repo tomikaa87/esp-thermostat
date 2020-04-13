@@ -23,14 +23,14 @@
 #include <ctime>
 
 #include "Logger.h"
-#include "settings.h"
+#include "Settings.h"
 
 class SystemClock;
 
 class HeatingController
 {
 public:
-    HeatingController(const SystemClock& systemClock);
+    HeatingController(Settings& settings, const SystemClock& systemClock);
 
     enum class Mode
     {
@@ -89,6 +89,7 @@ public:
     State scheduledStateAt(uint8_t weekday, uint8_t hour, uint8_t min) const;
 
 private:
+    Settings& _settings;
     const SystemClock& _systemClock;
     Logger _log{ "HeatingController" };
     bool _boostActive = false;
@@ -98,7 +99,7 @@ private:
     bool _settingsChanged = false; // TODO probably not needed because of EERAM
     bool _customTempSet = false;
     std::time_t _boostEnd = 0;
-    TenthsOfDegrees _targetTemp = SETTINGS_TEMP_MIN;
+    TenthsOfDegrees _targetTemp = Limits::MinimumTemperature;
     TenthsOfDegrees _sensorTemp = 0;
     std::time_t _settingsLastChanged = 0;
     std::time_t _setTempLastChanged = 0;
@@ -112,4 +113,7 @@ private:
 
     bool isCustomTempResetNeeded() const;
     bool isModeSaveNeeded() const; // TODO probably not needed because of EERAM
+
+    void storeTargetTemp();
+    void loadStoredTargetTemp();
 };

@@ -30,14 +30,15 @@
 class MenuScreen : public Screen
 {
 public:
-    MenuScreen();
+    MenuScreen(Settings& settings);
 
     void activate() override;
     void update() override;
     Action keyPress(Keypad::Keys keys) override;
 
 private:
-    struct persistent_settings _newSettings;
+    Settings& _settings;
+    PersistentData::Settings _newSettings;
     char _wifiPsw[64] = { 0 };
 
     enum class Page

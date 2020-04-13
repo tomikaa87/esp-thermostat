@@ -18,23 +18,21 @@
     Created on 2017-01-07
 */
 
-#include "SchedulingScreen.h"
-#include "Keypad.h"
-#include "graphics.h"
-#include "settings.h"
 #include "draw_helper.h"
+#include "graphics.h"
+#include "Keypad.h"
+#include "SchedulingScreen.h"
 #include "SystemClock.h"
 #include "main.h"
 
 #include "display/Display.h"
 #include "display/Text.h"
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstring>
 
-SchedulingScreen::SchedulingScreen(const SystemClock& systemClock)
+SchedulingScreen::SchedulingScreen(Settings& settings, const SystemClock& systemClock)
     : Screen("Scheduling")
+    , _settings(settings)
     , _systemClock(systemClock)
 {
     memset(_daysData, 0, sizeof(_daysData));
@@ -46,7 +44,7 @@ void SchedulingScreen::activate()
     struct tm* t = gmtime(&localTime);
     _day = t->tm_wday;
     _intvalIdx = 0;
-    memcpy(_daysData, settings.schedule.days, sizeof(schedule_day_data) * 7);
+    memcpy(_daysData, _settings.Data.Scheduler.DayData, sizeof(PersistentData::SchedulerDayData) * 7);
     draw();
 }
 
@@ -193,6 +191,6 @@ void SchedulingScreen::prevDay()
 
 void SchedulingScreen::applyChanges()
 {
-    memcpy(settings.schedule.days, _daysData, sizeof(schedule_day_data) * 7);
-    settings_save();
+    memcpy(_settings.Data.Scheduler.DayData, _daysData, sizeof(PersistentData::SchedulerDayData) * 7);
+    _settings.save();
 }
