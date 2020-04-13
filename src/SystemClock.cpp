@@ -18,13 +18,13 @@
     Created on 2016-12-30
 */
 
-#include "clock.h"
+#include "SystemClock.h"
 #include "drivers/MCP7940N.h"
 #include "Peripherals.h"
 
 using rtc = Peripherals::Clock::Rtc;
 
-Clock::Clock()
+SystemClock::SystemClock()
 {
     _log.info("initializing");
 
@@ -42,7 +42,7 @@ Clock::Clock()
     }
 }
 
-void Clock::task()
+void SystemClock::task()
 {
     if (_lastRtcSync == 0 || _epoch - _lastRtcSync > RtcSyncIntervalSec) {
         _log.info("automatic update from RTC triggered");
@@ -50,7 +50,7 @@ void Clock::task()
     }
 }
 
-void Clock::timerIsr()
+void ICACHE_RAM_ATTR SystemClock::timerIsr()
 {
     if (++_isrCounter == 3125) {
         _isrCounter = 0;
@@ -58,7 +58,7 @@ void Clock::timerIsr()
     }
 }
 
-std::time_t Clock::localTime() const
+std::time_t SystemClock::localTime() const
 {
     auto localTime = _epoch + _localTimeOffsetMinutes * 60;
     if (isDst(localTime)) {
@@ -68,20 +68,20 @@ std::time_t Clock::localTime() const
     return localTime;
 }
 
-std::time_t Clock::utcTime() const
+std::time_t SystemClock::utcTime() const
 {
     return _epoch;
 }
 
-void Clock::setUtcTime(std::time_t t)
+void SystemClock::setUtcTime(const std::time_t t)
 {
-    _log.infof("setting UTC time: %ld", t);
+    _log.info("setting UTC time: %ld", t);
 
     _epoch = t;
     updateRtc();
 }
 
-void Clock::updateFromRtc()
+void SystemClock::updateFromRtc()
 {
     const auto dt = rtc::getDateTime();
 
@@ -93,7 +93,7 @@ void Clock::updateFromRtc()
     rtcTm.tm_mon = dt.month - 1;     // RTC: 1-12, C: 0-11
     rtcTm.tm_year = dt.year + 100;   // RTC: 0-99, C: 1900 + value
 
-    _log.infof("time updated from RTC (UTC): %d-%02d-%02d %d:%02d:%02d\n",
+    _log.info("time updated from RTC (UTC): %d-%02d-%02d %d:%02d:%02d",
         rtcTm.tm_year + 1900,
         rtcTm.tm_mon + 1,
         rtcTm.tm_mday,
@@ -103,11 +103,14 @@ void Clock::updateFromRtc()
     );
 
     _epoch = mktime(&rtcTm);
+    _lastRtcSync = _epoch;
+
+    _log.info("epoch after updating: %ld", _epoch);
 }
 
-void Clock::updateRtc()
+void SystemClock::updateRtc()
 {
-    _log.infof("updating RTC, epoch: %ld", _epoch);
+    _log.info("updating RTC, epoch: %ld", _epoch);
 
     const auto tm = gmtime(&_epoch);
 
@@ -123,7 +126,7 @@ void Clock::updateRtc()
 
     rtc::setDateTime(dt);
 
-    _log.infof("RTC update finished, current time (UTC): %d-%02d-%02d %d:%02d:%02d\n",
+    _log.info("RTC update finished, current time (UTC): %d-%02d-%02d %d:%02d:%02d",
         tm->tm_year + 1900,
         tm->tm_mon + 1,
         tm->tm_mday,
@@ -133,7 +136,7 @@ void Clock::updateRtc()
     );
 }
 
-bool Clock::isDst(const std::time_t t)
+bool SystemClock::isDst(const std::time_t t)
 {
     const auto tm = gmtime(&t);
 

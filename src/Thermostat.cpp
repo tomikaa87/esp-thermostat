@@ -11,18 +11,20 @@
 #include <ESP8266WiFiScan.h>
 
 Thermostat::Thermostat()
-    : _log{ "Thermostat" }
-    , _heatingController{ _clock }
-    , _ntpClient{ _clock }
-    , _blynk{ PrivateConfig::BlynkAppToken, _heatingController }
-    , _ui{ _clock, _keypad, _heatingController }
+    : _heatingController(_systemClock)
+    , _ntpClient(_systemClock)
+    , _blynk(PrivateConfig::BlynkAppToken, _heatingController)
+    , _ui(_systemClock, _keypad, _heatingController)
 {
-    connectToWiFi();
-
     Peripherals::Sensors::MainTemperature::update();
 
+    // Disable ASE by default to avoid unnecessary wearing when settings are not changed
+    Peripherals::Storage::EERAM::StatusReg sr;
+    sr.value = 0;
+    Peripherals::Storage::EERAM::setStatus(sr);
+
     auto eeramStatus = Peripherals::Storage::EERAM::getStatus();
-    _log.debugf("EERAM status: AM=%u, BP=%u, ASE=%u, EVENT=%u\n",
+    _log.info("EERAM status: AM=%u, BP=%u, ASE=%u, EVENT=%u\n",
         eeramStatus.am, eeramStatus.bp, eeramStatus.ase, eeramStatus.event
     );
 
@@ -48,7 +50,9 @@ Thermostat::Thermostat()
 
 void Thermostat::task()
 {
-    _clock.task();
+    // connectToWiFi();
+
+    _systemClock.task();
     _ntpClient.task();
     _blynk.task();
     _ui.task();
@@ -68,34 +72,30 @@ void Thermostat::task()
     }
 }
 
-void Thermostat::epochTimerIsr()
+void ICACHE_RAM_ATTR Thermostat::epochTimerIsr()
 {
-    _clock.timerIsr();
+    _systemClock.timerIsr();
 }
 
 void Thermostat::connectToWiFi()
 {
-    _log.infof("connecting to WiFi AP: %s", PrivateConfig::WiFiSSID);
-
-    WiFi.mode(WIFI_STA);
-    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
-    WiFi.setOutputPower(20.5);
-
-    if (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
-        // if (pass && strlen(pass)) {
-        //     WiFi.begin(ssid, pass);
-        // } else {
-        //     WiFi.begin(ssid);
-        // }
+    if (WiFi.isConnected()) {
+        if (_wifiConnecting) {
+            _log.info("connected to WiFi AP");
+            _wifiConnecting = false;
+        }
+        return;
     }
 
-    while (WiFi.status() != WL_CONNECTED) {
-        // TODO avoid using delay, use task() instead
-        delay(500);
+    if (_wifiConnecting) {
+        return;
     }
 
-    _log.info("connected to WiFi AP");
+    _wifiConnecting = true;
+
+    _log.info("connecting to WiFi AP: %s", PrivateConfig::WiFiSSID);
+
+    WiFi.begin(PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
 }
 
 void Thermostat::updateBlynk()

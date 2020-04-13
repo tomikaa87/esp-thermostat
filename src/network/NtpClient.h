@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-class Clock;
+class SystemClock;
 
 class NtpClient
 {
@@ -21,7 +21,7 @@ public:
     static constexpr auto NtpPort = 123;
     static constexpr auto NtpDefaultLocalPort = 1337;
 
-    NtpClient(Clock& clock);
+    NtpClient(SystemClock& clock);
 
     void task();
 
@@ -29,7 +29,7 @@ public:
     void setUpdatedCallback(UpdatedHandler&& handler);
 
 private:
-    Clock& _clock;
+    SystemClock& _systemClock;
     Logger _log{ "NtpClient" };
     UpdatedHandler _updatedHandler;
     std::unique_ptr<WiFiUDP> _socket = nullptr;

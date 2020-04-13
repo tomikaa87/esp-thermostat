@@ -20,7 +20,7 @@
 
 #include "MainScreen.h"
 #include "graphics.h"
-#include "clock.h"
+#include "SystemClock.h"
 #include "HeatingController.h"
 #include "draw_helper.h"
 #include "Keypad.h"
@@ -37,8 +37,8 @@
 
 #include "Peripherals.h"
 
-MainScreen::MainScreen(const Clock& clock, HeatingController& heatingController)
-    : _clock{ clock }
+MainScreen::MainScreen(const SystemClock& clock, HeatingController& heatingController)
+    : _clock(clock)
     , _heatingController(heatingController)
 {}
 

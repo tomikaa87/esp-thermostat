@@ -23,7 +23,7 @@
 #include "graphics.h"
 #include "settings.h"
 #include "draw_helper.h"
-#include "clock.h"
+#include "SystemClock.h"
 #include "main.h"
 
 #include "display/Display.h"
@@ -33,15 +33,15 @@
 #include <stdio.h>
 #include <string.h>
 
-SchedulingScreen::SchedulingScreen(const Clock& clock)
-    : _clock{ clock }
+SchedulingScreen::SchedulingScreen(const SystemClock& systemClock)
+    : _systemClock(systemClock)
 {
     memset(_days_data, 0, sizeof(_days_data));
 }
 
 void SchedulingScreen::scheduling_screen_init()
 {
-    const auto localTime = _clock.localTime();
+    const auto localTime = _systemClock.localTime();
     struct tm* t = gmtime(&localTime);
     _day = t->tm_wday;
     _intval_idx = 0;

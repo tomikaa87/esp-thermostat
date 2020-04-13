@@ -1,8 +1,8 @@
-#include "clock.h"
+#include "SystemClock.h"
 #include "NtpClient.h"
 
-NtpClient::NtpClient(Clock& clock)
-    : _clock(clock)
+NtpClient::NtpClient(SystemClock& systemClock)
+    : _systemClock(systemClock)
 {
     _log.info("initializing");
 }
@@ -11,7 +11,7 @@ void NtpClient::task()
 {
     switch (_state) {
         case State::Idle:
-            if (_lastUpdate == 0 || millis() - _lastUpdate > 10000 /*_clock.utcTime() - _lastUpdate > UpdateInterval*/) {
+            if (_lastUpdate == 0 || _systemClock.utcTime() - _lastUpdate > UpdateInterval) {
                 _log.info("update needed, starting");
                 _state = State::SendPacket;
 
@@ -51,10 +51,10 @@ void NtpClient::task()
             const time_t secsSince1900 = hi << 16 | lo;
             const time_t epoch = secsSince1900 - SeventyYears;
 
-            _clock.setUtcTime(epoch);
+            _systemClock.setUtcTime(epoch);
 
-            _log.infof("finished, epoch: %ld", epoch);
-            _lastUpdate = millis(); //_clock.utcTime();
+            _log.info("finished, epoch: %ld", epoch);
+            _lastUpdate = _systemClock.utcTime();
             _state = State::Idle;
             _socket.reset();
 

@@ -1,7 +1,10 @@
 #include "main.h"
+#include "PrivateConfig.h"
 #include "Thermostat.h"
 
 #include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiSTA.h>
 #include <Wire.h>
 
 static Thermostat* _thermostat = nullptr;
@@ -41,8 +44,12 @@ void setup()
     initializeWire();
     initializeSerial();
 
-    static Thermostat thermostat{};
-    _thermostat = &thermostat;
+    WiFi.mode(WIFI_STA);
+    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
+    WiFi.setOutputPower(20.5);
+    WiFi.begin(PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
+
+    _thermostat = new Thermostat();
 }
 
 void loop()
@@ -55,7 +62,7 @@ void loop()
 #if 0
 
 #include "BlynkHandler.h"
-#include "clock.h"
+#include "SystemClock.h"
 #include "HeatingController.h"
 #include "Keypad.h"
 #include "main.h"
@@ -99,31 +106,6 @@ void ICACHE_RAM_ATTR timer1_isr()
     if (Globals::clock) {
         Globals::clock->timerIsr();
     }
-}
-
-void connect_wifi()
-{
-    Serial.printf("Connecting to %s", PrivateConfig::WiFiSSID);
-
-    WiFi.mode(WIFI_STA);
-    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
-    WiFi.setOutputPower(20.5);
-
-    if (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
-        // if (pass && strlen(pass)) {
-        //     WiFi.begin(ssid, pass);
-        // } else {
-        //     WiFi.begin(ssid);
-        // }
-    }
-
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print(".");
-        delay(500);
-    }
-
-    Serial.println("\nConnected to WiFi");
 }
 
 void setup()

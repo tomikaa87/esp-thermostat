@@ -21,17 +21,18 @@
 #pragma once
 
 #include "Keypad.h"
+#include "Logger.h"
 #include "ui_result.h"
 
 #include <cstdint>
 
-class Clock;
+class SystemClock;
 class HeatingController;
 
 class MainScreen
 {
 public:
-    MainScreen(const Clock& clock, HeatingController& heatingController);
+    MainScreen(const SystemClock& clock, HeatingController& heatingController);
 
     void main_screen_init();
     void main_screen_draw();
@@ -39,8 +40,9 @@ public:
     UiResult main_screen_handle_keys(Keypad::Keys keys);
 
 private:
-    const Clock& _clock;
+    const SystemClock& _clock;
     HeatingController& _heatingController;
+    Logger _log{ "MainScreen" };
     uint8_t _indicator = 0;
     bool _boostIndicator = false;
     uint8_t _lastScheduleIndex = 0;

@@ -24,13 +24,13 @@
 
 #include <ctime>
 
-class Clock
+class SystemClock
 {
 public:
     static constexpr auto NtpSyncIntervalSec = 1800;
     static constexpr auto RtcSyncIntervalSec = 60;
 
-    Clock();
+    SystemClock();
 
     void task();
     void timerIsr();
@@ -41,14 +41,14 @@ public:
     void setUtcTime(std::time_t t);
 
 private:
-    Logger _log{ "Clock" };
+    Logger _log{ "SystemClock" };
     std::time_t _epoch = 0;
     std::time_t _lastRtcSync = 0;
     bool _ntpSyncing = false;
     bool _rtcSynced = false;
     int _isrCounter = 0;
-    int _localTimeOffsetMinutes = 0;
-    int _localTimeDstOffsetMinutes = 0;
+    int _localTimeOffsetMinutes = 60;
+    int _localTimeDstOffsetMinutes = 60;
 
     void updateFromRtc();
     void updateRtc();

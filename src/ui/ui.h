@@ -22,6 +22,7 @@
 
 #include "HeatingController.h"
 #include "Keypad.h"
+#include "Logger.h"
 
 #include "MainScreen.h"
 #include "MenuScreen.h"
@@ -32,7 +33,7 @@
 class Ui
 {
 public:
-    Ui(const Clock& clock, Keypad& keypad, HeatingController& heatingController);
+    Ui(const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
 
     void task();
 
@@ -40,9 +41,10 @@ public:
     void handleKeyPress(Keypad::Keys keys);
 
 private:
-    const Clock& _clock;
+    const SystemClock& _systemClock;
     Keypad& _keypad;
     HeatingController& _heatingController;
+    Logger _log{" Ui" };
     std::time_t _lastKeyPressTime = 0;
 
     MainScreen _mainScreen;

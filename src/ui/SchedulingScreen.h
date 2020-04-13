@@ -26,19 +26,19 @@
 
 #include <cstdint>
 
-class Clock;
+class SystemClock;
 
 class SchedulingScreen
 {
 public:
-    SchedulingScreen(const Clock& clock);
+    SchedulingScreen(const SystemClock& systemClock);
 
     void scheduling_screen_init();
     void scheduling_screen_draw();
     UiResult scheduling_screen_handle_keys(Keypad::Keys keys);
 
 private:
-    const Clock& _clock;
+    const SystemClock& _systemClock;
 
     uint8_t _day = 0;
     uint8_t _intval_idx = 0;

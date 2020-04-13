@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Clock.h"
+#include "SystemClock.h"
 #include "HeatingController.h"
 #include "Keypad.h"
 #include "Logger.h"
@@ -17,13 +17,15 @@ public:
     void epochTimerIsr();
 
 private:
-    Clock _clock;
-    Logger _log;
+    SystemClock _systemClock;
+    Logger _log{ "Thermostat" };
     HeatingController _heatingController;
     NtpClient _ntpClient;
     BlynkHandler _blynk;
     Keypad _keypad;
     Ui _ui;
+
+    bool _wifiConnecting = false;
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     std::time_t _lastSlowLoopUpdate = 0;

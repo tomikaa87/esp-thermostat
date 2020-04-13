@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cstdarg>
 #include <string>
+
+#include <Arduino.h>
 
 class Logger
 {
@@ -16,22 +17,45 @@ public:
         Debug
     };
 
-    void logv(Severity severity, const char* fmt, va_list args);
-    void logf(Severity severity, const char* fmt, ...);
-    void log(Severity severity, const char* msg);
+    template <typename... Params>
+    void log(Severity severity, const char* fmt, Params... params) const
+    {
+        Serial.printf("[%c][%s]: ", severityIndicator(severity), _category.c_str());
 
-    void errorf(const char* fmt, ...);
-    void warningf(const char* fmt, ...);
-    void infof(const char* fmt, ...);
-    void debugf(const char* fmt, ...);
+        if (sizeof...(params) == 0) {
+            Serial.println(fmt);
+        } else {
+            Serial.printf(fmt, params...);
+            Serial.println();
+        }
+    }
 
-    void error(const char* s);
-    void warning(const char* s);
-    void info(const char* s);
-    void debug(const char* s);
+    template <typename... Params>
+    void error(const char* fmt, Params... params) const
+    {
+        log(Severity::Error, fmt, params...);
+    }
+
+    template <typename... Params>
+    void warning(const char* fmt, Params... params) const
+    {
+        log(Severity::Warning, fmt, params...);
+    }
+
+    template <typename... Params>
+    void info(const char* fmt, Params... params) const
+    {
+        log(Severity::Info, fmt, params...);
+    }
+
+    template <typename... Params>
+    void debug(const char* fmt, Params... params) const
+    {
+        log(Severity::Debug, fmt, params...);
+    }
 
 private:
-    std::string _category;
+    const std::string _category;
 
     static char severityIndicator(Severity severity);
 };

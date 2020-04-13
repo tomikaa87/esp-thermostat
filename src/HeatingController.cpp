@@ -19,7 +19,7 @@
 */
 
 #include "HeatingController.h"
-#include "clock.h"
+#include "SystemClock.h"
 #include "config.h"
 #include "extras.h"
 #include "settings.h"
@@ -30,8 +30,8 @@
 
 #define TEMPERATURE_STEP	5
 
-HeatingController::HeatingController(const Clock& clock)
-    : _clock{ clock }
+HeatingController::HeatingController(const SystemClock& systemClock)
+    : _systemClock(systemClock)
 {
     _log.info("initializing");
 
@@ -61,7 +61,7 @@ void HeatingController::task()
     printf("heatctl: heat_act=%u\r\n", heatctl.heating_active);
 #endif
 
-    if (_boostActive && _clock.utcTime() >= _boostEnd) {
+    if (_boostActive && _systemClock.utcTime() >= _boostEnd) {
         _boostActive = false;
         _boostDeactivated = true;
 
@@ -166,7 +166,7 @@ HeatingController::Mode HeatingController::mode() const
 
 void HeatingController::setMode(Mode mode)
 {
-    _log.infof("setting mode to %d", static_cast<int>(mode));
+    _log.info("setting mode to %d", static_cast<int>(mode));
 
     if (mode == Mode::Boost) {
         if (!isBoostActive()) {
@@ -202,7 +202,7 @@ void HeatingController::activateBoost()
         return;
     }
 
-    _boostEnd = _clock.utcTime() + settings.heatctl.boost_intval * 60;
+    _boostEnd = _systemClock.utcTime() + settings.heatctl.boost_intval * 60;
     _boostActive = true;
 }
 
@@ -222,12 +222,12 @@ void HeatingController::deactivateBoost()
 void HeatingController::extendBoost()
 {
     _boostEnd += settings.heatctl.boost_intval * 60;
-    _log.infof("extending boost, end: %ld", _boostEnd);
+    _log.info("extending boost, end: %ld", _boostEnd);
 
     // TODO load max value from settings
     if (boostRemaining() > 4 * 3600) {
-        _log.warningf("maximum boost time reached: %ld", 4 * 3600);
-        _boostEnd = _clock.utcTime() + 4 * 3600;
+        _log.warning("maximum boost time reached: %ld", 4 * 3600);
+        _boostEnd = _systemClock.utcTime() + 4 * 3600;
     }
 }
 
@@ -237,7 +237,7 @@ std::time_t HeatingController::boostRemaining() const
         return 0;
     }
 
-    return _boostEnd - _clock.utcTime();
+    return _boostEnd - _systemClock.utcTime();
 }
 
 HeatingController::TenthsOfDegrees HeatingController::currentTemp() const
@@ -252,7 +252,7 @@ HeatingController::TenthsOfDegrees HeatingController::targetTemp() const
 
 void HeatingController::setTargetTemp(TenthsOfDegrees temp)
 {
-    _log.infof("setting target temp: %d", temp);
+    _log.info("setting target temp: %d", temp);
 
     _targetTemp = temp;
     clampTargetTemp();
@@ -292,7 +292,7 @@ HeatingController::TenthsOfDegrees HeatingController::daytimeTemp() const
 
 void HeatingController::setDaytimeTemp(TenthsOfDegrees temp)
 {
-    _log.infof("setting daytime temp: %d", temp);
+    _log.info("setting daytime temp: %d", temp);
 
     settings.heatctl.day_temp = Extras::clampValue(
         temp,
@@ -308,7 +308,7 @@ HeatingController::TenthsOfDegrees HeatingController::nightTimeTemp() const
 
 void HeatingController::setNightTimeTemp(TenthsOfDegrees temp)
 {
-    _log.infof("setting night time temp: %d", temp);
+    _log.info("setting night time temp: %d", temp);
 
     settings.heatctl.night_temp = Extras::clampValue(
         temp,
@@ -319,14 +319,14 @@ void HeatingController::setNightTimeTemp(TenthsOfDegrees temp)
 
 bool HeatingController::hasDaytimeSchedule() const
 {
-    const auto localTime = _clock.localTime();
+    const auto localTime = _systemClock.localTime();
     const auto t = gmtime(&localTime);
     return scheduledStateAt(t->tm_wday, t->tm_hour, t->tm_min) == State::On;
 }
 
 HeatingController::NextTransition HeatingController::nextTransition() const
 {
-    const auto localTime = _clock.localTime();
+    const auto localTime = _systemClock.localTime();
     const auto t = gmtime(&localTime);
 
     uint8_t wd = t->tm_wday;
@@ -383,7 +383,7 @@ HeatingController::State HeatingController::scheduledStateAt(uint8_t weekday, ui
 void HeatingController::markSettingsChanged()
 {
     _settingsChanged = true;
-    _settingsLastChanged = _clock.utcTime();
+    _settingsLastChanged = _systemClock.utcTime();
 }
 
 void HeatingController::markCustomTempSet()
@@ -391,7 +391,7 @@ void HeatingController::markCustomTempSet()
     _log.debug("custom temp set");
 
     _customTempSet = true;
-    _setTempLastChanged = _clock.utcTime();
+    _setTempLastChanged = _systemClock.utcTime();
 }
 
 void HeatingController::clampTargetTemp()
@@ -433,7 +433,7 @@ bool HeatingController::isCustomTempResetNeeded() const
         return false;
     }
 
-    return _clock.utcTime() >= (_setTempLastChanged 
+    return _systemClock.utcTime() >= (_setTempLastChanged 
         + settings.heatctl.custom_temp_timeout * 60);
 }
 
@@ -443,7 +443,7 @@ bool HeatingController::isModeSaveNeeded() const
     // This delay could spare EEPROM write cycles if the mode is being
     // changed in rapid successions.
 
-    if (_settingsLastChanged && (_settingsLastChanged + 10 <= _clock.utcTime())) {
+    if (_settingsLastChanged && (_settingsLastChanged + 10 <= _systemClock.utcTime())) {
         return true;
     }
 

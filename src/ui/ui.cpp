@@ -20,7 +20,7 @@
 
 #include "ui.h"
 #include "settings.h"
-#include "clock.h"
+#include "SystemClock.h"
 #include "main.h"
 
 #include "display/Display.h"
@@ -35,17 +35,17 @@
 
 // #define ENABLE_DEBUG
 
-Ui::Ui(const Clock& clock, Keypad& keypad, HeatingController& heatingController)
-    : _clock{ clock }
+Ui::Ui(const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController)
+    : _systemClock(systemClock)
     , _keypad(keypad)
     , _heatingController(heatingController)
-    , _mainScreen{ clock, heatingController }
-    , _schedulingScreen{ clock }
+    , _mainScreen(systemClock, heatingController)
+    , _schedulingScreen(systemClock)
 {
     Display::setContrast(settings.display.brightness);
 
-    // main_screen_init();
-    // main_screen_draw();
+    _mainScreen.main_screen_init();
+    _mainScreen.main_screen_draw();
 }
 
 void Ui::task()
@@ -59,7 +59,7 @@ void Ui::update()
     switch (_screen)
     {
         case Screen::Main:
-            // main_screen_update();
+            _mainScreen.main_screen_update();
             break;
 
         case Screen::Menu:
@@ -77,12 +77,14 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     if (keys == Keypad::Keys::None)
         return;
 
-    // _lastKeyPressTime = Globals::clock.utcTime();
+    _lastKeyPressTime = _systemClock.utcTime();
+
+    _log.info("keys=%xh, _lastKeyPressTime=%ld, _screen=%d", keys, _lastKeyPressTime, _screen);
 
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
     if (!Display::isPoweredOn()) {
-        std::cout << "Ui::handleKeyPress: display is off, ignoring" << std::endl;
+        _log.info("display is off, ignoring key press");
         return;
     }
 
@@ -103,10 +105,6 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
             break;
     }
 
-#ifdef ENABLE_DEBUG
-    printf("ui_result=%d\r\n", result);
-#endif
-
     if (result == UiResult::Idle)
         return;
 
@@ -122,6 +120,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     {
         case UiResult::SwitchMainScreen:
             _screen = Screen::Main;
+            _mainScreen.main_screen_init();
             _mainScreen.main_screen_draw();
             break;
 
@@ -150,10 +149,12 @@ void Ui::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
+            _log.debug("powering on the display");
             Display::powerOn();
         }
     } else {
         if (Display::isPoweredOn()) {
+            _log.debug("powering off the display");
             Display::powerOff();
         }
     }
@@ -165,5 +166,5 @@ bool Ui::isActive() const
         return true;
     }
 
-    return false; //(Globals::clock.utcTime() - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
+    return (_systemClock.utcTime() - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
 }
