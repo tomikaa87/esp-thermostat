@@ -1,11 +1,13 @@
 #include "main.h"
+#include "Peripherals.h"
 #include "PrivateConfig.h"
 #include "Thermostat.h"
+
+#include "drivers/SimpleI2C.h"
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiSTA.h>
-#include <Wire.h>
 
 static Thermostat* _thermostat = nullptr;
 
@@ -24,25 +26,25 @@ void initializeEpochTimer()
     timer1_write(100);
 }
 
-void initializeWire()
-{
-    Wire.begin();
-
-    // Be cautious with higher speeds,
-    // it can produce RTC errors and OLED artifacts
-    Wire.setClock(800000);
-}
-
 void initializeSerial()
 {
     Serial.begin(115200);
 }
 
+void initializeTempSensor()
+{
+    // Force a new conversion and wait for the results
+    Peripherals::Sensors::MainTemperature::update(true);
+    delay(800); // Max. 750 ms for 12-bit
+    Peripherals::Sensors::MainTemperature::update();
+}
+
 void setup()
 {
     initializeEpochTimer();
-    initializeWire();
+    Drivers::I2C::init();
     initializeSerial();
+    initializeTempSensor();
 
     WiFi.mode(WIFI_STA);
     WiFi.setPhyMode(WIFI_PHY_MODE_11N);

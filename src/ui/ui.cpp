@@ -43,6 +43,8 @@ Ui::Ui(Settings& settings_, const SystemClock& systemClock, Keypad& keypad, Heat
     , _keypad(keypad)
     , _heatingController(heatingController)
 {
+    _log.info("initializing Display, brightness: %d", _settings.Data.Display.Brightness);
+    Display::init();
     Display::setContrast(_settings.Data.Display.Brightness);
 
     auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_settings, _systemClock, _heatingController));
@@ -117,8 +119,9 @@ void Ui::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
-            _log.debug("powering on the display");
+            _log.debug("powering on the display, brightness: %d", _settings.Data.Display.Brightness);
             Display::powerOn();
+            Display::setContrast(_settings.Data.Display.Brightness);
         }
     } else {
         if (Display::isPoweredOn()) {

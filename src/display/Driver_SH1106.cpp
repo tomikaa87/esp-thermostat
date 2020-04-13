@@ -19,9 +19,10 @@
 */
 
 #include "Driver_SH1106.h"
-#include "Wire.h"
+#include "drivers/SimpleI2C.h"
 
 using namespace Driver;
+using namespace Drivers; // I2C
 
 bool SH1106::_poweredOn = false;
 
@@ -94,42 +95,40 @@ void SH1106::fill(const uint8_t pattern)
 
 void SH1106::sendCommand(uint8_t code)
 {
-    Wire.beginTransmission(SH1106_I2C_ADDRESS);
+    const uint8_t data[] = {
+        SH1106_I2C_CO_FLAG,
+        code
+    };
 
-    Wire.write(SH1106_I2C_CO_FLAG);
-    Wire.write(&code, 1);
-
-    Wire.endTransmission();
+    I2C::write(SH1106_I2C_ADDRESS, data, sizeof(data));
 }
 
 void SH1106::sendCommand(uint8_t code, uint8_t arg)
 {
-    Wire.beginTransmission(SH1106_I2C_ADDRESS);
+    const uint8_t data[] = {
+        SH1106_I2C_CO_FLAG,
+        code,
+        SH1106_I2C_CO_FLAG,
+        arg
+    };
 
-    Wire.write(SH1106_I2C_CO_FLAG);
-    Wire.write(&code, 1);
-
-    Wire.write(SH1106_I2C_CO_FLAG);
-    Wire.write(&arg, 1);
-
-    Wire.endTransmission();
+    I2C::write(SH1106_I2C_ADDRESS, data, sizeof(data));
 }
 
 void SH1106::sendData(uint8_t data, const uint8_t bitShift, const bool invert)
 {
-    Wire.beginTransmission(SH1106_I2C_ADDRESS);
-
-    Wire.write(SH1106_I2C_DC_FLAG);
-
     if (bitShift > 0)
         data <<= bitShift;
 
     if (invert)
         data = ~data;
 
-    Wire.write(&data, 1);
+    const uint8_t buf[] = {
+        SH1106_I2C_DC_FLAG,
+        data
+    };
 
-    Wire.endTransmission();
+    I2C::write(SH1106_I2C_ADDRESS, buf, sizeof(buf));
 }
 
 void SH1106::sendData(const uint8_t* data, const uint8_t length, const uint8_t bitShift, const bool invert)
@@ -137,27 +136,26 @@ void SH1106::sendData(const uint8_t* data, const uint8_t length, const uint8_t b
     if (bitShift > 7)
         return;
 
-    uint8_t buffer[17];
-    auto bytesRemaining = length;
-    uint8_t dataIndex = 0;
-    static const uint8_t ChunkSize = 16;
-
-    while (bytesRemaining > 0) {
-        const auto count =
-            bytesRemaining >= ChunkSize ? ChunkSize : bytesRemaining;
-        bytesRemaining -= count;
-
-        buffer[0] = SH1106_I2C_DC_FLAG;
-        for (uint8_t i = 1; i <= count; ++i) {
-            buffer[i] = data[dataIndex++] << bitShift;
-            if (invert)
-                buffer[i] = ~buffer[i];
-        }
-
-        Wire.beginTransmission(SH1106_I2C_ADDRESS);
-        Wire.write(buffer, count + 1);
-        Wire.endTransmission();
+    if (!I2C::start(SH1106_I2C_ADDRESS, I2C::Operation::Write)) {
+        return;
     }
+
+    const uint8_t flag = SH1106_I2C_DC_FLAG;
+    if (!I2C::write(&flag, 1)) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < length; ++i) {
+        uint8_t b = data[i] << bitShift;
+        if (invert)
+            b = ~b;
+
+        if (!I2C::write(&b, 1)) {
+            return;
+        }
+    }
+
+    I2C::end();
 }
 
 bool SH1106::isPoweredOn()

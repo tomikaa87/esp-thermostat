@@ -27,10 +27,14 @@ using namespace Drivers;
 int16_t DS18B20::_lastReading = 0;
 Logger DS18B20::_log = Logger{ "DS18B20" };
 
-void DS18B20::update()
+void DS18B20::update(const bool forceConversion)
 {
     static bool convert = true;
-    
+
+    if (forceConversion) {
+        convert = true;
+    }
+
     if (convert) {
         startConversion();
     } else {
@@ -38,8 +42,6 @@ void DS18B20::update()
 
         // t += settings.heatctl.temp_correction * 10;
         _lastReading = t;
-
-        _log.debug("update: %i", t);
     }
     
     convert = !convert;
@@ -52,6 +54,8 @@ int16_t DS18B20::lastReading()
 
 void DS18B20::startConversion()
 {
+    _log.debug("starting conversion");
+
     Bus::reset();
     Bus::writeByte(0xCC);
     Bus::writeByte(0x44);

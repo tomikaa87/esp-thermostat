@@ -40,7 +40,7 @@ private:
     static constexpr auto BlynkUpdateIntervalMs = 1000;
     uint32_t _lastBlynkUpdate = 0;
 
-    static constexpr auto TempSensorUpdateIntervalMs = 5000;
+    static constexpr auto TempSensorUpdateIntervalMs = 2500;
     uint32_t _lastTempSensorUpdate = 0;
 
     void connectToWiFi();

@@ -138,7 +138,7 @@ public:
     PersistentData::Settings Data;
 
 private:
-    Logger _log{ "Setting" };
+    Logger _log{ "Settings" };
     bool _aseEnabled = false;
 
     void check();

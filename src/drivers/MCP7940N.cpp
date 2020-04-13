@@ -19,9 +19,7 @@
 */
 
 #include "MCP7940N.h"
-
-#include <Arduino.h>
-#include <Wire.h>
+#include "drivers/SimpleI2C.h"
 
 using namespace Drivers;
 
@@ -265,12 +263,24 @@ uint8_t MCP7940N::write(uint8_t address, const uint8_t* buffer, uint8_t length)
         }
     }
 
-    Wire.beginTransmission(ControlByte);
-    Wire.write(address);
-    Wire.write(reinterpret_cast<const char*>(buffer), length);
-    const auto written = Wire.endTransmission();
-    _log.debug("write: written=%u", written);
-    return written - sizeof(address);
+    if (!I2C::start(ControlByte, I2C::Operation::Write)) {
+        _log.error("write error: cannot start transfer");
+        return 0;
+    }
+
+    if (!I2C::write(&address, 1)) {
+        _log.error("write error: cannot write address");
+        return 0;
+    }
+
+    if (!I2C::write(buffer, length)) {
+        _log.error("write error: cannot write data");
+        return 0;
+    }
+
+    I2C::end();
+
+    return length;
 }
 
 uint8_t MCP7940N::write(Register reg, const uint8_t* buffer, uint8_t length)
@@ -287,20 +297,26 @@ uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
 {
     _log.debug("read(%02xh,%ph,%u)", address, buffer, length);
 
-    Wire.beginTransmission(ControlByte);
-    Wire.write(address);
-    Wire.endTransmission();
-    const auto read = Wire.requestFrom(ControlByte, length);
-    const auto buffered = Wire.readBytes(buffer, length);
+    if (!I2C::write(ControlByte, &address, 1)) {
+        _log.error("read error: cannot write address");
+        return 0;
+    }
+
+    if (!I2C::read(ControlByte, buffer, length)) {
+        _log.error("read error: cannot read data");
+        return 0;
+    }
+
+    I2C::end();
 
     {
-        const auto block = _log.debugBlock("read(): read=%u, buffered=%u, data:", read, buffered);
+        const auto block = _log.debugBlock("read(): data:");
         for (auto i = 0; i < length; ++i) {
             _log.debug(" %02xh", buffer[i]);
         }
     }
 
-    return buffered;
+    return length;
 }
 
 uint8_t MCP7940N::read(Register reg, uint8_t* buffer, uint8_t length)

@@ -36,7 +36,7 @@ public:
 
     DS18B20() = delete;
 
-    static void update();
+    static void update(bool forceConversion = false);
     static int16_t lastReading();
 
 private:

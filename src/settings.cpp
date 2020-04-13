@@ -33,22 +33,28 @@ Settings::Settings()
 
 void Settings::load()
 {
+    _log.info("loading");
+
     const auto read = Peripherals::Storage::EERAM::read(
         0,
         reinterpret_cast<uint8_t*>(&Data),
-        sizeof(PersistentData::Settings)
+        sizeof(Data)
     );
 
-    if (read != sizeof(PersistentData::Settings)) {
-        _log.error("EERAM read failed, read %u of %u Bytes", 
-            read,
-            sizeof(PersistentData::Settings)
-        );
+    if (!read) {
+        _log.error("EERAM read failed");
+    }
+
+    {
+        const auto block = _log.debugBlock("read data: ");
+        for (auto i = 0u; i < sizeof(Data); ++i) {
+            _log.debug("%02xh ", reinterpret_cast<const uint8_t*>(&Data)[i]);
+        }
     }
 
     const auto calculatedCrc32 = crc32(
-        reinterpret_cast<const void*>(&Data + sizeof(Data.Crc32)),
-        sizeof(PersistentData::Settings) - sizeof(Data.Crc32)
+        reinterpret_cast<const uint8_t*>(&Data) + sizeof(Data.Crc32),
+        sizeof(Data) - sizeof(Data.Crc32)
     );
 
     if (calculatedCrc32 != Data.Crc32) {
@@ -66,28 +72,35 @@ void Settings::load()
 
 void Settings::save()
 {
+    _log.info("saving ");
+
     Data.Version = DataVersion;
     Data.Crc32 = crc32(
-        reinterpret_cast<const void*>(&Data + sizeof(Data.Crc32)),
-        sizeof(PersistentData::Settings) - sizeof(Data.Crc32)
+        reinterpret_cast<const uint8_t*>(&Data) + sizeof(Data.Crc32),
+        sizeof(Data) - sizeof(Data.Crc32)
     );
+
+    _log.debug("calculated checksum: %08xh", Data.Crc32);
+
+    {
+        const auto block = _log.debugBlock("writing data: ");
+        for (auto i = 0u; i < sizeof(Data); ++i) {
+            _log.debug("%02xh ", reinterpret_cast<const uint8_t*>(&Data)[i]);
+        }
+    }
 
     const auto written = Peripherals::Storage::EERAM::write(
         0,
         reinterpret_cast<uint8_t*>(&Data),
-        sizeof(PersistentData::Settings)
+        sizeof(Data)
     );
 
-    if (written != sizeof(PersistentData::Settings)) {
-        _log.error("EERAM write failed, written %u of %u Bytes", 
-            written,
-            sizeof(PersistentData::Settings)
-        );
-
+    if (!written) {
+        _log.error("EERAM write failed, written %u of %u Bytes");
         return;
     }
 
-    if (_aseEnabled) {
+    if (!_aseEnabled) {
         _log.debug("settings changed, enabling ASE");
 
         _aseEnabled = true;

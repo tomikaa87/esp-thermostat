@@ -20,8 +20,6 @@ Thermostat::Thermostat()
 {
     _log.info("initializing, firmware version: %d.%d.%d", FW_VER_MAJOR, FW_VER_MINOR, FW_VER_PATCH);
 
-    Peripherals::Sensors::MainTemperature::update();
-
     // Disable ASE by default to avoid unnecessary wearing when settings are not changed
     Peripherals::Storage::EERAM::StatusReg sr;
     sr.value = 0;
@@ -31,9 +29,6 @@ Thermostat::Thermostat()
     _log.info("EERAM status: AM=%u, BP=%u, ASE=%u, EVENT=%u\n",
         eeramStatus.am, eeramStatus.bp, eeramStatus.ase, eeramStatus.event
     );
-
-    _log.info("initializing Display");
-    Display::init();
 
     _updateCheckTimer = millis();
 }

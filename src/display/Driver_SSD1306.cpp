@@ -19,10 +19,10 @@
 */
 
 #include "Driver_SSD1306.h"
-
-#include <Wire.h>
+#include "drivers/SimpleI2C.h"
 
 using namespace Driver;
+using namespace Drivers; // I2C
 
 bool SSD1306::_poweredOn = false;
 
@@ -132,42 +132,40 @@ void SSD1306::fill(const uint8_t pattern)
 
 void SSD1306::sendCommand(uint8_t code)
 {
-    Wire.beginTransmission(SSD1306_I2C_ADDRESS);
+    const uint8_t data[] = {
+        SSD1306_I2C_CO_FLAG,
+        code
+    };
 
-    Wire.write(SSD1306_I2C_CO_FLAG);
-    Wire.write(&code, 1);
-
-    Wire.endTransmission();
+    I2C::write(SSD1306_I2C_ADDRESS, data, sizeof(data));
 }
 
 void SSD1306::sendCommand(uint8_t code, uint8_t arg)
 {
-    Wire.beginTransmission(SSD1306_I2C_ADDRESS);
+    const uint8_t data[] = {
+        SSD1306_I2C_CO_FLAG,
+        code,
+        SSD1306_I2C_CO_FLAG,
+        arg
+    };
 
-    Wire.write(SSD1306_I2C_CO_FLAG);
-    Wire.write(&code, 1);
-
-    Wire.write(SSD1306_I2C_CO_FLAG);
-    Wire.write(&arg, 1);
-
-    Wire.endTransmission();
+    I2C::write(SSD1306_I2C_ADDRESS, data, sizeof(data));
 }
 
 void SSD1306::sendData(uint8_t data, const uint8_t bitShift, const bool invert)
 {
-    Wire.beginTransmission(SSD1306_I2C_ADDRESS);
-
-    Wire.write(SSD1306_I2C_DC_FLAG);
-
     if (bitShift > 0)
         data <<= bitShift;
 
     if (invert)
         data = ~data;
 
-    Wire.write(&data, 1);
+    const uint8_t buf[] = {
+        SSD1306_I2C_DC_FLAG,
+        data
+    };
 
-    Wire.endTransmission();
+    I2C::write(SSD1306_I2C_ADDRESS, buf, sizeof(buf));
 }
 
 void SSD1306::sendData(const uint8_t* data, const uint8_t length, const uint8_t bitShift, const bool invert)
@@ -175,27 +173,26 @@ void SSD1306::sendData(const uint8_t* data, const uint8_t length, const uint8_t 
     if (bitShift > 7)
         return;
 
-    uint8_t buffer[17];
-    auto bytesRemaining = length;
-    uint8_t dataIndex = 0;
-    static const uint8_t ChunkSize = 16;
-
-    while (bytesRemaining > 0) {
-        const auto count =
-            bytesRemaining >= ChunkSize ? ChunkSize : bytesRemaining;
-        bytesRemaining -= count;
-
-        buffer[0] = SSD1306_I2C_DC_FLAG;
-        for (uint8_t i = 1; i <= count; ++i) {
-            buffer[i] = data[dataIndex++] << bitShift;
-            if (invert)
-                buffer[i] = ~buffer[i];
-        }
-
-        Wire.beginTransmission(SSD1306_I2C_ADDRESS);
-        Wire.write(buffer, count + 1);
-        Wire.endTransmission();
+    if (!I2C::start(SSD1306_I2C_ADDRESS, I2C::Operation::Write)) {
+        return;
     }
+
+    const uint8_t flag = SSD1306_I2C_DC_FLAG;
+    if (!I2C::write(&flag, 1)) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < length; ++i) {
+        uint8_t b = data[i] << bitShift;
+        if (invert)
+            b = ~b;
+
+        if (!I2C::write(&b, 1)) {
+            return;
+        }
+    }
+
+    I2C::end();
 }
 
 bool SSD1306::isPoweredOn()
