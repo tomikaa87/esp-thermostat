@@ -57,16 +57,21 @@ void Thermostat::task()
     _blynk.task();
     _ui.task();
 
-    // Slow loop
-    if (millis() - _lastSlowLoopUpdate >= SlowLoopUpdateIntervalMs) {
-        _lastSlowLoopUpdate = millis();
+    // Temperature sensor loop
+    if (_lastTempSensorUpdate == 0 || millis() - _lastTempSensorUpdate >= TempSensorUpdateIntervalMs) {
+        _lastTempSensorUpdate = millis();
         Peripherals::Sensors::MainTemperature::update();
+    }
+
+    // Slow loop
+    if (_lastSlowLoopUpdate == 0 || millis() - _lastSlowLoopUpdate >= SlowLoopUpdateIntervalMs) {
+        _lastSlowLoopUpdate = millis();
         _heatingController.task();
         _ui.update();
     }
 
     // Blynk update loop
-    if (millis() - _lastBlynkUpdate >= BlynkUpdateIntervalMs) {
+    if (_lastBlynkUpdate == 0 || millis() - _lastBlynkUpdate >= BlynkUpdateIntervalMs) {
         _lastBlynkUpdate = millis();
         updateBlynk();
     }

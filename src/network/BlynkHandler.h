@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "Logger.h"
 #include "TrackedVariable.h"
 
 #include <functional>
@@ -55,6 +56,7 @@ public:
 
 private:
     HeatingController& _heatingController;
+    Logger _log{ "Blynk" };
 
     bool m_callIncrementTempCb = false;
     bool m_callDecrementTempCb = false;

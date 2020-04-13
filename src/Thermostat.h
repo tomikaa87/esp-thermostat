@@ -28,10 +28,13 @@ private:
     bool _wifiConnecting = false;
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
-    std::time_t _lastSlowLoopUpdate = 0;
+    uint32_t _lastSlowLoopUpdate = 0;
 
     static constexpr auto BlynkUpdateIntervalMs = 1000;
-    std::time_t _lastBlynkUpdate = 0;
+    uint32_t _lastBlynkUpdate = 0;
+
+    static constexpr auto TempSensorUpdateIntervalMs = 5000;
+    uint32_t _lastTempSensorUpdate = 0;
 
     void connectToWiFi();
     void updateBlynk();

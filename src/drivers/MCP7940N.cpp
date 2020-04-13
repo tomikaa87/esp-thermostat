@@ -25,6 +25,8 @@
 
 using namespace Drivers;
 
+Logger MCP7940N::_log = Logger{ "MCP7940N" };
+
 bool MCP7940N::isOscillatorRunning()
 {
     uint8_t value = read(Register::RTCWKDAY);
@@ -256,17 +258,18 @@ uint8_t MCP7940N::toBcd(uint8_t value)
 
 uint8_t MCP7940N::write(uint8_t address, const uint8_t* buffer, uint8_t length)
 {
-    Serial.printf("MCP7940N::write(%02xh,%ph,%u):", address, buffer, length);
-    for (auto i = 0; i < length; ++i) {
-        Serial.printf(" %02xh", buffer[i]);
+    {
+        const auto block = _log.debugBlock("write(%02xh,%ph,%u):", address, buffer, length);
+        for (auto i = 0; i < length; ++i) {
+            _log.debug(" %02xh", buffer[i]);
+        }
     }
-    Serial.println();
 
     Wire.beginTransmission(ControlByte);
     Wire.write(address);
     Wire.write(reinterpret_cast<const char*>(buffer), length);
     const auto written = Wire.endTransmission();
-    Serial.printf("MCP7940N::write: written=%u\n", written);
+    _log.debug("write: written=%u", written);
     return written - sizeof(address);
 }
 
@@ -282,7 +285,7 @@ bool MCP7940N::write(const Register reg, uint8_t value)
 
 uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
 {
-    Serial.printf("MCP7940N::read(%02xh,%ph,%u)\n", address, buffer, length);
+    _log.debug("read(%02xh,%ph,%u)", address, buffer, length);
 
     Wire.beginTransmission(ControlByte);
     Wire.write(address);
@@ -290,11 +293,12 @@ uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
     const auto read = Wire.requestFrom(ControlByte, length);
     const auto buffered = Wire.readBytes(buffer, length);
 
-    Serial.printf("MCP7940N::read: read=%u, buffered=%u, data:", read, buffered);
+    {
+        const auto block = _log.debugBlock("read(): read=%u, buffered=%u, data:", read, buffered);
         for (auto i = 0; i < length; ++i) {
-        Serial.printf(" %02xh", buffer[i]);
+            _log.debug(" %02xh", buffer[i]);
+        }
     }
-    Serial.println();
 
     return buffered;
 }

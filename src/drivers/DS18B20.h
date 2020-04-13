@@ -22,6 +22,7 @@
 
 #include "BusConfig.h"
 #include "OneWire.h"
+#include "Logger.h"
 
 #include <cstdint>
 
@@ -39,6 +40,8 @@ public:
     static int16_t lastReading();
 
 private:
+    static Logger _log;
+
     using Bus = Peripherals::Bus::MainTemperatureOneWire;
 
     static int16_t _lastReading;

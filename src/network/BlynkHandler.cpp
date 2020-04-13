@@ -102,9 +102,7 @@ void BlynkHandler::task()
 
 void BlynkHandler::onBlynkConnected()
 {
-#ifdef ENABLE_DEBUG
-    Serial.printf("# BlynkHandler::onBlynkConnected()\r\n");
-#endif // ENABLE_DEBUG
+    _log.debug("connected");
 
     // LEDs must be updated manually
     updateVirtualPin(PIN_BOOST_STATE);
@@ -113,9 +111,7 @@ void BlynkHandler::onBlynkConnected()
 
 void BlynkHandler::onVirtualPinUpdated(int pin, const BlynkParam& param)
 {
-#ifdef ENABLE_DEBUG
-    Serial.printf("# BlynkHandler::onVirtualPinUpdated(%d)\r\n", pin);
-#endif // ENABLE_DEBUG
+    _log.debug("virtual pin updated, pin: %d", pin);
 
     // Handle "real" data updates (not button presses)
     // here.
@@ -176,9 +172,7 @@ void BlynkHandler::onButtonPressed(int pin)
 
 void BlynkHandler::updateVirtualPin(int pin)
 {
-#ifdef ENABLE_DEBUG
-    Serial.printf("# BlynkHandler::updateVirtualPin(%d)\r\n", pin);
-#endif // ENABLE_DEBUG
+    _log.debug("updating virtual pin: %d", pin);
 
     char buf[10] = { 0 };
 

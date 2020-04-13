@@ -44,7 +44,7 @@ private:
     const SystemClock& _systemClock;
     Keypad& _keypad;
     HeatingController& _heatingController;
-    Logger _log{" Ui" };
+    Logger _log{ "Ui" };
     std::time_t _lastKeyPressTime = 0;
 
     MainScreen _mainScreen;
