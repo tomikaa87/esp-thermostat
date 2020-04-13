@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Logger.h"
+
 #include <cstdint>
 
 namespace Drivers
@@ -69,6 +71,9 @@ public:
     static void setAseEnabled(bool enabled);
 
     static void executeCommand(Command cmd);
+
+private:
+    static Logger _log;
 };
 
 }

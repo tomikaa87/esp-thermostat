@@ -39,7 +39,7 @@ void DS18B20::update()
         // t += settings.heatctl.temp_correction * 10;
         _lastReading = t;
 
-        _log.debug("DS18B20::update: %i", t);
+        _log.debug("update: %i", t);
     }
     
     convert = !convert;
@@ -79,7 +79,7 @@ int16_t DS18B20::readSensor()
     if (value & 0x8000)
         celsius *= -1;
 
-    _log.debug("DS18B20::readSensor: %i", celsius);
+    _log.debug("readSensor: %i", celsius);
 
     return celsius;
 }

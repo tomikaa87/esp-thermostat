@@ -1,4 +1,5 @@
 #include "display/Display.h"
+#include "FirmwareVersion.h"
 #include "Peripherals.h"
 #include "PrivateConfig.h"
 #include "Settings.h"
@@ -15,7 +16,10 @@ Thermostat::Thermostat()
     , _ntpClient(_systemClock)
     , _blynk(PrivateConfig::BlynkAppToken, _heatingController)
     , _ui(_systemClock, _keypad, _heatingController)
+    , _otaUpdater("http://tomikaa.noip.me:8001/esp-thermostat/update", _systemClock)
 {
+    _log.info("initializing, firmware version: %d.%d.%d", FW_VER_MAJOR, FW_VER_MINOR, FW_VER_PATCH);
+
     Peripherals::Sensors::MainTemperature::update();
 
     // Disable ASE by default to avoid unnecessary wearing when settings are not changed
@@ -46,6 +50,8 @@ Thermostat::Thermostat()
         }
     );
     settings_load();
+
+    _updateCheckTimer = millis();
 }
 
 void Thermostat::task()
@@ -56,6 +62,7 @@ void Thermostat::task()
     _ntpClient.task();
     _blynk.task();
     _ui.task();
+    _otaUpdater.task();
 
     // Temperature sensor loop
     if (_lastTempSensorUpdate == 0 || millis() - _lastTempSensorUpdate >= TempSensorUpdateIntervalMs) {
@@ -68,6 +75,11 @@ void Thermostat::task()
         _lastSlowLoopUpdate = millis();
         _heatingController.task();
         _ui.update();
+
+        if (!_updateChecked && WiFi.isConnected() && millis() - _updateCheckTimer >= 5000) {
+            _updateChecked = true;
+            _otaUpdater.forceUpdate();
+        }
     }
 
     // Blynk update loop

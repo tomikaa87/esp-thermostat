@@ -6,6 +6,7 @@
 #include "Logger.h"
 #include "network/BlynkHandler.h"
 #include "network/NtpClient.h"
+#include "network/OtaUpdater.h"
 #include "ui/Ui.h"
 
 class Thermostat
@@ -24,8 +25,12 @@ private:
     BlynkHandler _blynk;
     Keypad _keypad;
     Ui _ui;
+    OtaUpdater _otaUpdater;
 
     bool _wifiConnecting = false;
+
+    bool _updateChecked = false;
+    uint32_t _updateCheckTimer = 0;
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     uint32_t _lastSlowLoopUpdate = 0;

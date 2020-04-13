@@ -25,6 +25,8 @@
 
 using namespace Drivers;
 
+Logger EERAM::_log = Logger{ "EERAM" };
+
 namespace ControlBytes
 {
     namespace Detail
@@ -47,7 +49,7 @@ uint8_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
     const auto available = Wire.requestFrom(ControlBytes::SramAccess, length);
 
     if (available == 0) {
-        Serial.println("EERAM: read failed");
+        _log.error("read failed, address: %xh", address);
         return 0;
     }
 
@@ -82,7 +84,7 @@ EERAM::StatusReg EERAM::getStatus()
 {
     const auto available = Wire.requestFrom(ControlBytes::ControlRegAccess, 1);
     if (available == 0) {
-        Serial.println("EERAM: getStatus failed");
+        _log.error("getStatus failed");
         return{};
     }
 
@@ -99,6 +101,8 @@ void EERAM::setStatus(StatusReg sr)
 
 void EERAM::setAseEnabled(const bool enabled)
 {
+    _log.debug("setting ASE to %s", enabled ? "enabled" : "disabled");
+
     StatusReg sr;
     sr.value = 0;
     sr.ase = enabled ? 1 : 0;
