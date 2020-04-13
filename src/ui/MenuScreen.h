@@ -21,19 +21,20 @@
 #pragma once
 
 #include "Keypad.h"
-#include "ui_result.h"
+#include "Screen.h"
 #include "Settings.h"
+#include "ui_result.h"
 
 #include <cstdint>
 
-class MenuScreen
+class MenuScreen : public Screen
 {
 public:
     MenuScreen();
 
-    void menu_screen_init();
-    void menu_screen_draw();
-    UiResult menu_screen_handle_handle_keys(Keypad::Keys keys);
+    void activate() override;
+    void update() override;
+    Action keyPress(Keypad::Keys keys) override;
 
 private:
     struct persistent_settings _newSettings;
@@ -61,33 +62,35 @@ private:
         WIFI_PASSWORD
     } _page = Page::First;
 
-    void draw_page_heatctl_mode();
-    void draw_page_daytime_temp();
-    void draw_page_nighttime_temp();
-    void draw_page_temp_overshoot();
-    void draw_page_temp_undershoot();
-    void draw_page_boost_intval();
-    void draw_page_custom_temp_timeout();
-    void draw_page_display_brightness();
-    void draw_page_display_timeout();
-    void draw_page_temp_correction();
-    void draw_page_wifi();
-    void draw_page_wifi_password();
-    void update_page_heatctl_mode();
-    void update_page_daytime_temp();
-    void update_page_nighttime_temp();
-    void update_page_temp_overshoot();
-    void update_page_temp_undershoot();
-    void update_page_boost_intval();
-    void update_page_custom_temp_timeout();
-    void update_page_temp_correction();
-    void update_page_display_brightness();
-    void update_page_display_timeout();
-    void update_page_wifi();
-    void draw_page_title(const char* text);
-    void next_page();
-    void previous_page();
-    void apply_settings();
-    void revert_settings();
-    void adjust_value(int8_t amount);
+    void draw();
+
+    void drawPageHeatCtlMode();
+    void drawPageDaytimeTemp();
+    void drawPageNightTimeTemp();
+    void drawPageTempOvershoot();
+    void drawPageTempUndershoot();
+    void drawPageBoostIntval();
+    void drawPageCustomTempTimeout();
+    void drawPageDisplayBrightness();
+    void drawPageDisplayTimeout();
+    void drawPageTempCorrection();
+    void drawPageWifi();
+    void drawPageWifiPassword();
+    void updatePageHeatCtlMode();
+    void updatePageDaytimeTemp();
+    void updatePageNightTimeTemp();
+    void updatePageTempOvershoot();
+    void updatePageTempUndershoot();
+    void updatePageBoostIntval();
+    void updatePageCustomTempTimeout();
+    void updatePageTempCorrection();
+    void updatePageDisplayBrightness();
+    void updatePageDisplayTimeout();
+    void updatePageWifi();
+    void drawPageTitle(const char* text);
+    void nextPage();
+    void previousPage();
+    void applySettings();
+    void revertSettings();
+    void adjustValue(int8_t amount);
 };

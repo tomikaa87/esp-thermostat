@@ -40,11 +40,13 @@ SystemClock::SystemClock()
     if (!rtc::isOscillatorRunning()) {
         _log.warning("RTC oscillator has stopped");
     }
+
+    updateFromRtc();
 }
 
 void SystemClock::task()
 {
-    if (_lastRtcSync == 0 || _epoch - _lastRtcSync > RtcSyncIntervalSec) {
+    if (_lastRtcSync > 0 && _epoch - _lastRtcSync > RtcSyncIntervalSec) {
         _log.info("automatic update from RTC triggered");
         updateFromRtc();
     }

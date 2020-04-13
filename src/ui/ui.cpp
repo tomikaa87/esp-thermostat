@@ -29,6 +29,7 @@
 #include "MenuScreen.h"
 #include "SchedulingScreen.h"
 
+#include <algorithm>
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
@@ -39,13 +40,19 @@ Ui::Ui(const SystemClock& systemClock, Keypad& keypad, HeatingController& heatin
     : _systemClock(systemClock)
     , _keypad(keypad)
     , _heatingController(heatingController)
-    , _mainScreen(systemClock, heatingController)
-    , _schedulingScreen(systemClock)
 {
     Display::setContrast(settings.display.brightness);
 
-    _mainScreen.main_screen_init();
-    _mainScreen.main_screen_draw();
+    auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_systemClock, _heatingController));
+    _mainScreen = mainScreen.get();
+    _currentScreen = _mainScreen;
+    mainScreen->activate();
+    _screens.push_back(std::move(mainScreen));
+
+    _screens.emplace_back(new MenuScreen);
+    _screens.emplace_back(new SchedulingScreen(_systemClock));
+
+    _lastKeyPressTime = _systemClock.utcTime();
 }
 
 void Ui::task()
@@ -56,17 +63,10 @@ void Ui::task()
 
 void Ui::update()
 {
-    switch (_screen)
-    {
-        case Screen::Main:
-            _mainScreen.main_screen_update();
-            break;
-
-        case Screen::Menu:
-            break;
-
-        case Screen::Scheduler:
-            break;
+    if (_currentScreen) {
+        _currentScreen->update();
+    } else {
+        _log.warning("update: current screen is null");
     }
 
     updateActiveState();
@@ -79,7 +79,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
 
     _lastKeyPressTime = _systemClock.utcTime();
 
-    _log.info("keys=%xh, _lastKeyPressTime=%ld, _screen=%d", keys, _lastKeyPressTime, _screen);
+    _log.info("keys=%xh, _lastKeyPressTime=%ld", keys, _lastKeyPressTime);
 
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
@@ -88,61 +88,27 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
         return;
     }
 
-    auto result = UiResult::Idle;
+    const auto action = _currentScreen->keyPress(keys);
+    bool screenChanged = true;
 
-    switch (_screen)
-    {
-        case Screen::Main:
-            result = _mainScreen.main_screen_handle_keys(keys);
+    switch (action) {
+        case Screen::Action::NoAction:
+            screenChanged = false;
             break;
 
-        case Screen::Menu:
-            result = _menuScreen.menu_screen_handle_handle_keys(keys);
+        case Screen::Action::NavigateBack:
+            navigateBackward();
             break;
 
-        case Screen::Scheduler:
-            result = _schedulingScreen.scheduling_screen_handle_keys(keys);
-            break;
-    }
-
-    if (result == UiResult::Idle)
-        return;
-
-    if (result == UiResult::Update) {
-        update();
-        return;
-    }
-
-    // Clear the screen before switching
-    Display::clear();
-
-    switch (result)
-    {
-        case UiResult::SwitchMainScreen:
-            _screen = Screen::Main;
-            _mainScreen.main_screen_init();
-            _mainScreen.main_screen_draw();
-            break;
-
-        case UiResult::SwitchMenuScreen:
-            _screen = Screen::Menu;
-            _menuScreen.menu_screen_init();
-            _menuScreen.menu_screen_draw();
-            break;
-
-        case UiResult::SwitchSchedulingScreen:
-            _screen = Screen::Scheduler;
-            _schedulingScreen.scheduling_screen_init();
-            _schedulingScreen.scheduling_screen_draw();
-            break;
-
-        default:
+        case Screen::Action::NavigateForward:
+            navigateForward(_currentScreen->nextScreen());
             break;
     }
 
-#ifdef ENABLE_DEBUG
-    printf("ui.screen=%d\r\n", ui.screen);
-#endif
+    if (screenChanged) {
+        Display::clear();
+        _currentScreen->activate();
+    }
 }
 
 void Ui::updateActiveState()
@@ -167,4 +133,43 @@ bool Ui::isActive() const
     }
 
     return (_systemClock.utcTime() - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
+}
+
+void Ui::navigateForward(const char* name)
+{
+    if (!name) {
+        _log.warning("navigating forward, screen name is null, going to main screen");
+        _currentScreen = _mainScreen;
+        return;
+    }
+
+    _log.debug("navigating forward, next screen: %s", name);
+
+    const auto it = std::find_if(std::begin(_screens), std::end(_screens), [name](const std::unique_ptr<Screen>& scr) {
+        return strcmp(scr->name(), name) == 0;
+    });
+
+    if (it == std::end(_screens)) {
+        _log.warning("screen not found: %s, going to main screen");
+        _currentScreen = _mainScreen;
+        return;
+    }
+
+    _currentScreen = it->get();
+}
+
+void Ui::navigateBackward()
+{
+    _log.debug("navigating back");
+
+    if (_screenStack.empty()) {
+        _log.debug("screen stack is empty, navigating to main screen");
+        _currentScreen = _mainScreen;
+        return;
+    }
+
+    _currentScreen = _screenStack.top();
+    _screenStack.pop();
+
+    _log.debug("current screen: %s", _currentScreen->name());
 }

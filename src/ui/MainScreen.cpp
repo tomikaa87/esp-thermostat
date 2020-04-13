@@ -26,9 +26,6 @@
 #include "Keypad.h"
 #include "extras.h"
 
-// FIXME
-#include "main.h"
-
 #include "display/Text.h"
 
 #include <stdio.h>
@@ -38,42 +35,35 @@
 #include "Peripherals.h"
 
 MainScreen::MainScreen(const SystemClock& clock, HeatingController& heatingController)
-    : _clock(clock)
+    : Screen("Main")
+    , _clock(clock)
     , _heatingController(heatingController)
 {}
 
-void MainScreen::main_screen_init()
+void MainScreen::activate()
 {
     _indicator = 0;
     _boostIndicator = 0;
+    draw();
 }
 
-void MainScreen::main_screen_draw()
+void MainScreen::update()
 {
-    _lastScheduleIndex = 255;
-
-    update_schedule_bar();
-    main_screen_update();
-    draw_mode_indicator(static_cast<mode_indicator_t>(_indicator));
+    drawTemperatureDisplay();
+    drawClock();
+    updateModeIndicator();
+    drawTargetTempBoostIndicator();
+    updateScheduleBar();
 }
 
-void MainScreen::main_screen_update()
-{
-    draw_temperature_display();
-    draw_clock();
-    update_mode_indicator();
-    draw_target_temp_boost_indicator();
-    update_schedule_bar();
-}
-
-UiResult MainScreen::main_screen_handle_keys(Keypad::Keys keys)
+Screen::Action MainScreen::keyPress(Keypad::Keys keys)
 {
     // 1: increase temperature (long: repeat)
     // 2: decrease temperature (long: repeat)
     // 3: menu
     // 4: boost start, extend x minutes (long: stop)
-    // 5: daytime manual override -> back to automatic
-    // 6: nighttime manual override -> back to automatic
+    // 5: daytime manual -> back to automatic
+    // 6: nighttime manual -> back to automatic
 
     if (keys & Keypad::Keys::Plus) {
         _heatingController.incTargetTemp();
@@ -83,7 +73,7 @@ UiResult MainScreen::main_screen_handle_keys(Keypad::Keys keys)
         // Avoid entering the menu while exiting
         // from another screen with long press
         if (!(keys & Keypad::Keys::LongPress)) {
-            return UiResult::SwitchMenuScreen;
+            return navigateForward("Menu");
         }
     } else if (keys & Keypad::Keys::Boost) {
         if (keys & Keypad::Keys::LongPress) {
@@ -99,13 +89,24 @@ UiResult MainScreen::main_screen_handle_keys(Keypad::Keys keys)
     // } else if (keys & KEY_LEFT) {
     // 	heatctl_deactivate_boost();
     } else if (keys & Keypad::Keys::Right) {
-        return UiResult::SwitchSchedulingScreen;
+        return navigateForward("Scheduling");
     }
 
-    return UiResult::Update;
+    update();
+
+    return Action::NoAction;
 }
 
-void MainScreen::draw_clock()
+void MainScreen::draw()
+{
+    _lastScheduleIndex = 255;
+
+    updateScheduleBar();
+    update();
+    draw_mode_indicator(static_cast<mode_indicator_t>(_indicator));
+}
+
+void MainScreen::drawClock()
 {
     const auto localTime = _clock.localTime();
     const struct tm* t = gmtime(&localTime);
@@ -117,7 +118,7 @@ void MainScreen::draw_clock()
     draw_weekday(33, t->tm_wday);
 }
 
-void MainScreen::draw_target_temp_boost_indicator()
+void MainScreen::drawTargetTempBoostIndicator()
 {
     char s[15] = "";
 
@@ -135,7 +136,7 @@ void MainScreen::draw_target_temp_boost_indicator()
     Text::draw(s, 0, 60, 0, false);
 }
 
-void MainScreen::update_schedule_bar()
+void MainScreen::updateScheduleBar()
 {
     const auto localTime = _clock.localTime();
     const struct tm* t = gmtime(&localTime);
@@ -150,7 +151,7 @@ void MainScreen::update_schedule_bar()
     }
 }
 
-void MainScreen::update_mode_indicator()
+void MainScreen::updateModeIndicator()
 {
     switch (_heatingController.mode())
     {
@@ -181,7 +182,7 @@ void MainScreen::update_mode_indicator()
     draw_mode_indicator(static_cast<mode_indicator_t>(_indicator));
 }
 
-void MainScreen::draw_temperature_display()
+void MainScreen::drawTemperatureDisplay()
 {
     const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
     draw_temperature_value(10, reading / 100,

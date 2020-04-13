@@ -22,6 +22,7 @@
 
 #include "Keypad.h"
 #include "Logger.h"
+#include "Screen.h"
 #include "ui_result.h"
 
 #include <cstdint>
@@ -29,15 +30,14 @@
 class SystemClock;
 class HeatingController;
 
-class MainScreen
+class MainScreen : public Screen
 {
 public:
     MainScreen(const SystemClock& clock, HeatingController& heatingController);
 
-    void main_screen_init();
-    void main_screen_draw();
-    void main_screen_update();
-    UiResult main_screen_handle_keys(Keypad::Keys keys);
+    void activate() override;
+    void update() override;
+    Action keyPress(Keypad::Keys keys) override;
 
 private:
     const SystemClock& _clock;
@@ -47,11 +47,10 @@ private:
     bool _boostIndicator = false;
     uint8_t _lastScheduleIndex = 0;
 
-    uint8_t last_schedule_index;
-
-    void draw_clock();
-    void draw_target_temp_boost_indicator();
-    void update_schedule_bar();
-    void update_mode_indicator();
-    void draw_temperature_display();
+    void draw();
+    void drawClock();
+    void drawTargetTempBoostIndicator();
+    void updateScheduleBar();
+    void updateModeIndicator();
+    void drawTemperatureDisplay();
 };

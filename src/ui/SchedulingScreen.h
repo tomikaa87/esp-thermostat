@@ -21,38 +21,40 @@
 #pragma once
 
 #include "Keypad.h"
-#include "ui_result.h"
+#include "Screen.h"
 #include "Settings.h"
+#include "ui_result.h"
 
 #include <cstdint>
 
 class SystemClock;
 
-class SchedulingScreen
+class SchedulingScreen : public Screen
 {
 public:
     SchedulingScreen(const SystemClock& systemClock);
 
-    void scheduling_screen_init();
-    void scheduling_screen_draw();
-    UiResult scheduling_screen_handle_keys(Keypad::Keys keys);
+    void activate() override;
+    void update() override;
+    Action keyPress(Keypad::Keys keys) override;
 
 private:
     const SystemClock& _systemClock;
 
     uint8_t _day = 0;
-    uint8_t _intval_idx = 0;
-    schedule_day_data _days_data[7];
-    uint8_t _menu_press_cnt = 0;
+    uint8_t _intvalIdx = 0;
+    schedule_day_data _daysData[7];
+    uint8_t _menuPressCnt = 0;
 
-    void draw_day_name();
-    void draw_interval_display();
-    void draw_interval_indicator();
-    void update_schedule_bar();
-    void set_mode_and_advance(bool daytime);
-    void next_interval();
-    void prev_interval();
-    void next_day();
-    void prev_day();
-    void apply_changes();
+    void draw();
+    void drawDayName();
+    void drawIntervalDisplay();
+    void drawIntervalIndicator();
+    void updateScheduleBar();
+    void setModeAndAdvance(bool daytime);
+    void nextInterval();
+    void prevInterval();
+    void nextDay();
+    void prevDay();
+    void applyChanges();
 };
