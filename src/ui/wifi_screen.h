@@ -15,10 +15,24 @@
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
 
     Author: Tamas Karpati
-    Created on 2016-12-30
+    Created on 2020-01-08
 */
 
-#include "clock.h"
+#pragma once
 
-time_t clock_epoch = 0;
-bool clock_synced = false;
+#include "Keypad.h"
+
+#include <stdint.h>
+
+typedef int8_t (* wifi_scan_cb)();
+typedef void (* wifi_read_ssid_cb)(int8_t index, char* ssid);
+typedef bool (* wifi_is_open_cb)(int8_t index);
+
+void wifi_screen_set_scan_cb(wifi_scan_cb cb);
+void wifi_screen_set_read_ssid_cb(wifi_read_ssid_cb cb);
+void wifi_screen_set_is_open_cb(wifi_is_open_cb cb);
+
+void wifi_screen_init();
+void wifi_screen_update();
+void wifi_screen_leave();
+void wifi_screen_key_event(Keypad::Keys keys);

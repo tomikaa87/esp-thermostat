@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Logger.h"
+
 #include <cstdint>
 
 namespace Drivers
@@ -58,15 +60,20 @@ public:
 
     EERAM() = delete;
 
-    static uint8_t read(uint16_t address, uint8_t* buffer, uint16_t length);
-    static void write(uint16_t address, const uint8_t* data, uint16_t length);
+    static bool read(uint16_t address, uint8_t* buffer, uint16_t length);
+    static bool write(uint16_t address, const uint8_t* data, uint16_t length);
 
     static void writeControlReg(Register reg, uint8_t value);
 
     static StatusReg getStatus();
     static void setStatus(StatusReg sr);
 
+    static void setAseEnabled(bool enabled);
+
     static void executeCommand(Command cmd);
+
+private:
+    static Logger _log;
 };
 
 }

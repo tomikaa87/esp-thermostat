@@ -19,11 +19,11 @@
 */
 
 #include "MCP7940N.h"
-
-#include <Arduino.h>
-#include <Wire.h>
+#include "drivers/SimpleI2C.h"
 
 using namespace Drivers;
+
+Logger MCP7940N::_log = Logger{ "MCP7940N" };
 
 bool MCP7940N::isOscillatorRunning()
 {
@@ -256,18 +256,31 @@ uint8_t MCP7940N::toBcd(uint8_t value)
 
 uint8_t MCP7940N::write(uint8_t address, const uint8_t* buffer, uint8_t length)
 {
-    Serial.printf("MCP7940N::write(%02xh,%ph,%u):", address, buffer, length);
-    for (auto i = 0; i < length; ++i) {
-        Serial.printf(" %02xh", buffer[i]);
+    {
+        const auto block = _log.debugBlock("write(%02xh,%ph,%u):", address, buffer, length);
+        for (auto i = 0; i < length; ++i) {
+            _log.debug(" %02xh", buffer[i]);
+        }
     }
-    Serial.println();
 
-    Wire.beginTransmission(ControlByte);
-    Wire.write(address);
-    Wire.write(reinterpret_cast<const char*>(buffer), length);
-    const auto written = Wire.endTransmission();
-    Serial.printf("MCP7940N::write: written=%u\n", written);
-    return written - sizeof(address);
+    if (!I2C::start(ControlByte, I2C::Operation::Write)) {
+        _log.error("write error: cannot start transfer");
+        return 0;
+    }
+
+    if (!I2C::write(&address, 1)) {
+        _log.error("write error: cannot write address");
+        return 0;
+    }
+
+    if (!I2C::write(buffer, length)) {
+        _log.error("write error: cannot write data");
+        return 0;
+    }
+
+    I2C::end();
+
+    return length;
 }
 
 uint8_t MCP7940N::write(Register reg, const uint8_t* buffer, uint8_t length)
@@ -282,21 +295,28 @@ bool MCP7940N::write(const Register reg, uint8_t value)
 
 uint8_t MCP7940N::read(uint8_t address, uint8_t* buffer, uint8_t length)
 {
-    Serial.printf("MCP7940N::read(%02xh,%ph,%u)\n", address, buffer, length);
+    _log.debug("read(%02xh,%ph,%u)", address, buffer, length);
 
-    Wire.beginTransmission(ControlByte);
-    Wire.write(address);
-    Wire.endTransmission();
-    const auto read = Wire.requestFrom(ControlByte, length);
-    const auto buffered = Wire.readBytes(buffer, length);
-
-    Serial.printf("MCP7940N::read: read=%u, buffered=%u, data:", read, buffered);
-        for (auto i = 0; i < length; ++i) {
-        Serial.printf(" %02xh", buffer[i]);
+    if (!I2C::write(ControlByte, &address, 1)) {
+        _log.error("read error: cannot write address");
+        return 0;
     }
-    Serial.println();
 
-    return buffered;
+    if (!I2C::read(ControlByte, buffer, length)) {
+        _log.error("read error: cannot read data");
+        return 0;
+    }
+
+    I2C::end();
+
+    {
+        const auto block = _log.debugBlock("read(): data:");
+        for (auto i = 0; i < length; ++i) {
+            _log.debug(" %02xh", buffer[i]);
+        }
+    }
+
+    return length;
 }
 
 uint8_t MCP7940N::read(Register reg, uint8_t* buffer, uint8_t length)

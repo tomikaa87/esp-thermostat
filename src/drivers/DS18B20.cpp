@@ -25,23 +25,26 @@
 using namespace Drivers;
 
 int16_t DS18B20::_lastReading = 0;
+Logger DS18B20::_log = Logger{ "DS18B20" };
 
-void DS18B20::update()
+void DS18B20::update(const bool forceConversion)
 {
-	static bool convert = true;
-	
-	if (convert) {
-		startConversion();
-	} else {
-		int16_t t = readSensor();
+    static bool convert = true;
 
-		// t += settings.heatctl.temp_correction * 10;
-		_lastReading = t;
+    if (forceConversion) {
+        convert = true;
+    }
 
-		Serial.printf("DS18B20::update: %i\n", t);
-	}
-	
-	convert = !convert;
+    if (convert) {
+        startConversion();
+    } else {
+        int16_t t = readSensor();
+
+        // t += settings.heatctl.temp_correction * 10;
+        _lastReading = t;
+    }
+    
+    convert = !convert;
 }
 
 int16_t DS18B20::lastReading()
@@ -51,6 +54,8 @@ int16_t DS18B20::lastReading()
 
 void DS18B20::startConversion()
 {
+    _log.debug("starting conversion");
+
     Bus::reset();
     Bus::writeByte(0xCC);
     Bus::writeByte(0x44);
@@ -58,27 +63,27 @@ void DS18B20::startConversion()
 
 int16_t DS18B20::readSensor()
 {
-	Bus::reset();
-	Bus::writeByte(0xCC);
-	Bus::writeByte(0xBE);
+    Bus::reset();
+    Bus::writeByte(0xCC);
+    Bus::writeByte(0xBE);
 
-	uint8_t lsb = Bus::readByte();
-	uint8_t msb = Bus::readByte();
-	uint16_t value = (msb << 8) + lsb;
+    uint8_t lsb = Bus::readByte();
+    uint8_t msb = Bus::readByte();
+    uint16_t value = (msb << 8) + lsb;
 
-	if (value & 0x8000) {
-		value = ~value + 1;
-	}
-	
-	int16_t celsius = (value >> (ResolutionBits - 8)) * 100;
-	uint16_t frac_part = (value << (4 - (ResolutionBits - 8))) & 0xf;
-	frac_part *= 625;
-	celsius += frac_part / 100;
-	
-	if (value & 0x8000)
-		celsius *= -1;
+    if (value & 0x8000) {
+        value = ~value + 1;
+    }
+    
+    int16_t celsius = (value >> (ResolutionBits - 8)) * 100;
+    uint16_t frac_part = (value << (4 - (ResolutionBits - 8))) & 0xf;
+    frac_part *= 625;
+    celsius += frac_part / 100;
+    
+    if (value & 0x8000)
+        celsius *= -1;
 
-	Serial.printf("DS18B20::readSensor: %i\n", celsius);
+    _log.debug("readSensor: %i", celsius);
 
-	return celsius;
+    return celsius;
 }

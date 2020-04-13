@@ -24,73 +24,73 @@ using namespace Drivers;
 
 uint8_t Detail::OneWireImpl::reset(const int pin)
 {
-	noInterrupts();
+    noInterrupts();
 
-	busFloat(pin);
-	busLow(pin);
-	delayMicroseconds(600);
-	busFloat(pin);
-	delayMicroseconds(80);
-	const auto presence = busRead(pin);
-	delayMicroseconds(600);
-	const auto temp = busRead(pin);
+    busFloat(pin);
+    busLow(pin);
+    delayMicroseconds(600);
+    busFloat(pin);
+    delayMicroseconds(80);
+    const auto presence = busRead(pin);
+    delayMicroseconds(600);
+    const auto temp = busRead(pin);
 
-	interrupts();
+    interrupts();
 
-	return !temp ? 2 : presence;
+    return !temp ? 2 : presence;
 }
 
 void Detail::OneWireImpl::writeBit(const int pin, const uint8_t b)
 {
-	noInterrupts();
+    noInterrupts();
 
     busFloat(pin);
-	busLow(pin);
-	delayMicroseconds(5);
-	if (b)
-		busFloat(pin);
-	delayMicroseconds(60);
-	busHigh(pin);
-	delayMicroseconds(5);
+    busLow(pin);
+    delayMicroseconds(5);
+    if (b)
+        busFloat(pin);
+    delayMicroseconds(60);
+    busHigh(pin);
+    delayMicroseconds(5);
 
-	interrupts();
+    interrupts();
 }
 
 void Detail::OneWireImpl::writeByte(const int pin, uint8_t b)
 {
     for (auto i = 0u; i < sizeof(b) * 8; ++i) {
-		writeBit(pin, b & 0x01);
-		b >>= 1;
-	}
+        writeBit(pin, b & 0x01);
+        b >>= 1;
+    }
 }
 
 uint8_t Detail::OneWireImpl::readBit(const int pin)
 {
-	noInterrupts();
+    noInterrupts();
 
     busFloat(pin);
     busLow(pin);
-	delayMicroseconds(10);
-	busFloat(pin);
-	delayMicroseconds(10);
-	const auto data = busRead(pin);
-	delayMicroseconds(40);
+    delayMicroseconds(10);
+    busFloat(pin);
+    delayMicroseconds(10);
+    const auto data = busRead(pin);
+    delayMicroseconds(40);
 
-	interrupts();
+    interrupts();
 
-	return data;
+    return data;
 }
 
 uint8_t Detail::OneWireImpl::readByte(const int pin)
 {
-	uint8_t data = 0;
+    uint8_t data = 0;
 
-	for (auto i = 0u; i < sizeof(data) * 8; i++) {
-		if (readBit(pin))
-			data |= (0x01 << i);
-	}
+    for (auto i = 0u; i < sizeof(data) * 8; i++) {
+        if (readBit(pin))
+            data |= (0x01 << i);
+    }
 
-	return data;
+    return data;
 }
 
 void Detail::OneWireImpl::busLow(const int pin)

@@ -15,17 +15,28 @@
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
 
     Author: Tamas Karpati
-    Created on 2016-12-30
+    Created on 2017-01-07
 */
 
-#ifndef CLOCK_H
-#define	CLOCK_H
+#ifndef DRAW_HELPER_H
+#define	DRAW_HELPER_H
 
 #include <stdbool.h>
-#include <time.h>
+#include <stdint.h>
 
-extern time_t clock_epoch;
-extern bool clock_synced;
+#include "Settings.h"
 
-#endif	/* CLOCK_H */
+typedef enum {
+	DH_NO_INDICATOR,
+	DH_MODE_HEATING,
+	DH_MODE_OFF
+} mode_indicator_t;
+
+void draw_weekday(uint8_t x, uint8_t wday);
+void draw_mode_indicator(mode_indicator_t indicator);
+void draw_schedule_bar(PersistentData::SchedulerDayData sday);
+void draw_schedule_indicator(uint8_t sch_intval_idx);
+void draw_temperature_value(uint8_t x, int8_t int_part, int8_t frac_part);
+
+#endif	/* DRAW_HELPER_H */
 

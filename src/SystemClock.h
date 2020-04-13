@@ -15,16 +15,43 @@
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
 
     Author: Tamas Karpati
-    Created on 2017-01-08
+    Created on 2016-12-30
 */
 
 #pragma once
 
-#include "keypad.h"
-#include "ui_result.h"
+#include "Logger.h"
 
-#include <stdint.h>
+#include <ctime>
 
-void menu_screen_init();
-void menu_screen_draw();
-UiResult menu_screen_handle_handle_keys(Keypad::Keys keys);
+class SystemClock
+{
+public:
+    static constexpr auto NtpSyncIntervalSec = 1800;
+    static constexpr auto RtcSyncIntervalSec = 60;
+
+    SystemClock();
+
+    void task();
+    void timerIsr();
+
+    std::time_t localTime() const;
+    std::time_t utcTime() const;
+
+    void setUtcTime(std::time_t t);
+
+private:
+    Logger _log{ "SystemClock" };
+    std::time_t _epoch = 0;
+    std::time_t _lastRtcSync = 0;
+    bool _ntpSyncing = false;
+    bool _rtcSynced = false;
+    int _isrCounter = 0;
+    int _localTimeOffsetMinutes = 60;
+    int _localTimeDstOffsetMinutes = 60;
+
+    void updateFromRtc();
+    void updateRtc();
+
+    static bool isDst(std::time_t t);
+};

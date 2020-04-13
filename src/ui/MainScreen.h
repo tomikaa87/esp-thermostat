@@ -13,41 +13,45 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-
+    
     Author: Tamas Karpati
-    Created on 2020-01-25
+    Created on 2017-01-02
 */
 
 #pragma once
 
-#include "BusConfig.h"
-#include "OneWire.h"
+#include "Keypad.h"
 #include "Logger.h"
+#include "Screen.h"
 
 #include <cstdint>
 
-namespace Drivers
-{
+class Settings;
+class SystemClock;
+class HeatingController;
 
-class DS18B20
+class MainScreen : public Screen
 {
 public:
-    static constexpr auto ResolutionBits = 12;
+    MainScreen(Settings& settings, const SystemClock& clock, HeatingController& heatingController);
 
-    DS18B20() = delete;
-
-    static void update(bool forceConversion = false);
-    static int16_t lastReading();
+    void activate() override;
+    void update() override;
+    Action keyPress(Keypad::Keys keys) override;
 
 private:
-    static Logger _log;
+    Settings& _settings;
+    const SystemClock& _clock;
+    HeatingController& _heatingController;
+    Logger _log{ "MainScreen" };
+    uint8_t _indicator = 0;
+    bool _boostIndicator = false;
+    uint8_t _lastScheduleIndex = 0;
 
-    using Bus = Peripherals::Bus::MainTemperatureOneWire;
-
-    static int16_t _lastReading;
-
-    static void startConversion();
-    static int16_t readSensor();
+    void draw();
+    void drawClock();
+    void drawTargetTempBoostIndicator();
+    void updateScheduleBar();
+    void updateModeIndicator();
+    void drawTemperatureDisplay();
 };
-
-}

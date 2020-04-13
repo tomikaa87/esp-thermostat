@@ -20,28 +20,48 @@
 
 #pragma once
 
-#include "keypad.h"
+#include "HeatingController.h"
+#include "Keypad.h"
+#include "Logger.h"
+
+#include "Screen.h"
+#include "MainScreen.h"
+#include "MenuScreen.h"
+#include "SchedulingScreen.h"
 
 #include <ctime>
+#include <memory>
+#include <stack>
+
+class Settings;
 
 class Ui
 {
 public:
-    Ui();
+    Ui(Settings& settings, const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
+
+    void task();
 
     void update();
     void handleKeyPress(Keypad::Keys keys);
 
 private:
+    Settings& _settings;
+    const SystemClock& _systemClock;
+    Keypad& _keypad;
+    HeatingController& _heatingController;
+    Logger _log{ "Ui" };
     std::time_t _lastKeyPressTime = 0;
 
-    enum class Screen
-    {
-        Main,
-        Menu,
-        Scheduler
-    } _screen = Screen::Main;
+    std::stack<Screen*> _screenStack;
+    std::vector<std::unique_ptr<Screen>> _screens;
+
+    Screen* _currentScreen = nullptr;
+    Screen* _mainScreen = nullptr;
 
     void updateActiveState();
     bool isActive() const;
+
+    void navigateForward(const char* name);
+    void navigateBackward();
 };

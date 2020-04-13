@@ -19,11 +19,11 @@
 */
 
 #include "EERAM.h"
-
-#include <Arduino.h>
-#include <Wire.h>
+#include "drivers/SimpleI2C.h"
 
 using namespace Drivers;
+
+Logger EERAM::_log = Logger{ "EERAM" };
 
 namespace ControlBytes
 {
@@ -37,42 +37,71 @@ namespace ControlBytes
     static constexpr auto ControlRegAccess  = 0b0011000 | Detail::ChipSelect;
 }
 
-uint8_t EERAM::read(uint16_t address, uint8_t* const buffer, uint16_t length)
+bool EERAM::read(const uint16_t address, uint8_t* const buffer, const uint16_t length)
 {
-    Wire.beginTransmission(ControlBytes::SramAccess);
-    Wire.write(static_cast<uint8_t>(address >> 8));
-    Wire.write(static_cast<uint8_t>(address & 0xff));
-    Wire.endTransmission();
+    const uint8_t addrBuf[] = {
+        static_cast<uint8_t>(address >> 8),
+        static_cast<uint8_t>(address & 0xff)
+    };
 
-    const auto available = Wire.requestFrom(ControlBytes::SramAccess, length);
-
-    if (available == 0) {
-        Serial.println("EERAM: read failed");
-        return 0;
+    if (!I2C::write(ControlBytes::SramAccess, addrBuf, sizeof(addrBuf))) {
+        _log.error("read error: cannot start transfer");
+        return false;
     }
 
-    for (auto i = 0; i < available; ++i) {
-        buffer[i] = Wire.read();
+    if (!I2C::read(ControlBytes::SramAccess, buffer, length)) {
+        _log.error("read error: cannot read data");
+        return false;
     }
 
-    return available;
+    return true;
 }
 
-void EERAM::write(uint16_t address, const uint8_t* data, uint16_t length)
+bool EERAM::write(uint16_t address, const uint8_t* data, uint16_t length)
 {
-    Wire.beginTransmission(ControlBytes::SramAccess);
-    Wire.write(static_cast<uint8_t>(address >> 8));
-    Wire.write(static_cast<uint8_t>(address & 0xff));
-    Wire.write(data, length);
-    Wire.endTransmission();
+    if (!I2C::start(ControlBytes::SramAccess, I2C::Operation::Write)) {
+        _log.error("write error: cannot start transfer");
+        return false;
+    }
+
+    uint8_t addrBuf[] = {
+        static_cast<uint8_t>(address >> 8),
+        static_cast<uint8_t>(address & 0xff)
+    };
+
+    if (!I2C::write(addrBuf, sizeof(addrBuf))) {
+        _log.error("write error: cannot write register address");
+        return false;
+    }
+
+    if (!I2C::write(data, length)) {
+        _log.error("write error: cannot write data");
+        return false;
+    }
+
+    I2C::end();
+
+    return true;
 }
 
 void EERAM::writeControlReg(Register reg, uint8_t value)
 {
-    Wire.beginTransmission(ControlBytes::ControlRegAccess);
-    Wire.write(static_cast<uint8_t>(reg));
-    Wire.write(value);
-    Wire.endTransmission();
+    if (!I2C::start(ControlBytes::ControlRegAccess, I2C::Operation::Write)) {
+        _log.error("control register write error: cannot start transfer");
+        return;
+    }
+
+    if (!I2C::write(reinterpret_cast<const uint8_t*>(&reg), 1)) {
+        _log.error("control register write error: cannot write register address");
+        return;
+    }
+
+    if (!I2C::write(&value, 1)) {
+        _log.error("control register write error: cannot write value");
+        return;
+    }
+
+    I2C::end();
 
     // T(recall) for 47X16
     delay(25);
@@ -80,14 +109,10 @@ void EERAM::writeControlReg(Register reg, uint8_t value)
 
 EERAM::StatusReg EERAM::getStatus()
 {
-    const auto available = Wire.requestFrom(ControlBytes::ControlRegAccess, 1);
-    if (available == 0) {
-        Serial.println("EERAM: getStatus failed");
-        return{};
-    }
-
     StatusReg sr;
-    sr.value = Wire.read();
+    if (!I2C::read(ControlBytes::ControlRegAccess, reinterpret_cast<uint8_t*>(&sr.value), sizeof(sr))) {
+        _log.error("get status error: cannot read control register");
+    }
 
     return sr;
 }
@@ -95,6 +120,16 @@ EERAM::StatusReg EERAM::getStatus()
 void EERAM::setStatus(StatusReg sr)
 {
     writeControlReg(Register::Status, sr.value);
+}
+
+void EERAM::setAseEnabled(const bool enabled)
+{
+    _log.debug("setting ASE to %s", enabled ? "enabled" : "disabled");
+
+    StatusReg sr;
+    sr.value = 0;
+    sr.ase = enabled ? 1 : 0;
+    setStatus(sr);
 }
 
 void EERAM::executeCommand(Command cmd)
