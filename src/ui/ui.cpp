@@ -27,7 +27,7 @@
 
 #include "MainScreen.h"
 #include "MenuScreen.h"
-#include "scheduling_screen.h"
+#include "SchedulingScreen.h"
 
 #include <iostream>
 #include <string.h>
@@ -40,6 +40,7 @@ Ui::Ui(const Clock& clock, Keypad& keypad, HeatingController& heatingController)
     , _keypad(keypad)
     , _heatingController(heatingController)
     , _mainScreen{ clock, heatingController }
+    , _schedulingScreen{ clock }
 {
     Display::setContrast(settings.display.brightness);
 
@@ -98,7 +99,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
             break;
 
         case Screen::Scheduler:
-            result = scheduling_screen_handle_keys(keys);
+            result = _schedulingScreen.scheduling_screen_handle_keys(keys);
             break;
     }
 
@@ -132,8 +133,8 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
 
         case UiResult::SwitchSchedulingScreen:
             _screen = Screen::Scheduler;
-            scheduling_screen_init();
-            scheduling_screen_draw();
+            _schedulingScreen.scheduling_screen_init();
+            _schedulingScreen.scheduling_screen_draw();
             break;
 
         default:

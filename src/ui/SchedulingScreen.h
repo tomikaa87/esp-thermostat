@@ -22,9 +22,37 @@
 
 #include "Keypad.h"
 #include "ui_result.h"
+#include "Settings.h"
 
-#include <stdint.h>
+#include <cstdint>
 
-void scheduling_screen_init();
-void scheduling_screen_draw();
-UiResult scheduling_screen_handle_keys(Keypad::Keys keys);
+class Clock;
+
+class SchedulingScreen
+{
+public:
+    SchedulingScreen(const Clock& clock);
+
+    void scheduling_screen_init();
+    void scheduling_screen_draw();
+    UiResult scheduling_screen_handle_keys(Keypad::Keys keys);
+
+private:
+    const Clock& _clock;
+
+    uint8_t _day = 0;
+    uint8_t _intval_idx = 0;
+    schedule_day_data _days_data[7];
+    uint8_t _menu_press_cnt = 0;
+
+    void draw_day_name();
+    void draw_interval_display();
+    void draw_interval_indicator();
+    void update_schedule_bar();
+    void set_mode_and_advance(bool daytime);
+    void next_interval();
+    void prev_interval();
+    void next_day();
+    void prev_day();
+    void apply_changes();
+};

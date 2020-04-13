@@ -18,7 +18,7 @@
     Created on 2017-01-07
 */
 
-#include "scheduling_screen.h"
+#include "SchedulingScreen.h"
 #include "Keypad.h"
 #include "graphics.h"
 #include "settings.h"
@@ -33,35 +33,22 @@
 #include <stdio.h>
 #include <string.h>
 
-static struct {
-    uint8_t day;
-    uint8_t intval_idx;
-    schedule_day_data days_data[7];
-    uint8_t menu_press_cnt;
-} sch_screen;
-
-static void draw_day_name();
-static void draw_interval_display();
-static void draw_interval_indicator();
-static void update_schedule_bar();
-static void set_mode_and_advance(bool daytime);
-static void next_interval();
-static void prev_interval();
-static void next_day();
-// static void prev_day();
-static void apply_changes();
-// static void update_day();
-
-void scheduling_screen_init()
+SchedulingScreen::SchedulingScreen(const Clock& clock)
+    : _clock{ clock }
 {
-    // const auto localTime = Globals::clock.localTime();
-    // struct tm* t = gmtime(&localTime);
-    // sch_screen.day = t->tm_wday;
-    // sch_screen.intval_idx = 0;
-    // memcpy(sch_screen.days_data, settings.schedule.days, sizeof(schedule_day_data) * 7);
+    memset(_days_data, 0, sizeof(_days_data));
 }
 
-void scheduling_screen_draw()
+void SchedulingScreen::scheduling_screen_init()
+{
+    const auto localTime = _clock.localTime();
+    struct tm* t = gmtime(&localTime);
+    _day = t->tm_wday;
+    _intval_idx = 0;
+    memcpy(_days_data, settings.schedule.days, sizeof(schedule_day_data) * 7);
+}
+
+void SchedulingScreen::scheduling_screen_draw()
 {
     Display::clear();
 
@@ -71,7 +58,7 @@ void scheduling_screen_draw()
     update_schedule_bar();
 }
 
-UiResult scheduling_screen_handle_keys(const Keypad::Keys keys)
+UiResult SchedulingScreen::scheduling_screen_handle_keys(const Keypad::Keys keys)
 {
     // 1: advance 15 minutes (long: go back 15 minutes)
     // 2: advance 1 day (long: go back 1 day)
@@ -93,8 +80,8 @@ UiResult scheduling_screen_handle_keys(const Keypad::Keys keys)
         // else
         // 	next_day();
     } else if (keys & Keypad::Keys::Menu) {
-        if (++sch_screen.menu_press_cnt == 2) {
-            sch_screen.menu_press_cnt = 0;
+        if (++_menu_press_cnt == 2) {
+            _menu_press_cnt = 0;
             if (!(keys & Keypad::Keys::LongPress)) {
                 apply_changes();
             }	
@@ -110,19 +97,19 @@ UiResult scheduling_screen_handle_keys(const Keypad::Keys keys)
         next_interval();
         // set_mode_and_advance(true);
     }
-    
+
     return UiResult::Idle;
 }
 
-static void draw_day_name()
+void SchedulingScreen::draw_day_name()
 {
-    draw_weekday(0, sch_screen.day);
+    draw_weekday(0, _day);
 }
 
-static void draw_interval_display()
+void SchedulingScreen::draw_interval_display()
 {
-    uint8_t hours = sch_screen.intval_idx >> 1;
-    uint8_t mins = (sch_screen.intval_idx & 1) * 30;
+    uint8_t hours = _intval_idx >> 1;
+    uint8_t mins = (_intval_idx & 1) * 30;
 
     char s[6] = { 0 };
     sprintf(s, "%02u %02u", hours, mins);
@@ -130,76 +117,76 @@ static void draw_interval_display()
     Text::draw7Seg(s, 2, 29);
 }
 
-static void draw_interval_indicator()
+void SchedulingScreen::draw_interval_indicator()
 {
-    draw_schedule_indicator(sch_screen.intval_idx);
+    draw_schedule_indicator(_intval_idx);
 }
 
-static void update_schedule_bar()
+void SchedulingScreen::update_schedule_bar()
 {
-    draw_schedule_bar(sch_screen.days_data[sch_screen.day]);
+    draw_schedule_bar(_days_data[_day]);
 }
 
-static void set_mode_and_advance(bool daytime)
+void SchedulingScreen::set_mode_and_advance(bool daytime)
 {
-    uint8_t bit_idx = sch_screen.intval_idx & 0b111;
-    uint8_t byte_idx = sch_screen.intval_idx >> 3;
+    uint8_t bit_idx = _intval_idx & 0b111;
+    uint8_t byte_idx = _intval_idx >> 3;
     uint8_t mask = 1 << bit_idx;
 
     if (daytime)
-        sch_screen.days_data[sch_screen.day][byte_idx] |= mask;
+        _days_data[_day][byte_idx] |= mask;
     else
-        sch_screen.days_data[sch_screen.day][byte_idx] &= ~mask;
+        _days_data[_day][byte_idx] &= ~mask;
 
-    ++sch_screen.intval_idx;
-    if (sch_screen.intval_idx > 47)
-        sch_screen.intval_idx = 0;
+    ++_intval_idx;
+    if (_intval_idx > 47)
+        _intval_idx = 0;
 
     draw_interval_indicator();
     draw_interval_display();
     update_schedule_bar();
 }
 
-static void next_interval()
+void SchedulingScreen::next_interval()
 {
-    if (sch_screen.intval_idx < 47) {
-        ++sch_screen.intval_idx;
+    if (_intval_idx < 47) {
+        ++_intval_idx;
         draw_interval_display();
         draw_interval_indicator();
     }
 }
 
-static void prev_interval()
+void SchedulingScreen::prev_interval()
 {
-    if (sch_screen.intval_idx > 0) {
-        --sch_screen.intval_idx;
+    if (_intval_idx > 0) {
+        --_intval_idx;
         draw_interval_display();
         draw_interval_indicator();
     }
 }
 
-static void next_day()
+void SchedulingScreen::next_day()
 {
-    ++sch_screen.day;
-    if (sch_screen.day > 6)
-        sch_screen.day = 0;
+    ++_day;
+    if (_day > 6)
+        _day = 0;
 
-    sch_screen.intval_idx = 0;
+    _intval_idx = 0;
     scheduling_screen_draw();
 }
 
-static void prev_day()
+void SchedulingScreen::prev_day()
 {
-    --sch_screen.day;
-    if (sch_screen.day > 6)
-        sch_screen.day = 6;
+    --_day;
+    if (_day > 6)
+        _day = 6;
 
-    sch_screen.intval_idx = 0;
+    _intval_idx = 0;
     scheduling_screen_draw();
 }
 
-static void apply_changes()
+void SchedulingScreen::apply_changes()
 {
-    memcpy(settings.schedule.days, sch_screen.days_data, sizeof(schedule_day_data) * 7);
+    memcpy(settings.schedule.days, _days_data, sizeof(schedule_day_data) * 7);
     settings_save();
 }

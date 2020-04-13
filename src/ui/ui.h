@@ -25,6 +25,7 @@
 
 #include "MainScreen.h"
 #include "MenuScreen.h"
+#include "SchedulingScreen.h"
 
 #include <ctime>
 
@@ -46,6 +47,7 @@ private:
 
     MainScreen _mainScreen;
     MenuScreen _menuScreen;
+    SchedulingScreen _schedulingScreen;
 
     enum class Screen
     {
