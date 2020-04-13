@@ -25,8 +25,8 @@
 
 #include "display/Display.h"
 
-#include "main_screen.h"
-#include "menu_screen.h"
+#include "MainScreen.h"
+#include "MenuScreen.h"
 #include "scheduling_screen.h"
 
 #include <iostream>
@@ -35,8 +35,11 @@
 
 // #define ENABLE_DEBUG
 
-Ui::Ui(Keypad& keypad)
-    : _keypad(keypad)
+Ui::Ui(const Clock& clock, Keypad& keypad, HeatingController& heatingController)
+    : _clock{ clock }
+    , _keypad(keypad)
+    , _heatingController(heatingController)
+    , _mainScreen{ clock, heatingController }
 {
     Display::setContrast(settings.display.brightness);
 
@@ -87,11 +90,11 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     switch (_screen)
     {
         case Screen::Main:
-            // result = main_screen_handle_keys(keys);
+            result = _mainScreen.main_screen_handle_keys(keys);
             break;
 
         case Screen::Menu:
-            result = menu_screen_handle_handle_keys(keys);
+            result = _menuScreen.menu_screen_handle_handle_keys(keys);
             break;
 
         case Screen::Scheduler:
@@ -118,13 +121,13 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     {
         case UiResult::SwitchMainScreen:
             _screen = Screen::Main;
-            // main_screen_draw();
+            _mainScreen.main_screen_draw();
             break;
 
         case UiResult::SwitchMenuScreen:
             _screen = Screen::Menu;
-            menu_screen_init();
-            menu_screen_draw();
+            _menuScreen.menu_screen_init();
+            _menuScreen.menu_screen_draw();
             break;
 
         case UiResult::SwitchSchedulingScreen:

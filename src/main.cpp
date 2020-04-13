@@ -57,7 +57,7 @@ void loop()
 #include "BlynkHandler.h"
 #include "clock.h"
 #include "HeatingController.h"
-#include "keypad.h"
+#include "Keypad.h"
 #include "main.h"
 #include "settings.h"
 

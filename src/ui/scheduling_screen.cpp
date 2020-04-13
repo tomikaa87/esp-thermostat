@@ -19,7 +19,7 @@
 */
 
 #include "scheduling_screen.h"
-#include "keypad.h"
+#include "Keypad.h"
 #include "graphics.h"
 #include "settings.h"
 #include "draw_helper.h"

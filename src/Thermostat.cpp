@@ -15,7 +15,7 @@ Thermostat::Thermostat()
     , _heatingController{ _clock }
     , _ntpClient{ _clock }
     , _blynk{ PrivateConfig::BlynkAppToken, _heatingController }
-    , _ui{ _keypad }
+    , _ui{ _clock, _keypad, _heatingController }
 {
     connectToWiFi();
 

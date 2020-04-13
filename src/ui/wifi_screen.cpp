@@ -18,7 +18,7 @@
     Created on 2020-01-08
 */
 
-#include "keypad.h"
+#include "Keypad.h"
 #include "text_input.h"
 #include "wifi_screen.h"
 

@@ -20,14 +20,18 @@
 
 #pragma once
 
-#include "keypad.h"
+#include "HeatingController.h"
+#include "Keypad.h"
+
+#include "MainScreen.h"
+#include "MenuScreen.h"
 
 #include <ctime>
 
 class Ui
 {
 public:
-    Ui(Keypad& keypad);
+    Ui(const Clock& clock, Keypad& keypad, HeatingController& heatingController);
 
     void task();
 
@@ -35,8 +39,13 @@ public:
     void handleKeyPress(Keypad::Keys keys);
 
 private:
+    const Clock& _clock;
     Keypad& _keypad;
+    HeatingController& _heatingController;
     std::time_t _lastKeyPressTime = 0;
+
+    MainScreen _mainScreen;
+    MenuScreen _menuScreen;
 
     enum class Screen
     {

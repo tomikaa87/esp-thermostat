@@ -18,12 +18,12 @@
     Created on 2017-01-02
 */
 
-#include "main_screen.h"
+#include "MainScreen.h"
 #include "graphics.h"
 #include "clock.h"
 #include "HeatingController.h"
 #include "draw_helper.h"
-#include "keypad.h"
+#include "Keypad.h"
 #include "extras.h"
 
 // FIXME

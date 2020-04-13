@@ -18,7 +18,7 @@
     Created on 2016-12-30
 */
 
-#include "keypad.h"
+#include "Keypad.h"
 
 #include <Arduino.h>
 #include <string.h>
