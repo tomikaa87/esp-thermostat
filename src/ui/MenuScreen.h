@@ -23,7 +23,6 @@
 #include "Keypad.h"
 #include "Screen.h"
 #include "Settings.h"
-#include "ui_result.h"
 
 #include <cstdint>
 
