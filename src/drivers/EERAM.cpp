@@ -97,6 +97,14 @@ void EERAM::setStatus(StatusReg sr)
     writeControlReg(Register::Status, sr.value);
 }
 
+void EERAM::setAseEnabled(const bool enabled)
+{
+    StatusReg sr;
+    sr.value = 0;
+    sr.ase = enabled ? 1 : 0;
+    setStatus(sr);
+}
+
 void EERAM::executeCommand(Command cmd)
 {
     writeControlReg(Register::Command, static_cast<uint8_t>(cmd));

@@ -24,6 +24,7 @@
 #include "settings.h"
 #include "draw_helper.h"
 #include "clock.h"
+#include "main.h"
 
 #include "display/Display.h"
 #include "display/Text.h"
@@ -47,16 +48,17 @@ static void set_mode_and_advance(bool daytime);
 static void next_interval();
 static void prev_interval();
 static void next_day();
-static void prev_day();
+// static void prev_day();
 static void apply_changes();
-static void update_day();
+// static void update_day();
 
 void scheduling_screen_init()
 {
-    struct tm* t = gmtime(&clock_epoch);
-    sch_screen.day = t->tm_wday;
-    sch_screen.intval_idx = 0;
-    memcpy(sch_screen.days_data, settings.schedule.days, sizeof(schedule_day_data) * 7);
+    // const auto localTime = Globals::clock.localTime();
+    // struct tm* t = gmtime(&localTime);
+    // sch_screen.day = t->tm_wday;
+    // sch_screen.intval_idx = 0;
+    // memcpy(sch_screen.days_data, settings.schedule.days, sizeof(schedule_day_data) * 7);
 }
 
 void scheduling_screen_draw()

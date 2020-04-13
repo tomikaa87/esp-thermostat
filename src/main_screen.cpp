@@ -26,6 +26,9 @@
 #include "keypad.h"
 #include "extras.h"
 
+// FIXME
+#include "main.h"
+
 #include "display/Text.h"
 
 #include <stdio.h>
@@ -34,111 +37,27 @@
 
 #include "Peripherals.h"
 
-static struct {
-    unsigned indicator: 2;
-    unsigned boost_indicator: 1;
-    unsigned: 0;
+MainScreen::MainScreen(const Clock& clock, HeatingController& heatingController)
+    : _clock{ clock }
+    , _heatingController(heatingController)
+{}
 
-    uint8_t last_schedule_index;
-} state;
-
-static void draw_temperature_display()
+void MainScreen::main_screen_init()
 {
-    const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
-    draw_temperature_value(10, reading / 100,
-        (reading % 100) / 10);
+    _indicator = 0;
+    _boostIndicator = 0;
 }
 
-static void update_mode_indicator()
+void MainScreen::main_screen_draw()
 {
-    switch (heatctl_mode())
-    {
-    case HC_MODE_BOOST:
-    case HC_MODE_NORMAL:
-        if (heatctl_is_active()) {
-            if (state.indicator != DH_MODE_HEATING)
-                state.indicator = DH_MODE_HEATING;
-            else
-                return;
-        } else {
-            if (state.indicator != DH_NO_INDICATOR)
-                state.indicator = DH_NO_INDICATOR;
-            else
-                return;
-        }
-        break;
-
-    case HC_MODE_OFF:
-        if (state.indicator != DH_MODE_OFF) {
-            state.indicator = DH_MODE_OFF;
-            break;
-        } else {
-            return;
-        }
-    }
-
-    draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
-}
-
-static void update_schedule_bar()
-{
-    const struct tm* t = gmtime(&clock_epoch);
-
-    draw_schedule_bar(settings.schedule.days[t->tm_wday]);
-
-    uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
-
-    if (idx != state.last_schedule_index) {
-        state.last_schedule_index = idx;
-        draw_schedule_indicator(idx);
-    }
-}
-
-static void draw_target_temp_boost_indicator()
-{
-    char s[15] = "";
-
-    if (!heatctl_is_boost_active()) {
-        uint16_t temp = heatctl_target_temp();
-        sprintf(s, "     %2d.%d C", temp / 10, temp % 10);
-    } else {
-        time_t secs = heatctl_boost_remaining_secs();
-        uint16_t minutes = secs / 60;
-        secs -= minutes * 60;
-
-        sprintf(s, " BST %3u:%02ld", minutes, secs);
-    }
-
-    Text::draw(s, 0, 60, 0, false);
-}
-
-static void draw_clock()
-{
-    const struct tm* t = gmtime(&clock_epoch);
-
-    char time_fmt[10] = { 6 };
-    sprintf(time_fmt, "%02d:%02d", t->tm_hour, t->tm_min);
-
-    Text::draw(time_fmt, 0, 0, 0, false);
-    draw_weekday(33, t->tm_wday);
-}
-
-void main_screen_init()
-{
-    state.indicator = 0;
-    state.boost_indicator = 0;
-}
-
-void main_screen_draw()
-{
-    state.last_schedule_index = 255;
+    _lastScheduleIndex = 255;
 
     update_schedule_bar();
     main_screen_update();
-    draw_mode_indicator(static_cast<mode_indicator_t>(state.indicator));
+    draw_mode_indicator(static_cast<mode_indicator_t>(_indicator));
 }
 
-void main_screen_update()
+void MainScreen::main_screen_update()
 {
     draw_temperature_display();
     draw_clock();
@@ -147,7 +66,7 @@ void main_screen_update()
     update_schedule_bar();
 }
 
-UiResult main_screen_handle_keys(Keypad::Keys keys)
+UiResult MainScreen::main_screen_handle_keys(Keypad::Keys keys)
 {
     // 1: increase temperature (long: repeat)
     // 2: decrease temperature (long: repeat)
@@ -157,9 +76,9 @@ UiResult main_screen_handle_keys(Keypad::Keys keys)
     // 6: nighttime manual override -> back to automatic
 
     if (keys & Keypad::Keys::Plus) {
-        heatctl_inc_target_temp();
+        _heatingController.incTargetTemp();
     } else if (keys & Keypad::Keys::Minus) {
-        heatctl_dec_target_temp();
+        _heatingController.decTargetTemp();
     } else if (keys & Keypad::Keys::Menu) {
         // Avoid entering the menu while exiting
         // from another screen with long press
@@ -168,14 +87,14 @@ UiResult main_screen_handle_keys(Keypad::Keys keys)
         }
     } else if (keys & Keypad::Keys::Boost) {
         if (keys & Keypad::Keys::LongPress) {
-            if (heatctl_is_boost_active()) {
-                heatctl_deactivate_boost();
+            if (_heatingController.isBoostActive()) {
+                _heatingController.deactivateBoost();
             }
         } else {
-            if (!heatctl_is_boost_active())
-                heatctl_activate_boost();
+            if (!_heatingController.isBoostActive())
+                _heatingController.activateBoost();
             else
-                heatctl_extend_boost();
+                _heatingController.extendBoost();
         }
     // } else if (keys & KEY_LEFT) {
     // 	heatctl_deactivate_boost();
@@ -184,4 +103,87 @@ UiResult main_screen_handle_keys(Keypad::Keys keys)
     }
 
     return UiResult::Update;
+}
+
+void MainScreen::draw_clock()
+{
+    const auto localTime = _clock.localTime();
+    const struct tm* t = gmtime(&localTime);
+
+    char time_fmt[10] = { 6 };
+    sprintf(time_fmt, "%02d:%02d", t->tm_hour, t->tm_min);
+
+    Text::draw(time_fmt, 0, 0, 0, false);
+    draw_weekday(33, t->tm_wday);
+}
+
+void MainScreen::draw_target_temp_boost_indicator()
+{
+    char s[15] = "";
+
+    if (!_heatingController.isBoostActive()) {
+        uint16_t temp = _heatingController.targetTemp();
+        sprintf(s, "     %2d.%d C", temp / 10, temp % 10);
+    } else {
+        time_t secs = _heatingController.boostRemaining();
+        uint16_t minutes = secs / 60;
+        secs -= minutes * 60;
+
+        sprintf(s, " BST %3u:%02ld", minutes, secs);
+    }
+
+    Text::draw(s, 0, 60, 0, false);
+}
+
+void MainScreen::update_schedule_bar()
+{
+    const auto localTime = _clock.localTime();
+    const struct tm* t = gmtime(&localTime);
+
+    draw_schedule_bar(settings.schedule.days[t->tm_wday]);
+
+    uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
+
+    if (idx != _lastScheduleIndex) {
+        _lastScheduleIndex = idx;
+        draw_schedule_indicator(idx);
+    }
+}
+
+void MainScreen::update_mode_indicator()
+{
+    switch (_heatingController.mode())
+    {
+    case HeatingController::Mode::Boost:
+    case HeatingController::Mode::Normal:
+        if (_heatingController.isActive()) {
+            if (_indicator != DH_MODE_HEATING)
+                _indicator = DH_MODE_HEATING;
+            else
+                return;
+        } else {
+            if (_indicator != DH_NO_INDICATOR)
+                _indicator = DH_NO_INDICATOR;
+            else
+                return;
+        }
+        break;
+
+    case HeatingController::Mode::Off:
+        if (_indicator != DH_MODE_OFF) {
+            _indicator = DH_MODE_OFF;
+            break;
+        } else {
+            return;
+        }
+    }
+
+    draw_mode_indicator(static_cast<mode_indicator_t>(_indicator));
+}
+
+void MainScreen::draw_temperature_display()
+{
+    const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
+    draw_temperature_value(10, reading / 100,
+        (reading % 100) / 10);
 }

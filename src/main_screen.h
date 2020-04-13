@@ -23,10 +23,33 @@
 #include "keypad.h"
 #include "ui_result.h"
 
-#include <stdint.h>
+#include <cstdint>
 
-void main_screen_init();
-void main_screen_draw();
-void main_screen_update();
-UiResult main_screen_handle_keys(Keypad::Keys keys);
+class Clock;
+class HeatingController;
 
+class MainScreen
+{
+public:
+    MainScreen(const Clock& clock, HeatingController& heatingController);
+
+    void main_screen_init();
+    void main_screen_draw();
+    void main_screen_update();
+    UiResult main_screen_handle_keys(Keypad::Keys keys);
+
+private:
+    const Clock& _clock;
+    HeatingController& _heatingController;
+    uint8_t _indicator = 0;
+    bool _boostIndicator = false;
+    uint8_t _lastScheduleIndex = 0;
+
+    uint8_t last_schedule_index;
+
+    void draw_clock();
+    void draw_target_temp_boost_indicator();
+    void update_schedule_bar();
+    void update_mode_indicator();
+    void draw_temperature_display();
+};

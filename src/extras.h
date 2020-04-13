@@ -37,5 +37,14 @@
 	
 uint8_t calculate_schedule_intval_idx(uint8_t hours, uint8_t minutes);
 
+namespace Extras
+{
+    template <typename ValueType, typename MinType, typename MaxType>
+    ValueType constexpr clampValue(ValueType value, MinType min, MaxType max)
+    {
+        return value <= min ? min : value >= max ? max : value;
+    }
+}
+
 #endif	/* EXTRAS_H */
 

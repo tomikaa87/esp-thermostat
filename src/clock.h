@@ -18,14 +18,40 @@
     Created on 2016-12-30
 */
 
-#ifndef CLOCK_H
-#define	CLOCK_H
+#pragma once
 
-#include <stdbool.h>
-#include <time.h>
+#include "Logger.h"
 
-extern time_t clock_epoch;
-extern bool clock_synced;
+#include <ctime>
 
-#endif	/* CLOCK_H */
+class Clock
+{
+public:
+    static constexpr auto NtpSyncIntervalSec = 1800;
+    static constexpr auto RtcSyncIntervalSec = 60;
 
+    Clock();
+
+    void task();
+    void timerIsr();
+
+    std::time_t localTime() const;
+    std::time_t utcTime() const;
+
+    void setUtcTime(std::time_t t);
+
+private:
+    Logger _log{ "Clock" };
+    std::time_t _epoch = 0;
+    std::time_t _lastRtcSync = 0;
+    bool _ntpSyncing = false;
+    bool _rtcSynced = false;
+    int _isrCounter = 0;
+    int _localTimeOffsetMinutes = 0;
+    int _localTimeDstOffsetMinutes = 0;
+
+    void updateFromRtc();
+    void updateRtc();
+
+    static bool isDst(std::time_t t);
+};

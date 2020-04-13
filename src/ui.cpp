@@ -21,6 +21,7 @@
 #include "ui.h"
 #include "settings.h"
 #include "clock.h"
+#include "main.h"
 
 #include "display/Display.h"
 
@@ -38,8 +39,8 @@ Ui::Ui()
 {
     Display::setContrast(settings.display.brightness);
 
-    main_screen_init();
-    main_screen_draw();
+    // main_screen_init();
+    // main_screen_draw();
 }
 
 void Ui::update()
@@ -47,7 +48,7 @@ void Ui::update()
     switch (_screen)
     {
         case Screen::Main:
-            main_screen_update();
+            // main_screen_update();
             break;
 
         case Screen::Menu:
@@ -65,7 +66,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     if (keys == Keypad::Keys::None)
         return;
 
-    _lastKeyPressTime = clock_epoch;
+    // _lastKeyPressTime = Globals::clock.utcTime();
 
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
@@ -79,7 +80,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     switch (_screen)
     {
         case Screen::Main:
-            result = main_screen_handle_keys(keys);
+            // result = main_screen_handle_keys(keys);
             break;
 
         case Screen::Menu:
@@ -110,7 +111,7 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
     {
         case UiResult::SwitchMainScreen:
             _screen = Screen::Main;
-            main_screen_draw();
+            // main_screen_draw();
             break;
 
         case UiResult::SwitchMenuScreen:
@@ -153,5 +154,5 @@ bool Ui::isActive() const
         return true;
     }
 
-    return (clock_epoch - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
+    return false; //(Globals::clock.utcTime() - _lastKeyPressTime) < (std::time_t)(settings.display.timeout_secs);
 }

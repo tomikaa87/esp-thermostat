@@ -303,14 +303,14 @@ static void update_page_heatctl_mode()
 
     Display::fillArea(0, 3, 128, 3, 0);
 
-    switch (menu.new_settings.heatctl.mode) {
-    case HC_MODE_NORMAL:
+    switch (static_cast<HeatingController::Mode>(menu.new_settings.heatctl.mode)) {
+    case HeatingController::Mode::Normal:
         graphics_draw_multipage_bitmap(graphics_calendar_icon_20x3p, 20, 3, 20, 2);
         Text::draw("NORMAL", 3, 50, 0, false);
         Text::draw("(SCHEDULE)", 4, 50, 0, false);
         break;
 
-    case HC_MODE_OFF:
+    case HeatingController::Mode::Off:
         graphics_draw_multipage_bitmap(graphics_off_icon_20x3p, 20, 3, 20, 2);
         Text::draw("OFF", 3, 50, 0, false);
         break;

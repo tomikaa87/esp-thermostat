@@ -18,65 +18,98 @@
     Created on 2017-01-04
 */
 
-#ifndef HEAT_CTL_H
-#define	HEAT_CTL_H
+#pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <time.h>
+#include <ctime>
 
-typedef enum
+#include "Logger.h"
+#include "settings.h"
+
+class Clock;
+
+class HeatingController
 {
-	HC_MODE_NORMAL,
-	HC_MODE_BOOST,
-	HC_MODE_OFF
-} heatctl_mode_t;
+public:
+    HeatingController(const Clock& clock);
 
-typedef enum
-{
-	HC_STATE_HEATING_OFF,
-	HC_STATE_HEATING_ON
-} heatctl_state_t;
+    enum class Mode
+    {
+        Normal,
+        Boost,
+        Off
+    };
 
-struct heatctl_next_switch {
-	heatctl_state_t state;
-	uint8_t weekday;
-	uint8_t hour;
-	uint8_t minute;
+    enum class State
+    {
+        On,
+        Off
+    };
+
+    struct NextTransition
+    {
+        State state = State::Off;
+        uint8_t weekday = 0;
+        uint8_t hour = 0;
+        uint8_t minute = 0;
+    };
+
+    using TenthsOfDegrees = int16_t;
+
+    void task();
+
+    Mode mode() const;
+    void setMode(Mode mode);
+
+    bool isActive() const;
+
+    bool isBoostActive() const;
+    void activateBoost();
+    void deactivateBoost();
+    void extendBoost();
+
+    std::time_t boostRemaining() const;
+
+    TenthsOfDegrees currentTemp() const;
+
+    TenthsOfDegrees targetTemp() const;
+    void setTargetTemp(TenthsOfDegrees temp);
+    void incTargetTemp();
+    void decTargetTemp();
+
+    TenthsOfDegrees daytimeTemp() const;
+    void setDaytimeTemp(TenthsOfDegrees temp);
+
+    TenthsOfDegrees nightTimeTemp() const;
+    void setNightTimeTemp(TenthsOfDegrees temp);
+
+    bool hasDaytimeSchedule() const;
+
+    NextTransition nextTransition() const;
+
+    State scheduledStateAt(uint8_t weekday, uint8_t hour, uint8_t min) const;
+
+private:
+    const Clock& _clock;
+    Logger _log{ "HeatingController" };
+    bool _boostActive = false;
+    bool _boostDeactivated = false;
+    bool _heatingActive = false;
+    bool _usingDaytimeSchedule = false;
+    bool _settingsChanged = false; // TODO probably not needed because of EERAM
+    bool _customTempSet = false;
+    std::time_t _boostEnd = 0;
+    TenthsOfDegrees _targetTemp = SETTINGS_TEMP_MIN;
+    TenthsOfDegrees _sensorTemp = 0;
+    std::time_t _settingsLastChanged = 0;
+    std::time_t _setTempLastChanged = 0;
+
+    void markSettingsChanged(); // TODO probably not needed because of EERAM
+    void markCustomTempSet();
+    void clampTargetTemp();
+
+    void startHeating();
+    void stopHeating();
+
+    bool isCustomTempResetNeeded() const;
+    bool isModeSaveNeeded() const; // TODO probably not needed because of EERAM
 };
-
-typedef int16_t tenths_of_degrees_t;
-
-void heatctl_init();
-void heatctl_task();
-
-heatctl_mode_t heatctl_mode();
-void heatctl_set_mode(heatctl_mode_t mode);
-
-void heatctl_inc_target_temp();
-void heatctl_dec_target_temp();
-
-bool heatctl_is_active();
-bool heatctl_is_boost_active();
-time_t heatctl_boost_remaining_secs();
-
-tenths_of_degrees_t heatctl_target_temp();
-void heatctl_set_target_temp(tenths_of_degrees_t value);
-
-tenths_of_degrees_t heatctl_daytime_temp();
-void heatctl_set_daytime_temp(tenths_of_degrees_t value);
-
-tenths_of_degrees_t heatctl_night_time_temp();
-void heatctl_set_night_time_temp(tenths_of_degrees_t value);
-
-tenths_of_degrees_t heatctl_current_temp();
-
-void heatctl_activate_boost();
-void heatctl_deactivate_boost();
-void heatctl_extend_boost();
-
-bool heatctl_has_daytime_schedule();
-struct heatctl_next_switch heatctl_next_state();
-
-#endif	/* HEAT_CTL_H */
-

@@ -66,6 +66,8 @@ public:
     static StatusReg getStatus();
     static void setStatus(StatusReg sr);
 
+    static void setAseEnabled(bool enabled);
+
     static void executeCommand(Command cmd);
 };
 
