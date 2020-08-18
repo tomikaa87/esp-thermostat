@@ -1,0 +1,3 @@
+[submodule "lib/esp-iot-base"]
+	path = lib/esp-iot-base
+	url = https://github.com/tomikaa87/esp-iot-base.git

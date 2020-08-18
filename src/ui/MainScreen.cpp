@@ -35,7 +35,7 @@
 
 #include "Peripherals.h"
 
-MainScreen::MainScreen(Settings& settings, const SystemClock& clock, HeatingController& heatingController)
+MainScreen::MainScreen(Settings& settings, const ISystemClock& clock, HeatingController& heatingController)
     : Screen("Main")
     , _settings(settings)
     , _clock(clock)

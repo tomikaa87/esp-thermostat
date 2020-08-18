@@ -37,7 +37,7 @@
 // #define ENABLE_DEBUG
 
 // TODO rename settings_
-Ui::Ui(Settings& settings_, const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController)
+Ui::Ui(Settings& settings_, const ISystemClock& systemClock, Keypad& keypad, HeatingController& heatingController)
     : _settings(settings_)
     , _systemClock(systemClock)
     , _keypad(keypad)

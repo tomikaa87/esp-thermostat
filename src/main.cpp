@@ -3,33 +3,11 @@
 #include "PrivateConfig.h"
 #include "Thermostat.h"
 
-#include "drivers/SimpleI2C.h"
-
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiSTA.h>
 
-static Thermostat* _thermostat = nullptr;
+#include <memory>
 
-void ICACHE_RAM_ATTR timer1Isr()
-{
-    if (_thermostat) {
-        _thermostat->epochTimerIsr();
-    }
-}
-
-void initializeEpochTimer()
-{
-    timer1_isr_init();
-    timer1_attachInterrupt(timer1Isr);
-    timer1_enable(TIM_DIV256, TIM_EDGE, TIM_LOOP);
-    timer1_write(100);
-}
-
-void initializeSerial()
-{
-    Serial.begin(115200);
-}
+static std::unique_ptr<Thermostat> _thermostat;
 
 void initializeTempSensor()
 {
@@ -41,17 +19,28 @@ void initializeTempSensor()
 
 void setup()
 {
-    initializeEpochTimer();
-    Drivers::I2C::init();
-    initializeSerial();
     initializeTempSensor();
 
-    WiFi.mode(WIFI_STA);
-    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
-    WiFi.setOutputPower(20.5);
-    WiFi.begin(PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
+    static ApplicationConfig appConfig;
 
-    _thermostat = new Thermostat();
+    appConfig.firmwareVersion = VersionNumber{ 1, 0, 6 };
+
+    appConfig.blynk.appToken = Config::Blynk::AppToken;
+    appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
+    appConfig.blynk.serverPort = Config::Blynk::ServerPort;
+
+    appConfig.logging.syslog.enabled = true;
+    appConfig.logging.syslog.hostName = Config::Logging::SyslogHostName;
+    appConfig.logging.syslog.serverHostName = Config::Logging::SyslogServerHost;
+    appConfig.logging.syslog.serverPort = Config::Logging::SyslogServerPort;
+
+    appConfig.otaUpdate.updateCheckIntervalMs = 60000;
+    appConfig.otaUpdate.updateUrl = Config::OtaUpdate::FirmwareUpdateUrl;
+
+    appConfig.wifi.password = Config::WiFi::Password;
+    appConfig.wifi.ssid = Config::WiFi::SSID;
+
+    _thermostat.reset(new Thermostat(appConfig));
 }
 
 void loop()

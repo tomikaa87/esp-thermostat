@@ -33,12 +33,13 @@
 #include <memory>
 #include <stack>
 
+class ISystemClock;
 class Settings;
 
 class Ui
 {
 public:
-    Ui(Settings& settings, const SystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
+    Ui(Settings& settings, const ISystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
 
     void task();
 
@@ -47,7 +48,7 @@ public:
 
 private:
     Settings& _settings;
-    const SystemClock& _systemClock;
+    const ISystemClock& _systemClock;
     Keypad& _keypad;
     HeatingController& _heatingController;
     Logger _log{ "Ui" };

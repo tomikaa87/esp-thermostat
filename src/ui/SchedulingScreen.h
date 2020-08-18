@@ -26,12 +26,12 @@
 
 #include <cstdint>
 
-class SystemClock;
+class ISystemClock;
 
 class SchedulingScreen : public Screen
 {
 public:
-    SchedulingScreen(Settings& settings, const SystemClock& systemClock);
+    SchedulingScreen(Settings& settings, const ISystemClock& systemClock);
 
     void activate() override;
     void update() override;
@@ -39,7 +39,7 @@ public:
 
 private:
     Settings& _settings;
-    const SystemClock& _systemClock;
+    const ISystemClock& _systemClock;
 
     uint8_t _day = 0;
     uint8_t _intvalIdx = 0;

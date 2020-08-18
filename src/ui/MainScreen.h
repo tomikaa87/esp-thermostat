@@ -26,14 +26,14 @@
 
 #include <cstdint>
 
+class ISystemClock;
 class Settings;
-class SystemClock;
 class HeatingController;
 
 class MainScreen : public Screen
 {
 public:
-    MainScreen(Settings& settings, const SystemClock& clock, HeatingController& heatingController);
+    MainScreen(Settings& settings, const ISystemClock& clock, HeatingController& heatingController);
 
     void activate() override;
     void update() override;
@@ -41,7 +41,7 @@ public:
 
 private:
     Settings& _settings;
-    const SystemClock& _clock;
+    const ISystemClock& _clock;
     HeatingController& _heatingController;
     Logger _log{ "MainScreen" };
     uint8_t _indicator = 0;

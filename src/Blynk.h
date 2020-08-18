@@ -23,24 +23,20 @@
 #include "Logger.h"
 #include "TrackedVariable.h"
 
+#include <Variant.h>
+
 #include <functional>
 #include <stdint.h>
 
-class BlynkParam;
 class HeatingController;
+class IBlynkHandler;
 
-class BlynkHandler
+class Blynk
 {
 public:
-    BlynkHandler(const char* appToken, HeatingController& heatingController);
-    ~BlynkHandler();
+    Blynk(IBlynkHandler& blynkHandler, HeatingController& heatingController);
 
     void task();
-
-    void onBlynkConnected();
-    void onVirtualPinUpdated(int pin, const BlynkParam& param);
-    void onButtonPressed(int pin);
-    void updateVirtualPin(int pin);
 
     void updateActiveTemperature(float celsius);
     void updateDaytimeTemperature(float celsius);
@@ -55,6 +51,7 @@ public:
     void terminalPrintln(const char* msg);
 
 private:
+    IBlynkHandler& _blynkHandler;
     HeatingController& _heatingController;
     Logger _log{ "Blynk" };
 
@@ -74,6 +71,10 @@ private:
     TrackedVariable<float> m_nightTimeTemperature = 0;
 
     uint32_t m_boostRemainingSecs = 0xffffffff;
+
+    void setupHandlers();
+
+    void onConnected();
 
     void processButtonCallbackRequests();
     void processValueUpdates();

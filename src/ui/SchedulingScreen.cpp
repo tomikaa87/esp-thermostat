@@ -30,7 +30,7 @@
 
 #include <cstring>
 
-SchedulingScreen::SchedulingScreen(Settings& settings, const SystemClock& systemClock)
+SchedulingScreen::SchedulingScreen(Settings& settings, const ISystemClock& systemClock)
     : Screen("Scheduling")
     , _settings(settings)
     , _systemClock(systemClock)

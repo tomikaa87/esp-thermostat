@@ -25,12 +25,12 @@
 #include "Logger.h"
 #include "Settings.h"
 
-class SystemClock;
+class ISystemClock;
 
 class HeatingController
 {
 public:
-    HeatingController(Settings& settings, const SystemClock& systemClock);
+    HeatingController(Settings& settings, const ISystemClock& systemClock);
 
     enum class Mode
     {
@@ -90,7 +90,7 @@ public:
 
 private:
     Settings& _settings;
-    const SystemClock& _systemClock;
+    const ISystemClock& _systemClock;
     Logger _log{ "HeatingController" };
     bool _boostActive = false;
     bool _boostDeactivated = false;

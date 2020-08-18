@@ -29,7 +29,7 @@
 
 #define TEMPERATURE_STEP	5
 
-HeatingController::HeatingController(Settings& settings, const SystemClock& systemClock)
+HeatingController::HeatingController(Settings& settings, const ISystemClock& systemClock)
     : _settings(settings)
     , _systemClock(systemClock)
 {
