@@ -108,13 +108,6 @@ void Settings::save()
     }
 }
 
-void Settings::saveHeatingControllerSettings()
-{
-    // Currently we save settings to the RTC SRAM, no need to do partial writes
-    // to save EEPROM program cycles.
-    save();
-}
-
 void Settings::check()
 {
     bool modified = false;

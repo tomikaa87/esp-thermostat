@@ -112,7 +112,7 @@ private:
     void stopHeating();
 
     bool isCustomTempResetNeeded() const;
-    bool isModeSaveNeeded() const; // TODO probably not needed because of EERAM
+    bool isSettingsSaveNeeded() const; // TODO probably not needed because of EERAM
 
     void storeTargetTemp();
     void loadStoredTargetTemp();

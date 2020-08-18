@@ -45,10 +45,9 @@ HeatingController::HeatingController(Settings& settings, const SystemClock& syst
 void HeatingController::task()
 {
     // Only Heat Control settings are auto-saved
-    if (isModeSaveNeeded()) {
+    if (isSettingsSaveNeeded()) {
         _settingsChanged = false;
-        storeTargetTemp();
-        _settings.saveHeatingControllerSettings();
+        _settings.save();
     }
 
     // Read temperature sensor and store it in tenths of degrees
@@ -261,6 +260,7 @@ void HeatingController::setTargetTemp(TenthsOfDegrees temp)
 
     _targetTemp = temp;
     clampTargetTemp();
+    storeTargetTemp();
     markCustomTempSet();
 }
 
@@ -274,6 +274,7 @@ void HeatingController::incTargetTemp()
 
     _targetTemp += TEMPERATURE_STEP;
     clampTargetTemp();
+    storeTargetTemp();
     markCustomTempSet();
 }
 
@@ -287,6 +288,7 @@ void HeatingController::decTargetTemp()
 
     _targetTemp -= TEMPERATURE_STEP;
     clampTargetTemp();
+    storeTargetTemp();
     markCustomTempSet();
 }
 
@@ -442,17 +444,9 @@ bool HeatingController::isCustomTempResetNeeded() const
         + _settings.Data.HeatingController.CustomTempTimeoutMins * 60);
 }
 
-bool HeatingController::isModeSaveNeeded() const
+bool HeatingController::isSettingsSaveNeeded() const
 {
-    // Mode change should be saved after a few seconds.
-    // This delay could spare EEPROM write cycles if the mode is being
-    // changed in rapid successions.
-
-    if (_settingsLastChanged && (_settingsLastChanged + 10 <= _systemClock.utcTime())) {
-        return true;
-    }
-
-    return false;
+    return _settingsChanged && (_systemClock.utcTime() - _settingsLastChanged >= 10);
 }
 
 void HeatingController::storeTargetTemp()
@@ -461,11 +455,21 @@ void HeatingController::storeTargetTemp()
 
     _settings.Data.HeatingController.TargetTemp = _targetTemp;
     _settings.Data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
+
+    markSettingsChanged();
 }
 
 void HeatingController::loadStoredTargetTemp()
 {
     _log.debug("loading stored target temp");
+
+    _setTempLastChanged = _settings.Data.HeatingController.TargetTempSetTimestamp;
+    _customTempSet = true;
+
+    if (_systemClock.utcTime() - _setTempLastChanged >= _settings.Data.HeatingController.CustomTempTimeoutMins * 60) {
+        _log.debug("skip loading custom temperature because it timed out");
+        return;
+    }
 
     _targetTemp = _settings.Data.HeatingController.TargetTemp;
     clampTargetTemp();

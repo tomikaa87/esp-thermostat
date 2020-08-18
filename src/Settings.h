@@ -133,7 +133,6 @@ public:
     void load();
     void loadDefaults();
     void save();
-    void saveHeatingControllerSettings();
 
     PersistentData::Settings Data;
 
