@@ -1,6 +1,5 @@
 #include "display/Display.h"
 #include "Peripherals.h"
-// #include "PrivateConfig.h"
 #include "Settings.h"
 #include "Thermostat.h"
 

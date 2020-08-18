@@ -290,8 +290,8 @@ void Blynk::updateBoostRemaining(const uint32_t secs)
 
     m_boostRemainingSecs = secs;
 
-    int m = m_boostRemainingSecs / 60;
-    int s = m_boostRemainingSecs - m * 60;
+    const int m = m_boostRemainingSecs / 60;
+    const int s = m_boostRemainingSecs - m * 60;
     char buf[10] = { 0 };
     snprintf(buf, sizeof(buf), "%d:%02d", m, s);
 
