@@ -19,6 +19,7 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
 
 void Thermostat::task()
 {
+    _coreApplication.task();
     _blynk.task();
     _ui.task();
 
