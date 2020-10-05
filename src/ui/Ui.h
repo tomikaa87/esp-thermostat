@@ -35,11 +35,18 @@
 
 class ISystemClock;
 class Settings;
+class TemperatureSensor;
 
 class Ui
 {
 public:
-    Ui(Settings& settings, const ISystemClock& systemClock, Keypad& keypad, HeatingController& heatingController);
+    Ui(
+        Settings& settings,
+        const ISystemClock& systemClock,
+        Keypad& keypad,
+        HeatingController& heatingController,
+        const TemperatureSensor& temperatureSensor
+    );
 
     void task();
 
@@ -51,6 +58,7 @@ private:
     const ISystemClock& _systemClock;
     Keypad& _keypad;
     HeatingController& _heatingController;
+    const TemperatureSensor& _temperatureSensor;
     Logger _log{ "Ui" };
     std::time_t _lastKeyPressTime = 0;
 

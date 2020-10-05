@@ -26,11 +26,16 @@
 #include "Settings.h"
 
 class ISystemClock;
+class TemperatureSensor;
 
 class HeatingController
 {
 public:
-    HeatingController(Settings& settings, const ISystemClock& systemClock);
+    HeatingController(
+        Settings& settings,
+        const ISystemClock& systemClock,
+        const TemperatureSensor& temperatureSensor
+    );
 
     enum class Mode
     {
@@ -91,6 +96,7 @@ public:
 private:
     Settings& _settings;
     const ISystemClock& _systemClock;
+    const TemperatureSensor& _temperatureSensor;
     Logger _log{ "HeatingController" };
     bool _boostActive = false;
     bool _boostDeactivated = false;

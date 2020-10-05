@@ -21,6 +21,7 @@
 #include "ui.h"
 #include "Settings.h"
 #include "SystemClock.h"
+#include "TemperatureSensor.h"
 #include "main.h"
 
 #include "display/Display.h"
@@ -37,17 +38,24 @@
 // #define ENABLE_DEBUG
 
 // TODO rename settings_
-Ui::Ui(Settings& settings_, const ISystemClock& systemClock, Keypad& keypad, HeatingController& heatingController)
-    : _settings(settings_)
+Ui::Ui(
+    Settings& settings,
+    const ISystemClock& systemClock,
+    Keypad& keypad,
+    HeatingController& heatingController,
+    const TemperatureSensor& temperatureSensor
+)
+    : _settings(settings)
     , _systemClock(systemClock)
     , _keypad(keypad)
     , _heatingController(heatingController)
+    , _temperatureSensor(temperatureSensor)
 {
     _log.info("initializing Display, brightness: %d", _settings.Data.Display.Brightness);
     Display::init();
     Display::setContrast(_settings.Data.Display.Brightness);
 
-    auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_settings, _systemClock, _heatingController));
+    auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_settings, _systemClock, _heatingController, _temperatureSensor));
     _mainScreen = mainScreen.get();
     _currentScreen = _mainScreen;
     mainScreen->activate();

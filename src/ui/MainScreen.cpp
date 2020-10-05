@@ -26,6 +26,7 @@
 #include "MainScreen.h"
 #include "Settings.h"
 #include "SystemClock.h"
+#include "TemperatureSensor.h"
 
 #include "display/Text.h"
 
@@ -33,13 +34,17 @@
 #include <string.h>
 #include <time.h>
 
-#include "Peripherals.h"
-
-MainScreen::MainScreen(Settings& settings, const ISystemClock& clock, HeatingController& heatingController)
+MainScreen::MainScreen(
+    Settings& settings,
+    const ISystemClock& clock,
+    HeatingController& heatingController,
+    const TemperatureSensor& temperatureSensor
+)
     : Screen("Main")
     , _settings(settings)
     , _clock(clock)
     , _heatingController(heatingController)
+    , _temperatureSensor(temperatureSensor)
 {}
 
 void MainScreen::activate()
@@ -186,7 +191,7 @@ void MainScreen::updateModeIndicator()
 
 void MainScreen::drawTemperatureDisplay()
 {
-    const auto reading = Peripherals::Sensors::MainTemperature::lastReading();
+    const auto reading = _temperatureSensor.read();
     draw_temperature_value(10, reading / 100,
         (reading % 100) / 10);
 }

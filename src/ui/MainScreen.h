@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-02
 */
@@ -29,11 +29,17 @@
 class ISystemClock;
 class Settings;
 class HeatingController;
+class TemperatureSensor;
 
 class MainScreen : public Screen
 {
 public:
-    MainScreen(Settings& settings, const ISystemClock& clock, HeatingController& heatingController);
+    MainScreen(
+        Settings& settings,
+        const ISystemClock& clock,
+        HeatingController& heatingController,
+        const TemperatureSensor& temperatureSensor
+    );
 
     void activate() override;
     void update() override;
@@ -43,6 +49,7 @@ private:
     Settings& _settings;
     const ISystemClock& _clock;
     HeatingController& _heatingController;
+    const TemperatureSensor& _temperatureSensor;
     Logger _log{ "MainScreen" };
     uint8_t _indicator = 0;
     bool _boostIndicator = false;

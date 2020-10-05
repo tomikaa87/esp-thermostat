@@ -4,6 +4,7 @@
 #include "HeatingController.h"
 #include "Keypad.h"
 #include "Settings.h"
+#include "TemperatureSensor.h"
 #include "network/BlynkHandler.h"
 #include "ui/Ui.h"
 
@@ -22,6 +23,7 @@ private:
     const ApplicationConfig& _appConfig;
     Settings _settings;
     Logger _log{ "Thermostat" };
+    TemperatureSensor _temperatureSensor;
     HeatingController _heatingController;
     Blynk _blynk;
     Keypad _keypad;
@@ -29,9 +31,6 @@ private:
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     uint32_t _lastSlowLoopUpdate = 0;
-
-    static constexpr auto TempSensorUpdateIntervalMs = 2500;
-    uint32_t _lastTempSensorUpdate = 0;
 
     void updateBlynk();
 };

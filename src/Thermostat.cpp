@@ -1,5 +1,4 @@
 #include "display/Display.h"
-#include "Peripherals.h"
 #include "Settings.h"
 #include "Thermostat.h"
 
@@ -8,9 +7,10 @@
 Thermostat::Thermostat(const ApplicationConfig& appConfig)
     : _coreApplication(appConfig)
     , _appConfig(appConfig)
-    , _heatingController(_settings, _coreApplication.systemClock())
+    , _temperatureSensor(_settings)
+    , _heatingController(_settings, _coreApplication.systemClock(), _temperatureSensor)
     , _blynk(_coreApplication.blynkHandler(), _heatingController)
-    , _ui(_settings, _coreApplication.systemClock(), _keypad, _heatingController)
+    , _ui(_settings, _coreApplication.systemClock(), _keypad, _heatingController, _temperatureSensor)
 {
     _coreApplication.setBlynkUpdateHandler([this] {
         updateBlynk();
@@ -22,12 +22,7 @@ void Thermostat::task()
     _coreApplication.task();
     _blynk.task();
     _ui.task();
-
-    // Temperature sensor loop
-    if (_lastTempSensorUpdate == 0 || millis() - _lastTempSensorUpdate >= TempSensorUpdateIntervalMs) {
-        _lastTempSensorUpdate = millis();
-        Peripherals::Sensors::MainTemperature::update();
-    }
+    _temperatureSensor.task();
 
     // Slow loop
     if (_lastSlowLoopUpdate == 0 || millis() - _lastSlowLoopUpdate >= SlowLoopUpdateIntervalMs) {

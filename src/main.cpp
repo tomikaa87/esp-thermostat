@@ -23,7 +23,7 @@ void setup()
 
     static ApplicationConfig appConfig;
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 1, 0 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 1, 1 };
 
     appConfig.blynk.appToken = Config::Blynk::AppToken;
     appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
@@ -162,7 +162,7 @@ void setup()
         }
     });
     Globals::blynk->setDaytimeTemperatureChangedCallback([](const float value) {
-        Globals::heatingController->setDaytimeTemp(value * 10); 
+        Globals::heatingController->setDaytimeTemp(value * 10);
     });
     Globals::blynk->setDeactivateBoostCallback([] {
         Globals::heatingController->deactivateBoost();

@@ -20,18 +20,22 @@
 
 #include "HeatingController.h"
 #include "SystemClock.h"
+#include "TemperatureSensor.h"
 #include "config.h"
 #include "extras.h"
 
 #include <Arduino.h>
 
-#include "Peripherals.h"
-
 #define TEMPERATURE_STEP	5
 
-HeatingController::HeatingController(Settings& settings, const ISystemClock& systemClock)
+HeatingController::HeatingController(
+    Settings& settings,
+    const ISystemClock& systemClock,
+    const TemperatureSensor& temperatureSensor
+)
     : _settings(settings)
     , _systemClock(systemClock)
+    , _temperatureSensor(temperatureSensor)
 {
     _log.info("initializing");
 
@@ -51,7 +55,7 @@ void HeatingController::task()
     }
 
     // Read temperature sensor and store it in tenths of degrees
-    _sensorTemp = Peripherals::Sensors::MainTemperature::lastReading() / 10;
+    _sensorTemp = _temperatureSensor.read() / 10;
 
 #ifdef HEATCL_DEBUG
     printf("heatctl: s_tmp=%d\r\n", sensor_temp);
@@ -440,7 +444,7 @@ bool HeatingController::isCustomTempResetNeeded() const
         return false;
     }
 
-    return _systemClock.utcTime() >= (_setTempLastChanged 
+    return _systemClock.utcTime() >= (_setTempLastChanged
         + _settings.Data.HeatingController.CustomTempTimeoutMins * 60);
 }
 
