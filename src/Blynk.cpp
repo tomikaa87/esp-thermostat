@@ -84,21 +84,24 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::TargetTemperature,
         [this](const int pin, const Variant& value) {
-            m_targetTemperature = static_cast<float>(value);
+            _log.debug("TargetTemperature written: %f", static_cast<double>(value));
+            m_targetTemperature = static_cast<double>(value);
         }
     );
 
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::NightTimeTemperature,
         [this](const int pin, const Variant& value) {
-            m_nightTimeTemperature = static_cast<float>(value);
+            _log.debug("NightTimeTemperature written: %f", static_cast<double>(value));
+            m_nightTimeTemperature = static_cast<double>(value);
         }
     );
 
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::DaytimeTemperature,
         [this](const int pin, const Variant& value) {
-            m_daytimeTemperature = static_cast<float>(value);
+            _log.debug("DaytimeTemperature written: %f", static_cast<double>(value));
+            m_daytimeTemperature = static_cast<double>(value);
         }
     );
 
@@ -224,8 +227,8 @@ void Blynk::updateActiveTemperature(const float celsius)
 
 void Blynk::updateDaytimeTemperature(const float celsius)
 {
-    m_targetTemperature = celsius;
-    if (m_targetTemperature.changed()) {
+    m_daytimeTemperature = celsius;
+    if (m_daytimeTemperature.changed()) {
         _blynkHandler.writePin(
             VirtualPins::DaytimeTemperature,
             Variant{ m_daytimeTemperature }
@@ -235,8 +238,8 @@ void Blynk::updateDaytimeTemperature(const float celsius)
 
 void Blynk::updateNightTimeTemperature(const float celsius)
 {
-    m_targetTemperature = celsius;
-    if (m_targetTemperature.changed()) {
+    m_nightTimeTemperature = celsius;
+    if (m_nightTimeTemperature.changed()) {
         _blynkHandler.writePin(
             VirtualPins::NightTimeTemperature,
             Variant{ m_nightTimeTemperature }
@@ -250,10 +253,13 @@ void Blynk::updateCurrentTemperature(const float celsius)
         return;
 
     m_currentTemperature = celsius;
-    
+
+    char buf[10] = { 0 };
+    floatToStr(m_currentTemperature, buf);
+
     _blynkHandler.writePin(
         VirtualPins::CurrentTemperature,
-        Variant{ m_currentTemperature }
+        Variant{ buf }
     );
 }
 

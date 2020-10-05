@@ -308,7 +308,7 @@ void HeatingController::setDaytimeTemp(TenthsOfDegrees temp)
     _settings.Data.HeatingController.DaytimeTemp = Extras::clampValue(
         temp,
         Limits::HeatingController::DaytimeTempMin,
-        Limits::HeatingController::DaytimeTempMin
+        Limits::HeatingController::DaytimeTempMax
     );
 }
 
