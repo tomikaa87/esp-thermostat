@@ -1,0 +1,31 @@
+#pragma once
+
+namespace Config
+{
+    namespace Blynk
+    {
+        constexpr auto AppToken = "<your app token>";
+        constexpr auto ServerHostName = "<blynk server e.g. blynk.cc>";
+        constexpr auto ServerPort = 80;
+    }
+
+    namespace Logging
+    {
+        constexpr auto SyslogHostName = "esp-thermostat";
+        constexpr auto SyslogServerHost = "<your syslog server>";
+        constexpr auto SyslogServerPort = 514;
+    }
+
+    namespace OtaUpdate
+    {
+        // OTA updater will search for `firmware.bin` and `version` in a sub-folder
+        // with the same as the MAC address of the ESP module. HTTPS is not (yet) supported.
+        constexpr auto FirmwareUpdateUrl = "http://<your server>/esp-thermostat/update";
+    }
+
+    namespace WiFi
+    {
+        constexpr auto SSID = "<your AP's SSID>";
+        constexpr auto Password = "<your password>";
+    }
+}
