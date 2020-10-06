@@ -39,11 +39,9 @@ void DS18B20::update(const bool forceConversion)
         startConversion();
     } else {
         int16_t t = readSensor();
-
-        // t += settings.heatctl.temp_correction * 10;
         _lastReading = t;
     }
-    
+
     convert = !convert;
 }
 
@@ -74,12 +72,12 @@ int16_t DS18B20::readSensor()
     if (value & 0x8000) {
         value = ~value + 1;
     }
-    
+
     int16_t celsius = (value >> (ResolutionBits - 8)) * 100;
     uint16_t frac_part = (value << (4 - (ResolutionBits - 8))) & 0xf;
     frac_part *= 625;
     celsius += frac_part / 100;
-    
+
     if (value & 0x8000)
         celsius *= -1;
 
