@@ -20,9 +20,6 @@
 
 #include "Settings.h"
 #include "HeatingController.h"
-#include "Peripherals.h"
-
-#include <coredecls.h> // crc32()
 
 Settings::Settings(ISettingsHandler& handler)
     : _handler(handler)
