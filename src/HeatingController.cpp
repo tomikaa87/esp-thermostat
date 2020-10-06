@@ -21,8 +21,8 @@
 #include "HeatingController.h"
 #include "SystemClock.h"
 #include "TemperatureSensor.h"
-#include "config.h"
-#include "extras.h"
+#include "Config.h"
+#include "Extras.h"
 
 #include <Arduino.h>
 

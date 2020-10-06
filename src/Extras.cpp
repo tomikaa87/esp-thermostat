@@ -13,12 +13,12 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-26
 */
 
-#include "extras.h"
+#include "Extras.h"
 
 uint8_t calculate_schedule_intval_idx(uint8_t hours, uint8_t minutes)
 {

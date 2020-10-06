@@ -1,5 +1,5 @@
-#include "config.h"
-#include "text_input.h"
+#include "Config.h"
+#include "TextInput.h"
 
 #include "display/Display.h"
 #include "display/Text.h"

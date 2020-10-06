@@ -18,15 +18,15 @@
     Created on 2017-01-08
 */
 
-#include "MenuScreen.h"
-#include "Keypad.h"
-#include "draw_helper.h"
+#include "DrawHelper.h"
+#include "Extras.h"
+#include "Graphics.h"
 #include "HeatingController.h"
+#include "Keypad.h"
+#include "MenuScreen.h"
 #include "Settings.h"
-#include "extras.h"
-#include "graphics.h"
-#include "text_input.h"
-#include "wifi_screen.h"
+#include "TextInput.h"
+#include "WifiScreen.h"
 
 #include "display/Display.h"
 #include "display/Text.h"

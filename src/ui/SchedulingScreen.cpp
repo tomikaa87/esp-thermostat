@@ -18,8 +18,8 @@
     Created on 2017-01-07
 */
 
-#include "draw_helper.h"
-#include "graphics.h"
+#include "DrawHelper.h"
+#include "Graphics.h"
 #include "Keypad.h"
 #include "SchedulingScreen.h"
 #include "SystemClock.h"
@@ -60,7 +60,7 @@ Screen::Action SchedulingScreen::keyPress(Keypad::Keys keys)
     // 4: cancel
     // 5: set nighttime mode + advance 15 minutes
     // 6: set daytime mode + advance 15 minutes
-    
+
     if (keys & Keypad::Keys::Plus) {
         setModeAndAdvance(true);
         // if (keys & KEY_LONG_PRESS)
@@ -78,7 +78,7 @@ Screen::Action SchedulingScreen::keyPress(Keypad::Keys keys)
             _menuPressCnt = 0;
             if (!(keys & Keypad::Keys::LongPress)) {
                 applyChanges();
-            }	
+            }
             return Action::NavigateBack;
         }
     } else if (keys & Keypad::Keys::Boost) {

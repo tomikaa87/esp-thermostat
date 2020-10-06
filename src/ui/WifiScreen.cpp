@@ -19,8 +19,8 @@
 */
 
 #include "Keypad.h"
-#include "text_input.h"
-#include "wifi_screen.h"
+#include "TextInput.h"
+#include "WifiScreen.h"
 
 #include "display/Display.h"
 #include "display/Text.h"
@@ -44,7 +44,7 @@
     Scan screen (scanning):
 
     WiFi Networks:
-    
+
     Scanning...
 
     > Abort
@@ -59,7 +59,7 @@
       SSID 4
       SSID 5
       Back
-      
+
 
 
 */
@@ -221,7 +221,7 @@ void wifi_screen_key_event(Keypad::Keys keys)
             }
         }
         break;
-    }        
+    }
     }
 
     if (update_needed) {

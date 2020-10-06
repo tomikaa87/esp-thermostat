@@ -18,9 +18,9 @@
     Created on 2017-01-02
 */
 
-#include "draw_helper.h"
-#include "extras.h"
-#include "graphics.h"
+#include "DrawHelper.h"
+#include "Extras.h"
+#include "Graphics.h"
 #include "HeatingController.h"
 #include "Keypad.h"
 #include "MainScreen.h"

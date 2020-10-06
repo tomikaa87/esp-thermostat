@@ -18,9 +18,9 @@
     Created on 2017-01-07
 */
 
-#include "draw_helper.h"
-#include "graphics.h"
-#include "extras.h"
+#include "DrawHelper.h"
+#include "Graphics.h"
+#include "Extras.h"
 
 #include "display/Display.h"
 #include "display/Text.h"
