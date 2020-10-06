@@ -19,5 +19,5 @@ void TemperatureSensor::task()
 int16_t TemperatureSensor::read() const
 {
     return Peripherals::Sensors::MainTemperature::lastReading()
-        + _settings.Data.HeatingController.TempCorrection;
+        + _settings.Data.HeatingController.TempCorrection * 10;
 }
