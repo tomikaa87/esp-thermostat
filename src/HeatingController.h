@@ -102,15 +102,12 @@ private:
     bool _boostDeactivated = false;
     bool _heatingActive = false;
     bool _usingDaytimeSchedule = false;
-    bool _settingsChanged = false; // TODO probably not needed because of EERAM
     bool _customTempSet = false;
     std::time_t _boostEnd = 0;
     TenthsOfDegrees _targetTemp = Limits::MinimumTemperature;
     TenthsOfDegrees _sensorTemp = 0;
-    std::time_t _settingsLastChanged = 0;
     std::time_t _setTempLastChanged = 0;
 
-    void markSettingsChanged(); // TODO probably not needed because of EERAM
     void markCustomTempSet();
     void clampTargetTemp();
 
@@ -118,7 +115,6 @@ private:
     void stopHeating();
 
     bool isCustomTempResetNeeded() const;
-    bool isSettingsSaveNeeded() const; // TODO probably not needed because of EERAM
 
     void storeTargetTemp();
     void loadStoredTargetTemp();

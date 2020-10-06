@@ -48,12 +48,6 @@ HeatingController::HeatingController(
 
 void HeatingController::task()
 {
-    // Only Heat Control settings are auto-saved
-    if (isSettingsSaveNeeded()) {
-        _settingsChanged = false;
-        _settings.save();
-    }
-
     // Read temperature sensor and store it in tenths of degrees
     _sensorTemp = _temperatureSensor.read() / 10;
 
@@ -186,8 +180,6 @@ void HeatingController::setMode(Mode mode)
         }
 
         _settings.data.HeatingController.Mode = static_cast<uint8_t>(mode);
-
-        markSettingsChanged();
     }
 }
 
@@ -391,12 +383,6 @@ HeatingController::State HeatingController::scheduledStateAt(uint8_t weekday, ui
         : State::Off;
 }
 
-void HeatingController::markSettingsChanged()
-{
-    _settingsChanged = true;
-    _settingsLastChanged = _systemClock.utcTime();
-}
-
 void HeatingController::markCustomTempSet()
 {
     _log.debug("custom temp set");
@@ -448,19 +434,12 @@ bool HeatingController::isCustomTempResetNeeded() const
         + _settings.data.HeatingController.CustomTempTimeoutMins * 60);
 }
 
-bool HeatingController::isSettingsSaveNeeded() const
-{
-    return _settingsChanged && (_systemClock.utcTime() - _settingsLastChanged >= 10);
-}
-
 void HeatingController::storeTargetTemp()
 {
     _log.debug("storing target temp");
 
     _settings.data.HeatingController.TargetTemp = _targetTemp;
     _settings.data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
-
-    markSettingsChanged();
 }
 
 void HeatingController::loadStoredTargetTemp()

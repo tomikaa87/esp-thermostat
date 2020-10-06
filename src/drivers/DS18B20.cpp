@@ -52,8 +52,6 @@ int16_t DS18B20::lastReading()
 
 void DS18B20::startConversion()
 {
-    _log.debug("starting conversion");
-
     Bus::reset();
     Bus::writeByte(0xCC);
     Bus::writeByte(0x44);
@@ -81,7 +79,9 @@ int16_t DS18B20::readSensor()
     if (value & 0x8000)
         celsius *= -1;
 
-    _log.debug("readSensor: %i", celsius);
+    if (celsius != _lastReading) {
+        _log.debug("temperature changed: %i/100 Celsius", celsius);
+    }
 
     return celsius;
 }

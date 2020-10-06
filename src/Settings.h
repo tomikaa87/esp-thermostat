@@ -123,9 +123,6 @@ public:
 
     DECLARE_SETTINGS_STRUCT(Data)
     {
-        uint32_t Crc32;
-        uint8_t Version;
-
         SchedulerSettings Scheduler;
         DisplaySettings Display;
         HeatingControllerSettings HeatingController;

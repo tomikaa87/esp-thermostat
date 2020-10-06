@@ -24,11 +24,14 @@
 Settings::Settings(ISettingsHandler& handler)
     : _handler(handler)
 {
-    _handler.setDefaultsLoader([this](ISettingsHandler::DefaultsLoadReason) {
+    _handler.setDefaultsLoader([this](const ISettingsHandler::DefaultsLoadReason reason) {
+        _log.warning("defaults load requested from settings handler: reason=%d", reason);
         loadDefaults();
     });
 
     _handler.registerSetting(data);
+
+    load();
 }
 
 bool Settings::load()
@@ -60,6 +63,8 @@ bool Settings::save()
 
 void Settings::loadDefaults()
 {
+    _log.info("loading defaults");
+
     data = {};
 
     if (!check()) {
