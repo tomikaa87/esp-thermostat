@@ -22,8 +22,6 @@
 #include "HeatingController.h"
 #include "Peripherals.h"
 
-#include <cstring>
-
 #include <coredecls.h> // crc32()
 
 Settings::Settings(ISettingsHandler& handler)
@@ -38,24 +36,41 @@ Settings::Settings(ISettingsHandler& handler)
 
 bool Settings::load()
 {
-    auto ok = _handler.load();
-    check();
+    const auto ok = _handler.load();
+
+    _log.info("loading settings: ok=%d", ok);
+
+    if (!check()) {
+        _log.warning("loaded settings corrected");
+        save();
+    }
+
     return ok;
 }
 
 bool Settings::save()
 {
-    check();
-    return _handler.save();
+    if (!check()) {
+        _log.warning("settings corrected before saving");
+    }
+
+    const auto ok = _handler.save();
+
+    _log.info("saving settings: ok=%d", ok);
+
+    return ok;
 }
 
 void Settings::loadDefaults()
 {
     data = {};
-    check();
+
+    if (!check()) {
+        _log.warning("loaded defaults corrected");
+    }
 }
 
-void Settings::check()
+bool Settings::check()
 {
     bool modified = false;
 
@@ -115,6 +130,7 @@ void Settings::check()
     if (modified) {
         data.Display.Brightness = DefaultSettings::Display::Brightness;
         data.Display.TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
-        save();
     }
+
+    return !modified;
 }

@@ -20,9 +20,8 @@
 
 #pragma once
 
-#include "Logger.h"
-
 #include <ISettingsHandler.h>
+#include <Logger.h>
 
 #include <cstdint>
 #include <ctime>
@@ -91,7 +90,7 @@ public:
     {
         uint8_t Enabled: 1;
         uint8_t: 0;
-        SchedulerDayData DayData[7];
+        SchedulerDayData DayData[7] = { {} };
     };
 
     DECLARE_SETTINGS_STRUCT(DisplaySettings)
@@ -140,7 +139,8 @@ public:
     void loadDefaults();
 
 private:
+    Logger _log{ "Settings" };
     ISettingsHandler& _handler;
 
-    void check();
+    bool check();
 };
