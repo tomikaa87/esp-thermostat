@@ -37,7 +37,7 @@ public:
 
 private:
     Settings& _settings;
-    PersistentData::Settings _newSettings;
+    Settings::Data _newSettings;
     char _wifiPsw[64] = { 0 };
 
     enum class Page

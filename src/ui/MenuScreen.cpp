@@ -368,15 +368,15 @@ void MenuScreen::previousPage()
 
 void MenuScreen::applySettings()
 {
-    _settings.Data = _newSettings;
+    _settings.data = _newSettings;
     _settings.save();
 }
 
 void MenuScreen::revertSettings()
 {
-    _newSettings = _settings.Data;
+    _newSettings = _settings.data;
 
-    Display::setContrast(_settings.Data.Display.Brightness);
+    Display::setContrast(_settings.data.Display.Brightness);
 }
 
 void MenuScreen::adjustValue(int8_t amount)

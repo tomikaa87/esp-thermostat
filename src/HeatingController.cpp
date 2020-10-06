@@ -88,11 +88,11 @@ void HeatingController::task()
 
             if (_usingDaytimeSchedule) {
                 _log.info("setting daytime temp as target");
-                _targetTemp = _settings.Data.HeatingController.DaytimeTemp;
+                _targetTemp = _settings.data.HeatingController.DaytimeTemp;
                 storeTargetTemp();
             } else {
                 _log.info("setting night time temp as target");
-                _targetTemp = _settings.Data.HeatingController.NightTimeTemp;
+                _targetTemp = _settings.data.HeatingController.NightTimeTemp;
                 storeTargetTemp();
             }
         }
@@ -139,7 +139,7 @@ void HeatingController::task()
                 break;
             }
 
-            if (_sensorTemp >= _targetTemp + _settings.Data.HeatingController.Overshoot) {
+            if (_sensorTemp >= _targetTemp + _settings.data.HeatingController.Overshoot) {
                 _log.info("stopping heating because of high temp");
                 stopHeating();
             }
@@ -154,7 +154,7 @@ void HeatingController::task()
                 break;
             }
 
-            if (_sensorTemp <= _targetTemp - _settings.Data.HeatingController.Undershoot) {
+            if (_sensorTemp <= _targetTemp - _settings.data.HeatingController.Undershoot) {
                 _log.info("starting heating because of low temp");
                 startHeating();
             }
@@ -169,7 +169,7 @@ HeatingController::Mode HeatingController::mode() const
     if (isBoostActive())
         return Mode::Boost;
 
-    return static_cast<Mode>(_settings.Data.HeatingController.Mode);
+    return static_cast<Mode>(_settings.data.HeatingController.Mode);
 }
 
 void HeatingController::setMode(Mode mode)
@@ -185,7 +185,7 @@ void HeatingController::setMode(Mode mode)
             deactivateBoost();
         }
 
-        _settings.Data.HeatingController.Mode = static_cast<uint8_t>(mode);
+        _settings.data.HeatingController.Mode = static_cast<uint8_t>(mode);
 
         markSettingsChanged();
     }
@@ -210,7 +210,7 @@ void HeatingController::activateBoost()
         return;
     }
 
-    _boostEnd = _systemClock.utcTime() + _settings.Data.HeatingController.BoostIntervalMins * 60;
+    _boostEnd = _systemClock.utcTime() + _settings.data.HeatingController.BoostIntervalMins * 60;
     _boostActive = true;
 }
 
@@ -229,7 +229,7 @@ void HeatingController::deactivateBoost()
 
 void HeatingController::extendBoost()
 {
-    _boostEnd += _settings.Data.HeatingController.BoostIntervalMins * 60;
+    _boostEnd += _settings.data.HeatingController.BoostIntervalMins * 60;
     _log.info("extending boost, end: %ld", _boostEnd);
 
     // TODO load max value from settings
@@ -298,14 +298,14 @@ void HeatingController::decTargetTemp()
 
 HeatingController::TenthsOfDegrees HeatingController::daytimeTemp() const
 {
-    return _settings.Data.HeatingController.DaytimeTemp;
+    return _settings.data.HeatingController.DaytimeTemp;
 }
 
 void HeatingController::setDaytimeTemp(TenthsOfDegrees temp)
 {
     _log.info("setting daytime temp: %d", temp);
 
-    _settings.Data.HeatingController.DaytimeTemp = Extras::clampValue(
+    _settings.data.HeatingController.DaytimeTemp = Extras::clampValue(
         temp,
         Limits::HeatingController::DaytimeTempMin,
         Limits::HeatingController::DaytimeTempMax
@@ -314,14 +314,14 @@ void HeatingController::setDaytimeTemp(TenthsOfDegrees temp)
 
 HeatingController::TenthsOfDegrees HeatingController::nightTimeTemp() const
 {
-    return _settings.Data.HeatingController.NightTimeTemp;
+    return _settings.data.HeatingController.NightTimeTemp;
 }
 
 void HeatingController::setNightTimeTemp(TenthsOfDegrees temp)
 {
     _log.info("setting night time temp: %d", temp);
 
-    _settings.Data.HeatingController.NightTimeTemp = Extras::clampValue(
+    _settings.data.HeatingController.NightTimeTemp = Extras::clampValue(
         temp,
         Limits::HeatingController::NightTimeTempMin,
         Limits::HeatingController::NightTimeTempMax
@@ -386,7 +386,7 @@ HeatingController::State HeatingController::scheduledStateAt(uint8_t weekday, ui
     const uint8_t byteIdx = intvalIdx >> 3;
     const uint8_t mask = 1 << bitIdx;
 
-    return ((_settings.Data.Scheduler.DayData[weekday][byteIdx] & mask) > 0)
+    return ((_settings.data.Scheduler.DayData[weekday][byteIdx] & mask) > 0)
         ? State::On
         : State::Off;
 }
@@ -440,12 +440,12 @@ void HeatingController::stopHeating()
 
 bool HeatingController::isCustomTempResetNeeded() const
 {
-    if (!_customTempSet || _settings.Data.HeatingController.CustomTempTimeoutMins == 0) {
+    if (!_customTempSet || _settings.data.HeatingController.CustomTempTimeoutMins == 0) {
         return false;
     }
 
     return _systemClock.utcTime() >= (_setTempLastChanged
-        + _settings.Data.HeatingController.CustomTempTimeoutMins * 60);
+        + _settings.data.HeatingController.CustomTempTimeoutMins * 60);
 }
 
 bool HeatingController::isSettingsSaveNeeded() const
@@ -457,8 +457,8 @@ void HeatingController::storeTargetTemp()
 {
     _log.debug("storing target temp");
 
-    _settings.Data.HeatingController.TargetTemp = _targetTemp;
-    _settings.Data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
+    _settings.data.HeatingController.TargetTemp = _targetTemp;
+    _settings.data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
 
     markSettingsChanged();
 }
@@ -467,14 +467,14 @@ void HeatingController::loadStoredTargetTemp()
 {
     _log.debug("loading stored target temp");
 
-    _setTempLastChanged = _settings.Data.HeatingController.TargetTempSetTimestamp;
+    _setTempLastChanged = _settings.data.HeatingController.TargetTempSetTimestamp;
     _customTempSet = true;
 
-    if (_systemClock.utcTime() - _setTempLastChanged >= _settings.Data.HeatingController.CustomTempTimeoutMins * 60) {
+    if (_systemClock.utcTime() - _setTempLastChanged >= _settings.data.HeatingController.CustomTempTimeoutMins * 60) {
         _log.debug("skip loading custom temperature because it timed out");
         return;
     }
 
-    _targetTemp = _settings.Data.HeatingController.TargetTemp;
+    _targetTemp = _settings.data.HeatingController.TargetTemp;
     clampTargetTemp();
 }

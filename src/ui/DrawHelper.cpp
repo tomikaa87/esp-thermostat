@@ -62,7 +62,7 @@ void draw_mode_indicator(mode_indicator_t indicator)
     }
 }
 
-void draw_schedule_bar(PersistentData::SchedulerDayData sday)
+void draw_schedule_bar(Settings::SchedulerDayData sday)
 {
     static const uint8_t long_tick = 0b11110000;
     static const uint8_t short_tick = 0b01110000;

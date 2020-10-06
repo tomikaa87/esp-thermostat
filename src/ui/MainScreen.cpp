@@ -148,7 +148,7 @@ void MainScreen::updateScheduleBar()
     const auto localTime = _clock.localTime();
     const struct tm* t = gmtime(&localTime);
 
-    draw_schedule_bar(_settings.Data.Scheduler.DayData[t->tm_wday]);
+    draw_schedule_bar(_settings.data.Scheduler.DayData[t->tm_wday]);
 
     uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
 

@@ -51,9 +51,9 @@ Ui::Ui(
     , _heatingController(heatingController)
     , _temperatureSensor(temperatureSensor)
 {
-    _log.info("initializing Display, brightness: %d", _settings.Data.Display.Brightness);
+    _log.info("initializing Display, brightness: %d", _settings.data.Display.Brightness);
     Display::init();
-    Display::setContrast(_settings.Data.Display.Brightness);
+    Display::setContrast(_settings.data.Display.Brightness);
 
     auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_settings, _systemClock, _heatingController, _temperatureSensor));
     _mainScreen = mainScreen.get();
@@ -127,9 +127,9 @@ void Ui::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
-            _log.debug("powering on the display, brightness: %d", _settings.Data.Display.Brightness);
+            _log.debug("powering on the display, brightness: %d", _settings.data.Display.Brightness);
             Display::powerOn();
-            Display::setContrast(_settings.Data.Display.Brightness);
+            Display::setContrast(_settings.data.Display.Brightness);
         }
     } else {
         if (Display::isPoweredOn()) {
@@ -141,11 +141,11 @@ void Ui::updateActiveState()
 
 bool Ui::isActive() const
 {
-    if (_settings.Data.Display.TimeoutSecs == 0) {
+    if (_settings.data.Display.TimeoutSecs == 0) {
         return true;
     }
 
-    return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.Data.Display.TimeoutSecs);
+    return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.data.Display.TimeoutSecs);
 }
 
 void Ui::navigateForward(const char* name)

@@ -7,6 +7,7 @@
 Thermostat::Thermostat(const ApplicationConfig& appConfig)
     : _coreApplication(appConfig)
     , _appConfig(appConfig)
+    , _settings(_coreApplication.settings())
     , _temperatureSensor(_settings)
     , _heatingController(_settings, _coreApplication.systemClock(), _temperatureSensor)
     , _blynk(_coreApplication.blynkHandler(), _heatingController)

@@ -22,59 +22,14 @@
 
 #include "Logger.h"
 
+#include <ISettingsHandler.h>
+
 #include <cstdint>
 #include <ctime>
 
-#define SETTINGS_PACKED __attribute__((__packed__))
-
 namespace PersistentData
 {
-    using SchedulerDayData = uint8_t[6];
 
-    struct SchedulerSettings
-    {
-        uint8_t Enabled: 1;
-        uint8_t: 0;
-        SchedulerDayData DayData[7];
-    } SETTINGS_PACKED;
-
-    struct DisplaySettings
-    {
-        uint8_t Brightness;
-        uint8_t TimeoutSecs;
-    } SETTINGS_PACKED;
-
-    struct HeatingControllerSettings
-    {
-        uint8_t Mode;
-
-        // Temperature values in 0.1 Celsius
-        int16_t DaytimeTemp;
-        int16_t NightTimeTemp;
-
-        // Target temperature settings
-        int16_t TargetTemp;
-        std::time_t TargetTempSetTimestamp;
-
-        // Values for histeresis in 0.1 Celsius
-        uint8_t Overshoot;
-        uint8_t Undershoot;
-        int8_t TempCorrection;
-
-        // Values in minutes
-        uint8_t BoostIntervalMins;
-        uint16_t CustomTempTimeoutMins;
-    } SETTINGS_PACKED;
-
-    struct Settings
-    {
-        uint32_t Crc32;
-        uint8_t Version;
-
-        SchedulerSettings Scheduler;
-        DisplaySettings Display;
-        HeatingControllerSettings HeatingController;
-    } SETTINGS_PACKED;
 }
 
 namespace Limits
@@ -112,7 +67,7 @@ namespace DefaultSettings
         constexpr auto TempOvershoot = 5;
         constexpr auto TempUndershoot = 5;
         constexpr auto BoostInterval = 10;
-        constexpr auto CustomTempTimeout = 240;
+        constexpr auto CustomTempTimeout = 120;
         constexpr auto TempCorrection = 0;
     }
 
@@ -128,17 +83,64 @@ class Settings
 public:
     static constexpr uint8_t DataVersion = 1;
 
-    Settings();
+    explicit Settings(ISettingsHandler& handler);
 
-    void load();
+    using SchedulerDayData = uint8_t[6];
+
+    DECLARE_SETTINGS_STRUCT(SchedulerSettings)
+    {
+        uint8_t Enabled: 1;
+        uint8_t: 0;
+        SchedulerDayData DayData[7];
+    };
+
+    DECLARE_SETTINGS_STRUCT(DisplaySettings)
+    {
+        uint8_t Brightness = DefaultSettings::Display::Brightness;
+        uint8_t TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
+    };
+
+    DECLARE_SETTINGS_STRUCT(HeatingControllerSettings)
+    {
+        uint8_t Mode = DefaultSettings::HeatingController::Mode;
+
+        // Temperature values in 0.1 Celsius
+        int16_t DaytimeTemp = DefaultSettings::HeatingController::DaytimeTemp;
+        int16_t NightTimeTemp = DefaultSettings::HeatingController::NightTimeTemp;
+
+        // Target temperature settings
+        int16_t TargetTemp = DefaultSettings::HeatingController::TargetTemp;
+        std::time_t TargetTempSetTimestamp = 0;
+
+        // Values for histeresis in 0.1 Celsius
+        uint8_t Overshoot = DefaultSettings::HeatingController::TempOvershoot;
+        uint8_t Undershoot = DefaultSettings::HeatingController::TempUndershoot;
+        int8_t TempCorrection = DefaultSettings::HeatingController::TempCorrection;
+
+        // Values in minutes
+        uint8_t BoostIntervalMins = DefaultSettings::HeatingController::BoostInterval;
+        uint16_t CustomTempTimeoutMins = DefaultSettings::HeatingController::CustomTempTimeout;
+    };
+
+    DECLARE_SETTINGS_STRUCT(Data)
+    {
+        uint32_t Crc32;
+        uint8_t Version;
+
+        SchedulerSettings Scheduler;
+        DisplaySettings Display;
+        HeatingControllerSettings HeatingController;
+    };
+
+    Data data;
+
+    bool load();
+    bool save();
+
     void loadDefaults();
-    void save();
-
-    PersistentData::Settings Data;
 
 private:
-    Logger _log{ "Settings" };
-    bool _aseEnabled = false;
+    ISettingsHandler& _handler;
 
     void check();
 };
