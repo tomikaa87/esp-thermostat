@@ -54,11 +54,11 @@ private:
         DisplayBrightness,
         DisplayTimeout,
         TempCorrection,
-        WiFi,
 
         Last,
 
         // These pages cannot be accessed by normal navigation
+        WiFi,
         WIFI_PASSWORD
     } _page = Page::First;
 
