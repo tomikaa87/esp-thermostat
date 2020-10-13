@@ -392,50 +392,62 @@ void MenuScreen::adjustValue(int8_t amount)
         break;
 
     case Page::DaytimeTemp:
-        _newSettings.HeatingController.DaytimeTemp += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.DaytimeTemp,
+        _newSettings.HeatingController.DaytimeTemp = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.DaytimeTemp,
+            amount,
             Limits::HeatingController::DaytimeTempMin,
-            Limits::HeatingController::DaytimeTempMax);
+            Limits::HeatingController::DaytimeTempMax
+        );
         updatePageDaytimeTemp();
         break;
 
     case Page::NightTimeTemp:
-        _newSettings.HeatingController.NightTimeTemp += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.NightTimeTemp,
+        _newSettings.HeatingController.NightTimeTemp = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.NightTimeTemp,
+            amount,
             Limits::HeatingController::NightTimeTempMin,
-            Limits::HeatingController::NightTimeTempMax);
+            Limits::HeatingController::NightTimeTempMax
+        );
         updatePageNightTimeTemp();
         break;
 
     case Page::TempOvershoot:
-        _newSettings.HeatingController.Overshoot += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.Overshoot,
+        _newSettings.HeatingController.Overshoot = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.Overshoot,
+            amount,
             Limits::HeatingController::TempOvershootMin,
-            Limits::HeatingController::TempOvershootMax);
+            Limits::HeatingController::TempOvershootMax
+        );
         updatePageTempOvershoot();
         break;
 
     case Page::TempUndershoot:
-        _newSettings.HeatingController.Undershoot += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.Undershoot,
+        _newSettings.HeatingController.Undershoot = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.Undershoot,
+            amount,
             Limits::HeatingController::TempUndershootMin,
-            Limits::HeatingController::TempUndershootMax);
+            Limits::HeatingController::TempUndershootMax
+        );
         updatePageTempUndershoot();
         break;
 
     case Page::BoostInterval:
-        _newSettings.HeatingController.BoostIntervalMins += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.BoostIntervalMins,
+        _newSettings.HeatingController.BoostIntervalMins = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.BoostIntervalMins,
+            amount,
             Limits::HeatingController::BoostIntervalMin,
-            Limits::HeatingController::BoostIntervalMax);
+            Limits::HeatingController::BoostIntervalMax
+        );
         updatePageBoostIntval();
         break;
 
     case Page::CustomTempTimeout:
-        _newSettings.HeatingController.CustomTempTimeoutMins += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.CustomTempTimeoutMins,
+        _newSettings.HeatingController.CustomTempTimeoutMins = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.CustomTempTimeoutMins,
+            amount,
             Limits::HeatingController::CustomTempTimeoutMin,
-            Limits::HeatingController::CustomTempTimeoutMax);
+            Limits::HeatingController::CustomTempTimeoutMax
+        );
         updatePageCustomTempTimeout();
         break;
 
@@ -450,10 +462,12 @@ void MenuScreen::adjustValue(int8_t amount)
         break;
 
     case Page::TempCorrection:
-        _newSettings.HeatingController.TempCorrection += amount;
-        CLAMP_VALUE(_newSettings.HeatingController.TempCorrection,
+        _newSettings.HeatingController.TempCorrection = Extras::adjustValueWithRollOver(
+            _newSettings.HeatingController.TempCorrection,
+            amount,
             Limits::HeatingController::TempCorrectionMin,
-            Limits::HeatingController::TempCorrectionMax);
+            Limits::HeatingController::TempCorrectionMax
+        );
         updatePageTempCorrection();
         break;
 

@@ -13,14 +13,14 @@
 
     You should have received a copy of the GNU General Public License
     along with esp-thermostat.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     Author: Tamas Karpati
     Created on 2017-01-02
 */
 
 #ifndef EXTRAS_H
 #define	EXTRAS_H
-	
+
 #include <stdint.h>
 
 // Integer division from Linux kernel
@@ -34,7 +34,7 @@
 
 #define CLAMP_VALUE(_VAL, _MIN, _MAX) \
 	((_VAL) = (_VAL) >= (_MAX) ? (_MAX) : ((_VAL) <= (_MIN) ? (_MIN) : (_VAL)))
-	
+
 uint8_t calculate_schedule_intval_idx(uint8_t hours, uint8_t minutes);
 
 namespace Extras
@@ -43,6 +43,24 @@ namespace Extras
     ValueType constexpr clampValue(ValueType value, MinType min, MaxType max)
     {
         return value <= min ? min : value >= max ? max : value;
+    }
+
+    template <typename ValueType, typename AdjType, typename MinType, typename MaxType>
+    ValueType adjustValueWithRollOver(ValueType value, AdjType adjustment, MinType min, MaxType max)
+    {
+        auto newValue = value + adjustment;
+
+        if (newValue < min || newValue > max) {
+            if (adjustment >= 0) {
+                // Rolling over to minimum
+                return min;
+            } else {
+                // Rolling over to maximum
+                return max;
+            }
+        }
+
+        return newValue;
     }
 }
 
