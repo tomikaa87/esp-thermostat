@@ -81,11 +81,11 @@ void HeatingController::task()
             }
 
             if (_usingDaytimeSchedule) {
-                _log.info("setting daytime temp as target");
+                _log.info("setting daytime temp as target: temp=%d", _settings.data.HeatingController.DaytimeTemp);
                 _targetTemp = _settings.data.HeatingController.DaytimeTemp;
                 storeTargetTemp();
             } else {
-                _log.info("setting night time temp as target");
+                _log.info("setting night time temp as target: temp=%d", _settings.data.HeatingController.NightTimeTemp);
                 _targetTemp = _settings.data.HeatingController.NightTimeTemp;
                 storeTargetTemp();
             }
@@ -436,7 +436,7 @@ bool HeatingController::isCustomTempResetNeeded() const
 
 void HeatingController::storeTargetTemp()
 {
-    _log.debug("storing target temp");
+    _log.debug("storing target temp: value=%d", _targetTemp);
 
     _settings.data.HeatingController.TargetTemp = _targetTemp;
     _settings.data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
@@ -455,5 +455,8 @@ void HeatingController::loadStoredTargetTemp()
     }
 
     _targetTemp = _settings.data.HeatingController.TargetTemp;
+
+    _log.debug("loaded target temp: %d", _targetTemp);
+
     clampTargetTemp();
 }

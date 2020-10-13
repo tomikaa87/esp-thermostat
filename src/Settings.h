@@ -140,4 +140,6 @@ private:
     ISettingsHandler& _handler;
 
     bool check();
+
+    void dumpData() const;
 };

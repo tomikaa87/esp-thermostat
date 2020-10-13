@@ -21,6 +21,9 @@
 #include "Settings.h"
 #include "HeatingController.h"
 
+#include <iomanip>
+#include <sstream>
+
 Settings::Settings(ISettingsHandler& handler)
     : _handler(handler)
 {
@@ -40,6 +43,8 @@ bool Settings::load()
 
     _log.info("loading settings: ok=%d", ok);
 
+    dumpData();
+
     if (!check()) {
         _log.warning("loaded settings corrected");
         save();
@@ -53,6 +58,8 @@ bool Settings::save()
     if (!check()) {
         _log.warning("settings corrected before saving");
     }
+
+    dumpData();
 
     const auto ok = _handler.save();
 
@@ -135,4 +142,43 @@ bool Settings::check()
     }
 
     return !modified;
+}
+
+void Settings::dumpData() const
+{
+    _log.debug("Display{ Brightness=%u, TimeoutSecs=%u }",
+        data.Display.Brightness,
+        data.Display.TimeoutSecs
+    );
+
+    _log.debug("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }",
+        data.HeatingController.Mode,
+        data.HeatingController.DaytimeTemp,
+        data.HeatingController.NightTimeTemp,
+        data.HeatingController.TargetTemp,
+        data.HeatingController.TargetTempSetTimestamp,
+        data.HeatingController.Overshoot,
+        data.HeatingController.Undershoot,
+        data.HeatingController.TempCorrection,
+        data.HeatingController.BoostIntervalMins,
+        data.HeatingController.CustomTempTimeoutMins
+    );
+
+    std::stringstream schDays;
+    for (auto i = 0; i < 7; ++i) {
+        schDays << std::to_string(i) << "=";
+        schDays << std::hex << std::setw(2) << std::setfill('0');
+        for (auto j = 0; j < 6; ++j) {
+             schDays << static_cast<int>(data.Scheduler.DayData[i][j]);
+        }
+        schDays << std::resetiosflags << 'h';
+        if (i < 6) {
+            schDays << ", ";
+        }
+    }
+
+    _log.debug("Scheduler{ Enabled=%u, Days=[ %s ] }",
+        data.Scheduler.Enabled,
+        schDays.str().c_str()
+    );
 }
