@@ -46,8 +46,8 @@ public:
 
     enum class State
     {
-        On,
-        Off
+        Off,
+        On
     };
 
     struct NextTransition
