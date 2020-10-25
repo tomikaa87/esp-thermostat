@@ -10,8 +10,8 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
     , _settings(_coreApplication.settings())
     , _temperatureSensor(_settings)
     , _heatingController(_settings, _coreApplication.systemClock(), _temperatureSensor)
-    , _blynk(_coreApplication.blynkHandler(), _heatingController)
     , _ui(_settings, _coreApplication.systemClock(), _keypad, _heatingController, _temperatureSensor)
+    , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui)
 {
     _coreApplication.setBlynkUpdateHandler([this] {
         updateBlynk();

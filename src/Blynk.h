@@ -30,11 +30,16 @@
 
 class HeatingController;
 class IBlynkHandler;
+class Ui;
 
 class Blynk
 {
 public:
-    Blynk(IBlynkHandler& blynkHandler, HeatingController& heatingController);
+    Blynk(
+        IBlynkHandler& blynkHandler,
+        HeatingController& heatingController,
+        Ui& ui
+    );
 
     void task();
 
@@ -53,6 +58,7 @@ public:
 private:
     IBlynkHandler& _blynkHandler;
     HeatingController& _heatingController;
+    Ui& _ui;
     Logger _log{ "Blynk" };
 
     bool m_callIncrementTempCb = false;
@@ -71,6 +77,11 @@ private:
     TrackedVariable<float> m_nightTimeTemperature = 0;
 
     uint32_t m_boostRemainingSecs = 0xffffffff;
+
+#ifdef DEBUG_BLYNK_KEYPAD
+    int _keypadButton = 0;
+    void processKeypadButtonPresses();
+#endif // DEBUG_BLYNK_KEYPAD
 
     void setupHandlers();
 

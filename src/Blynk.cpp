@@ -23,6 +23,13 @@
 
 #include <IBlynkHandler.h>
 
+#ifdef DEBUG_BLYNK_KEYPAD
+#warning "Debug-mode Blynk keypad is enabled"
+
+#include "Keypad.h"
+#include "ui/Ui.h"
+#endif // DEBUG_BLYNK_KEYPAD
+
 namespace VirtualPins
 {
     namespace Buttons
@@ -49,11 +56,28 @@ namespace VirtualPins
     static constexpr auto TargetTemperature = 127;
 
     static constexpr auto Terminal = 64;
+
+#ifdef DEBUG_BLYNK_KEYPAD
+    namespace KeypadButtons
+    {
+        static constexpr auto Left = 110;
+        static constexpr auto Right = 111;
+        static constexpr auto Menu = 112;
+        static constexpr auto Boost = 113;
+        static constexpr auto Plus = 114;
+        static constexpr auto Minus = 115;
+    }
+#endif // DEBUG_BLYNK_KEYPAD
 }
 
-Blynk::Blynk(IBlynkHandler& blynkHandler, HeatingController& heatingController)
+Blynk::Blynk(
+    IBlynkHandler& blynkHandler,
+    HeatingController& heatingController,
+    Ui& ui
+)
     : _blynkHandler(blynkHandler)
     , _heatingController(heatingController)
+    , _ui(ui)
 {
     setupHandlers();
 }
@@ -62,6 +86,10 @@ void Blynk::task()
 {
     processValueUpdates();
     processButtonCallbackRequests();
+
+#ifdef DEBUG_BLYNK_KEYPAD
+    processKeypadButtonPresses();
+#endif // DEBUG_BLYNK_KEYPAD
 }
 
 void Blynk::setupHandlers()
@@ -205,6 +233,66 @@ void Blynk::setupHandlers()
             return Variant{ m_mode + 1 };
         }
     );
+
+#ifdef DEBUG_BLYNK_KEYPAD
+
+    // Debug-mode keypad handlers
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::KeypadButtons::Left,
+        [this](const int, const Variant& value) {
+            if (value == 1) {
+                _keypadButton = VirtualPins::KeypadButtons::Left;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::KeypadButtons::Right,
+        [this](const int, const Variant& value) {
+            if (value == 1) {
+                _keypadButton = VirtualPins::KeypadButtons::Right;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::KeypadButtons::Menu,
+        [this](const int, const Variant& value) {
+            if (value == 1) {
+                _keypadButton = VirtualPins::KeypadButtons::Menu;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::KeypadButtons::Boost,
+        [this](const int, const Variant& value) {
+            if (value == 1) {
+                _keypadButton = VirtualPins::KeypadButtons::Boost;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::KeypadButtons::Plus,
+        [this](const int, const Variant& value) {
+            if (value == 1) {
+                _keypadButton = VirtualPins::KeypadButtons::Plus;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::KeypadButtons::Minus,
+        [this](const int, const Variant& value) {
+            if (value == 1) {
+                _keypadButton = VirtualPins::KeypadButtons::Minus;
+            }
+        }
+    );
+
+#endif // DEBUG_BLYNK_KEYPAD
 }
 
 void Blynk::onConnected()
@@ -403,6 +491,42 @@ void Blynk::processValueUpdates()
         _heatingController.setDaytimeTemp(m_daytimeTemperature * 10);
     }
 }
+
+#ifdef DEBUG_BLYNK_KEYPAD
+void Blynk::processKeypadButtonPresses()
+{
+    switch (_keypadButton) {
+        case VirtualPins::KeypadButtons::Left:
+            _ui.handleKeyPress(Keypad::Keys::Left);
+            break;
+
+        case VirtualPins::KeypadButtons::Right:
+            _ui.handleKeyPress(Keypad::Keys::Right);
+            break;
+
+        case VirtualPins::KeypadButtons::Menu:
+            _ui.handleKeyPress(Keypad::Keys::Menu);
+            break;
+
+        case VirtualPins::KeypadButtons::Boost:
+            _ui.handleKeyPress(Keypad::Keys::Boost);
+            break;
+
+        case VirtualPins::KeypadButtons::Plus:
+            _ui.handleKeyPress(Keypad::Keys::Plus);
+            break;
+
+        case VirtualPins::KeypadButtons::Minus:
+            _ui.handleKeyPress(Keypad::Keys::Minus);
+            break;
+
+        default:
+            break;
+    }
+
+    _keypadButton = 0;
+}
+#endif // DEBUG_BLYNK_KEYPAD
 
 template <typename T, int size>
 inline void Blynk::floatToStr(const float f, T(&buf)[size])

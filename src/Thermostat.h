@@ -25,9 +25,9 @@ private:
     Logger _log{ "Thermostat" };
     TemperatureSensor _temperatureSensor;
     HeatingController _heatingController;
-    Blynk _blynk;
     Keypad _keypad;
     Ui _ui;
+    Blynk _blynk;
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     uint32_t _lastSlowLoopUpdate = 0;
