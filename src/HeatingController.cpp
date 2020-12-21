@@ -127,13 +127,15 @@ void HeatingController::task()
                 break;
             }
 
-            if (_sensorTemp >= _targetTemp && _boostDeactivated) {
+            const auto tempHigh = _sensorTemp >= _targetTemp + _settings.data.HeatingController.Overshoot;
+
+            if (_boostDeactivated && tempHigh) {
                 _log.info("stopping heating because boost ended");
                 stopHeating();
                 break;
             }
 
-            if (_sensorTemp >= _targetTemp + _settings.data.HeatingController.Overshoot) {
+            if (tempHigh) {
                 _log.info("stopping heating because of high temp");
                 stopHeating();
             }
