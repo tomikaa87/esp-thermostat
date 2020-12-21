@@ -23,7 +23,7 @@ void setup()
 
     static ApplicationConfig appConfig;
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 2, 5 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 2, 6 };
 
     appConfig.blynk.appToken = Config::Blynk::AppToken;
     appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
