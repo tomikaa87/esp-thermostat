@@ -23,12 +23,11 @@ void setup()
 
     static ApplicationConfig appConfig;
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 2, 4 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 2, 5 };
 
     appConfig.blynk.appToken = Config::Blynk::AppToken;
     appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
     appConfig.blynk.serverPort = Config::Blynk::ServerPort;
-    appConfig.blynk.sslFingerprint = Config::Blynk::SslFingerprint;
 
     appConfig.logging.syslog.enabled = true;
     appConfig.logging.syslog.hostName = Config::Logging::SyslogHostName;
