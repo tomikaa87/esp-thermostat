@@ -245,6 +245,7 @@ void MenuScreen::drawPageTempCorrection()
 void MenuScreen::drawPageReboot()
 {
     drawPageTitle("REBOOT");
+    _rebootCounter = 3;
     updatePageReboot();
 }
 
@@ -348,11 +349,11 @@ void MenuScreen::updatePageDisplayTimeout()
 
 void MenuScreen::updatePageReboot()
 {
-    Text::draw("Press (+) to reboot", 2, 10, 0, 0);
+    Text::draw("Press the (+) button", 2, 5, 0, 0);
 
-    char s[] = "0 time(s)";
+    char s[] = "0 time(s) to reboot.";
     s[0] = '0' + _rebootCounter;
-    Text::draw(s, 3, 10, 0, 0);
+    Text::draw(s, 3, 5, 0, 0);
 }
 
 void MenuScreen::updatePageWifi()
