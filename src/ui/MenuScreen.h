@@ -24,6 +24,8 @@
 #include "Screen.h"
 #include "Settings.h"
 
+#include <Logger.h>
+
 #include <cstdint>
 
 class MenuScreen : public Screen
@@ -36,9 +38,12 @@ public:
     Action keyPress(Keypad::Keys keys) override;
 
 private:
+    Logger _log{ "MenuScreen" };
     Settings& _settings;
     Settings::Data _newSettings;
     char _wifiPsw[64] = { 0 };
+
+    uint8_t _rebootCounter = 3;
 
     enum class Page
     {
@@ -54,6 +59,7 @@ private:
         DisplayBrightness,
         DisplayTimeout,
         TempCorrection,
+        Reboot,
 
         Last,
 
@@ -74,6 +80,7 @@ private:
     void drawPageDisplayBrightness();
     void drawPageDisplayTimeout();
     void drawPageTempCorrection();
+    void drawPageReboot();
     void drawPageWifi();
     void drawPageWifiPassword();
     void updatePageHeatCtlMode();
@@ -86,6 +93,7 @@ private:
     void updatePageTempCorrection();
     void updatePageDisplayBrightness();
     void updatePageDisplayTimeout();
+    void updatePageReboot();
     void updatePageWifi();
     void drawPageTitle(const char* text);
     void nextPage();

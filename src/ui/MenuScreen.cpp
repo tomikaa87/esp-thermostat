@@ -153,6 +153,10 @@ void MenuScreen::draw()
         drawPageTempCorrection();
         break;
 
+    case Page::Reboot:
+        drawPageReboot();
+        break;
+
     case Page::WiFi:
         drawPageWifi();
         break;
@@ -236,6 +240,12 @@ void MenuScreen::drawPageTempCorrection()
 {
     drawPageTitle("TEMP. CORR.");
     updatePageTempCorrection();
+}
+
+void MenuScreen::drawPageReboot()
+{
+    drawPageTitle("REBOOT");
+    updatePageReboot();
 }
 
 void MenuScreen::drawPageWifi()
@@ -334,6 +344,15 @@ void MenuScreen::updatePageDisplayTimeout()
     char num[4] = { 0 };
     sprintf(num, "%3d", _newSettings.Display.TimeoutSecs);
     Text::draw7Seg(num, 2, 20);
+}
+
+void MenuScreen::updatePageReboot()
+{
+    Text::draw("Press (+) to reboot", 2, 10, 0, 0);
+
+    char s[] = "0 time(s)";
+    s[0] = '0' + _rebootCounter;
+    Text::draw(s, 3, 10, 0, 0);
 }
 
 void MenuScreen::updatePageWifi()
@@ -469,6 +488,14 @@ void MenuScreen::adjustValue(int8_t amount)
             Limits::HeatingController::TempCorrectionMax
         );
         updatePageTempCorrection();
+        break;
+
+    case Page::Reboot:
+        if (amount > 0 && --_rebootCounter == 0) {
+            _log.warning("initiating manual reboot");
+            ESP.restart();
+        }
+        updatePageReboot();
         break;
 
     // TODO dummy implementation
