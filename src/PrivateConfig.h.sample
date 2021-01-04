@@ -21,6 +21,7 @@ namespace Config
         // OTA updater will search for `firmware.bin` and `version` in a sub-folder
         // with the same as the MAC address of the ESP module. HTTPS is not (yet) supported.
         constexpr auto FirmwareUpdateUrl = "http://<your server>/esp-thermostat/update";
+        constexpr auto ArduinoOtaPasswordHash = "<md5 hash of the password>";
     }
 
     namespace WiFi
