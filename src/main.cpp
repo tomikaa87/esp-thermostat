@@ -23,7 +23,7 @@ void setup()
 
     static ApplicationConfig appConfig;
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 2, 14 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 2, 15 };
 
     appConfig.blynk.appToken = Config::Blynk::AppToken;
     appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
@@ -40,6 +40,8 @@ void setup()
 
     appConfig.wifi.password = Config::WiFi::Password;
     appConfig.wifi.ssid = Config::WiFi::SSID;
+
+    appConfig.hostName = Config::HostName;
 
     _thermostat.reset(new Thermostat(appConfig));
 }
