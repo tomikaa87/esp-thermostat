@@ -337,9 +337,6 @@ void Blynk::updateNightTimeTemperature(const float celsius)
 
 void Blynk::updateCurrentTemperature(const float celsius)
 {
-    if (m_currentTemperature == celsius)
-        return;
-
     m_currentTemperature = celsius;
 
     char buf[10] = { 0 };
