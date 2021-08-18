@@ -7,7 +7,7 @@
 
 #include <memory>
 
-static std::unique_ptr<Thermostat> _thermostat;
+static Thermostat* _thermostat = nullptr;
 
 void initializeTempSensor()
 {
@@ -19,11 +19,18 @@ void initializeTempSensor()
 
 void setup()
 {
+    // TODO remove this
+    Serial.begin(115200);
+    Serial.printf("Free heap: %u\n", ESP.getFreeHeap());
+    Serial.flush();
+
     initializeTempSensor();
+
+    Serial.println("Setting up AppConfig");
 
     static ApplicationConfig appConfig;
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 3, 20 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 4, 0 };
 
     appConfig.blynk.appToken = Config::Blynk::AppToken;
     appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
@@ -38,12 +45,19 @@ void setup()
     appConfig.otaUpdate.updateUrl = Config::OtaUpdate::FirmwareUpdateUrl;
     appConfig.otaUpdate.arduinoOtaPasswordHash = Config::OtaUpdate::ArduinoOtaPasswordHash;
 
+    appConfig.serial.baudRate = 115200;
+
     appConfig.wifi.password = Config::WiFi::Password;
     appConfig.wifi.ssid = Config::WiFi::SSID;
 
     appConfig.hostName = Config::HostName;
 
-    _thermostat.reset(new Thermostat(appConfig));
+    Serial.println("Creating Thermostat");
+
+    static Thermostat thermostat{ appConfig };
+    _thermostat = &thermostat;
+
+    Serial.println("Setup finished");
 }
 
 void loop()
