@@ -255,6 +255,9 @@ static void draw()
         case SCN_SCANNING:
             Text::draw("Scanning...", 2, 10, 0, false);
             break;
+
+        case SCN_FINISHED:
+            break;
         }
         break;
 
@@ -305,8 +308,15 @@ static void update()
                 Text::draw(i == state.list_pos ? ">" : " ", line, 0, 0, false);
             }
             break;
+
+            case SCN_IDLE:
+            case SCN_SCANNING:
+                break;
         }
         break;
+
+        case SCR_PASSWORD:
+            break;
     }
 }
 
@@ -352,6 +362,9 @@ static void select_item()
                 }
             }
         }
+        break;
+
+    case SCR_PASSWORD:
         break;
     }
 }

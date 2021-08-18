@@ -279,6 +279,9 @@ void MenuScreen::updatePageHeatCtlMode()
         graphics_draw_multipage_bitmap(graphics_off_icon_20x3p, 20, 3, 20, 2);
         Text::draw("OFF", 3, 50, 0, false);
         break;
+
+    case HeatingController::Mode::Boost:
+        break;
     }
 }
 
