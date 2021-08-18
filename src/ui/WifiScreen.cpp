@@ -133,7 +133,7 @@ void wifi_screen_leave()
 
 void wifi_screen_key_event(Keypad::Keys keys)
 {
-    printf("wifi_screen::key_event: keys=0x%x\n", keys);
+    printf("wifi_screen::key_event: keys=0x%x\n", static_cast<unsigned>(keys));
 
     bool update_needed = false;
 
