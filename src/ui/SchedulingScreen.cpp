@@ -115,7 +115,7 @@ void SchedulingScreen::drawIntervalDisplay()
     uint8_t hours = _intvalIdx >> 1;
     uint8_t mins = (_intvalIdx & 1) * 30;
 
-    char s[6] = { 0 };
+    char s[7] = { 0 };
     sprintf(s, "%02u %02u", hours, mins);
 
     Text::draw7Seg(s, 2, 29);
