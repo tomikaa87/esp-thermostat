@@ -27,12 +27,14 @@
 
 #include <stdio.h>
 
+#include <pgmspace.h>
+
 void draw_weekday(uint8_t x, uint8_t wday)
 {
     if (wday > 6)
         return;
 
-    static const char days[7][4] = {
+    static const char days[7][4] PROGMEM = {
         "SUN",
         "MON",
         "TUE",
@@ -42,7 +44,9 @@ void draw_weekday(uint8_t x, uint8_t wday)
         "SAT"
     };
 
-    Text::draw(days[wday], 0, x, 0, false);
+    char buf[4] = { 0 };
+    memcpy_P(buf, days[wday], 3);
+    Text::draw(buf, 0, x, 0, false);
 }
 
 void draw_mode_indicator(mode_indicator_t indicator)

@@ -21,6 +21,8 @@
 #include "graphics.h"
 #include "display/Display.h"
 
+#include <pgmspace.h>
+
 void graphics_draw_bitmap(
     const uint8_t* bitmap,
     uint8_t width,
@@ -32,6 +34,10 @@ void graphics_draw_bitmap(
 
     Display::setLine(line);
     Display::setColumn(x);
+
+    char buf[128] = { 0 };
+    memcpy_P(buf, bitmap, width);
+
     Display::sendData(bitmap, width, 0, false);
 }
 
@@ -53,7 +59,7 @@ void graphics_draw_multipage_bitmap(
     }
 }
 
-const uint8_t graphics_flame_icon_20x3p[20 * 3] = {
+const uint8_t graphics_flame_icon_20x3p[20 * 3] PROGMEM = {
     // page 0
     0b00000000,
     0b00000000,
@@ -121,7 +127,7 @@ const uint8_t graphics_flame_icon_20x3p[20 * 3] = {
     0b00000000
 };
 
-const uint8_t graphics_off_icon_20x3p[20 * 3] = {
+const uint8_t graphics_off_icon_20x3p[20 * 3] PROGMEM = {
     // page 0
     0b00000000,
     0b00000000,
@@ -189,7 +195,7 @@ const uint8_t graphics_off_icon_20x3p[20 * 3] = {
     0b00000001
 };
 
-const uint8_t graphics_calendar_icon_20x3p[20 * 3] = {
+const uint8_t graphics_calendar_icon_20x3p[20 * 3] PROGMEM = {
     // page 0
     0b11000000,
     0b11100000,

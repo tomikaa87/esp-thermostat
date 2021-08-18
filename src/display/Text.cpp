@@ -23,10 +23,12 @@
 
 #include <cstring>
 
+#include <pgmspace.h>
+
 constexpr auto DefaultCharWidth = 5;
 constexpr auto DefaultSpaceWidth = 1;
 
-static const uint8_t DefaultCharset[][DefaultCharWidth] = {
+static const uint8_t DefaultCharset[][DefaultCharWidth] PROGMEM = {
     // [space]
     {
         0, 0, 0, 0, 0
@@ -795,7 +797,7 @@ static const uint8_t DefaultCharPlaceholder[DefaultCharWidth] = {
 
 #define SevenSegCharWidth 12
 #define SevenSegCharLines 3
-static const uint8_t SevenSegCharset[11][SevenSegCharLines][SevenSegCharWidth] = {
+static const uint8_t SevenSegCharset[11][SevenSegCharLines][SevenSegCharWidth] PROGMEM = {
     {
         // 0, Page 0
         {
@@ -1329,7 +1331,10 @@ void drawChar(const char c, const uint8_t yOffset, const bool invert)
         charData = DefaultCharset[c - 32];
     }
 
-    Display::sendData(charData, DefaultCharWidth, yOffset, invert);
+    uint8_t buf[DefaultCharWidth] = { 0 };
+    memcpy_P(buf, charData, DefaultCharWidth);
+
+    Display::sendData(buf, DefaultCharWidth, yOffset, invert);
 }
 
 void Text::draw(const char c, const uint8_t line, const uint8_t x, const uint8_t yOffset, const bool invert)
@@ -1406,7 +1411,10 @@ void Text::draw7Seg(const char* number, const uint8_t line, uint8_t x)
                     else if (c == 'C' || c == 'c')
                         charData = SevenSegCharset[9 + 1][page];
 
-                    Display::sendData(charData, SevenSegCharWidth);
+                    uint8_t buf[SevenSegCharWidth] = { 0 };
+                    memcpy_P(buf, charData, SevenSegCharWidth);
+
+                    Display::sendData(buf, SevenSegCharWidth);
                 }
             }
         }
