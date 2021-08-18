@@ -169,7 +169,7 @@ void Blynk::setupHandlers()
     // Read handlers
     //
 
-    char buf[10] = { 0 };
+    char buf[13] = { 0 };
 
     _blynkHandler.setPinReadHandler(
         VirtualPins::TargetTemperature,
@@ -383,7 +383,7 @@ void Blynk::updateBoostRemaining(const uint32_t secs)
 
     const int m = m_boostRemainingSecs / 60;
     const int s = m_boostRemainingSecs - m * 60;
-    char buf[10] = { 0 };
+    char buf[13] = { 0 };
     snprintf(buf, sizeof(buf), "%d:%02d", m, s);
 
     _blynkHandler.writePin(

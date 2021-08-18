@@ -172,7 +172,7 @@ void draw_temperature_value(uint8_t x, int8_t int_part, int8_t frac_part)
         Text::draw7Seg(" ", 2, x - 13);
 
     // Draw integral part of the value
-    char s[3] = { 0 };
+    char s[4] = { 0 };
     sprintf(s, "%02d", int_part >= 0 ? int_part : -int_part);
     Text::draw7Seg(s, 2, x);
 
