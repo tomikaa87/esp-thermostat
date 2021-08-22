@@ -19,14 +19,7 @@ void initializeTempSensor()
 
 void setup()
 {
-    // TODO remove this
-    Serial.begin(115200);
-    Serial.printf("Free heap: %u\n", ESP.getFreeHeap());
-    Serial.flush();
-
     initializeTempSensor();
-
-    Serial.println("Setting up AppConfig");
 
     static ApplicationConfig appConfig;
 
@@ -52,12 +45,8 @@ void setup()
 
     appConfig.hostName = Config::HostName;
 
-    Serial.println("Creating Thermostat");
-
     static Thermostat thermostat{ appConfig };
     _thermostat = &thermostat;
-
-    Serial.println("Setup finished");
 }
 
 void loop()
