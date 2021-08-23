@@ -112,7 +112,7 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::TargetTemperature,
         [this](const int pin, const Variant& value) {
-            _log.debug("TargetTemperature written: %f", static_cast<double>(value));
+            _log.debug_p(PSTR("TargetTemperature written: %f"), static_cast<double>(value));
             m_targetTemperature = static_cast<double>(value);
         }
     );
@@ -120,7 +120,7 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::NightTimeTemperature,
         [this](const int pin, const Variant& value) {
-            _log.debug("NightTimeTemperature written: %f", static_cast<double>(value));
+            _log.debug_p(PSTR("NightTimeTemperature written: %f"), static_cast<double>(value));
             m_nightTimeTemperature = static_cast<double>(value);
         }
     );
@@ -128,7 +128,7 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::DaytimeTemperature,
         [this](const int pin, const Variant& value) {
-            _log.debug("DaytimeTemperature written: %f", static_cast<double>(value));
+            _log.debug_p(PSTR("DaytimeTemperature written: %f"), static_cast<double>(value));
             m_daytimeTemperature = static_cast<double>(value);
         }
     );

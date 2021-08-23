@@ -5,8 +5,6 @@
 
 #include <Arduino.h>
 
-#include <memory>
-
 static Thermostat* _thermostat = nullptr;
 
 void initializeTempSensor()

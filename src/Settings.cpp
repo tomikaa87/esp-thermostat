@@ -28,7 +28,7 @@ Settings::Settings(ISettingsHandler& handler)
     : _handler(handler)
 {
     _handler.setDefaultsLoader([this](const ISettingsHandler::DefaultsLoadReason reason) {
-        _log.warning("defaults load requested from settings handler: reason=%d", reason);
+        _log.warning_p(PSTR("defaults load requested from settings handler: reason=%d"), reason);
         loadDefaults();
     });
 
@@ -41,12 +41,12 @@ bool Settings::load()
 {
     const auto ok = _handler.load();
 
-    _log.info("loading settings: ok=%d", ok);
+    _log.info_p(PSTR("loading settings: ok=%d"), ok);
 
     dumpData();
 
     if (!check()) {
-        _log.warning("loaded settings corrected");
+        _log.warning_p(PSTR("loaded settings corrected"));
         save();
     }
 
@@ -56,26 +56,26 @@ bool Settings::load()
 bool Settings::save()
 {
     if (!check()) {
-        _log.warning("settings corrected before saving");
+        _log.warning_p(PSTR("settings corrected before saving"));
     }
 
     dumpData();
 
     const auto ok = _handler.save();
 
-    _log.info("saving settings: ok=%d", ok);
+    _log.info_p(PSTR("saving settings: ok=%d"), ok);
 
     return ok;
 }
 
 void Settings::loadDefaults()
 {
-    _log.info("loading defaults");
+    _log.info_p(PSTR("loading defaults"));
 
     data = {};
 
     if (!check()) {
-        _log.warning("loaded defaults corrected");
+        _log.warning_p(PSTR("loaded defaults corrected"));
     }
 }
 
@@ -146,12 +146,12 @@ bool Settings::check()
 
 void Settings::dumpData() const
 {
-    _log.debug("Display{ Brightness=%u, TimeoutSecs=%u }",
+    _log.debug_p(PSTR("Display{ Brightness=%u, TimeoutSecs=%u }"),
         data.Display.Brightness,
         data.Display.TimeoutSecs
     );
 
-    _log.debug("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }",
+    _log.debug_p(PSTR("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }"),
         data.HeatingController.Mode,
         data.HeatingController.DaytimeTemp,
         data.HeatingController.NightTimeTemp,
@@ -177,7 +177,7 @@ void Settings::dumpData() const
         }
     }
 
-    _log.debug("Scheduler{ Enabled=%u, Days=[ %s ] }",
+    _log.debug_p(PSTR("Scheduler{ Enabled=%u, Days=[ %s ] }"),
         data.Scheduler.Enabled,
         schDays.str().c_str()
     );
