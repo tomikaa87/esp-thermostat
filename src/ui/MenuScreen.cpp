@@ -76,6 +76,7 @@ Screen::Action MenuScreen::keyPress(Keypad::Keys keys)
             nextPage();
         }
     } else if (_page == Page::WIFI_PASSWORD) {
+#if 0
         ti_key_event_t keyEvent;
         bool validKey = true;
 
@@ -103,6 +104,7 @@ Screen::Action MenuScreen::keyPress(Keypad::Keys keys)
         }
     } else if (_page == Page::WiFi) {
         wifi_screen_key_event(keys);
+#endif
     }
 
     return Action::NoAction;
@@ -251,12 +253,16 @@ void MenuScreen::drawPageReboot()
 
 void MenuScreen::drawPageWifi()
 {
+#if 0
     wifi_screen_init();
+#endif
 }
 
 void MenuScreen::drawPageWifiPassword()
 {
+#if 0
     text_input_init(_wifiPsw, sizeof(_wifiPsw), "WiFi password:");
+#endif
 }
 
 void MenuScreen::updatePageHeatCtlMode()
@@ -365,7 +371,9 @@ void MenuScreen::updatePageWifi()
     // Text::draw("NETWORK:", 4, 0, 0, false);
     // Text::draw("<SSID>", 5, 0, 0, false);
 
+#if 0
     wifi_screen_update();
+#endif
 }
 
 void MenuScreen::drawPageTitle(const char* text)

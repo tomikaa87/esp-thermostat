@@ -18,6 +18,8 @@
     Created on 2020-01-08
 */
 
+#if 0
+
 #include "Keypad.h"
 #include "TextInput.h"
 #include "WifiScreen.h"
@@ -391,3 +393,5 @@ static void init_scan()
         printf("wifi_screen::init_scan: scan callback is null\n");
     }
 }
+
+#endif

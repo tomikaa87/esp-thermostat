@@ -20,6 +20,8 @@
 
 #pragma once
 
+#if 0
+
 #include "Keypad.h"
 
 #include <stdint.h>
@@ -36,3 +38,5 @@ void wifi_screen_init();
 void wifi_screen_update();
 void wifi_screen_leave();
 void wifi_screen_key_event(Keypad::Keys keys);
+
+#endif

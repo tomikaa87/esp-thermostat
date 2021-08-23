@@ -41,7 +41,7 @@ private:
     Logger _log{ "MenuScreen" };
     Settings& _settings;
     Settings::Data _newSettings;
-    char _wifiPsw[64] = { 0 };
+    // char _wifiPsw[64] = { 0 };
 
     uint8_t _rebootCounter = 3;
 

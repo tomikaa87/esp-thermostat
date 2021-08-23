@@ -1,3 +1,5 @@
+#if 0
+
 #include "Config.h"
 #include "TextInput.h"
 
@@ -577,3 +579,5 @@ static void on_bckspc_pressed()
 #endif
     }
 }
+
+#endif

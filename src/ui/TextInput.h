@@ -1,3 +1,5 @@
+#if 0
+
 #pragma once
 
 typedef enum {
@@ -16,3 +18,5 @@ typedef enum {
 
 void text_input_init(char* buf, int maxlen, const char *title);
 ti_key_event_result_t text_input_key_event(ti_key_event_t event);
+
+#endif
