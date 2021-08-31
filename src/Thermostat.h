@@ -35,14 +35,14 @@ private:
 
     struct Mqtt {
         explicit Mqtt(CoreApplication& app)
-            : activeTemp("temp/active", app.mqttClient())
-            , currentTemp("temp/current", app.mqttClient())
-            , daytimeTemp("temp/daytime", app.mqttClient())
-            , nightTimeTemp("temp/nightTime", app.mqttClient())
-            , boostRemainingSecs("boost/remainingSecs", app.mqttClient())
-            , boostActive("boost/active", app.mqttClient())
-            , heatingActive("heating/active", app.mqttClient())
-            , heatingMode("heating/mode", app.mqttClient())
+            : activeTemp(PSTR("thermostat/temp/active"), PSTR("thermostat/temp/active/set"), app.mqttClient())
+            , currentTemp(PSTR("thermostat/temp/current"), app.mqttClient())
+            , daytimeTemp(PSTR("thermostat/temp/daytime"), PSTR("thermostat/temp/daytime/set"), app.mqttClient())
+            , nightTimeTemp(PSTR("thermostat/temp/nightTime"), PSTR("thermostat/temp/nightTime/set"), app.mqttClient())
+            , boostRemainingSecs(PSTR("thermostat/boost/remainingSecs"), app.mqttClient())
+            , boostActive(PSTR("thermostat/boost/active"), PSTR("thermostat/boost/active/set"), app.mqttClient())
+            , heatingActive(PSTR("thermostat/heating/active"), app.mqttClient())
+            , heatingMode(PSTR("thermostat/heating/mode"), PSTR("thermostat/heating/mode/set"), app.mqttClient())
         {}
 
         MqttVariable<float> activeTemp;
@@ -56,5 +56,7 @@ private:
     } _mqtt;
 
     void updateBlynk();
+
+    void setupMqtt();
     void updateMqtt();
 };

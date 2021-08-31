@@ -14,6 +14,8 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
     , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui)
     , _mqtt(_coreApplication)
 {
+    setupMqtt();
+
     _coreApplication.setBlynkUpdateHandler([this] {
         updateBlynk();
     });
@@ -51,6 +53,44 @@ void Thermostat::updateBlynk()
 
     const auto nt = _heatingController.nextTransition();
     _blynk.updateNextSwitch(static_cast<uint8_t>(nt.state), nt.weekday, nt.hour, nt.minute);
+}
+
+void Thermostat::setupMqtt()
+{
+    _mqtt.activeTemp.setChangedHandler([this](const float v) {
+        _heatingController.setTargetTemp(v * 10);
+    });
+
+    _mqtt.boostActive.setChangedHandler([this](const bool v) {
+        if (v) {
+            if (!_heatingController.isBoostActive()) {
+                _heatingController.activateBoost();
+            } else {
+                _heatingController.extendBoost();
+            }
+        } else {
+            _heatingController.deactivateBoost();
+        }
+    });
+
+    _mqtt.daytimeTemp.setChangedHandler([this](const float v) {
+        _heatingController.setDaytimeTemp(v * 10);
+    });
+
+    _mqtt.heatingMode.setChangedHandler([this](const int v) {
+        if (
+            v < static_cast<int>(HeatingController::Mode::_First)
+            || v > static_cast<int>(HeatingController::Mode::_Last)
+        ) {
+            return;
+        }
+
+        _heatingController.setMode(static_cast<HeatingController::Mode>(v));
+    });
+
+    _mqtt.nightTimeTemp.setChangedHandler([this](const float v) {
+        _heatingController.setNightTimeTemp(v * 10);
+    });
 }
 
 void Thermostat::updateMqtt()

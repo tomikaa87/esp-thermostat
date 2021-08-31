@@ -39,9 +39,13 @@ public:
 
     enum class Mode
     {
-        Normal,
+        _First,
+
+        Normal = _First,
         Boost,
-        Off
+        Off,
+
+        _Last = Off
     };
 
     enum class State
