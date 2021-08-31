@@ -12,9 +12,14 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
     , _heatingController(_settings, _coreApplication.systemClock(), _temperatureSensor)
     , _ui(_settings, _coreApplication.systemClock(), _keypad, _heatingController, _temperatureSensor)
     , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui)
+    , _mqtt(_coreApplication)
 {
     _coreApplication.setBlynkUpdateHandler([this] {
         updateBlynk();
+    });
+
+    _coreApplication.setMqttUpdateHandler([this] {
+        updateMqtt();
     });
 }
 
@@ -46,4 +51,16 @@ void Thermostat::updateBlynk()
 
     const auto nt = _heatingController.nextTransition();
     _blynk.updateNextSwitch(static_cast<uint8_t>(nt.state), nt.weekday, nt.hour, nt.minute);
+}
+
+void Thermostat::updateMqtt()
+{
+    _mqtt.activeTemp = _heatingController.targetTemp() / 10.f;
+    _mqtt.boostActive = _heatingController.isBoostActive();
+    _mqtt.boostRemainingSecs = _heatingController.boostRemaining();
+    _mqtt.currentTemp = _heatingController.currentTemp() / 10.f;
+    _mqtt.daytimeTemp = _heatingController.daytimeTemp() / 10.f;
+    _mqtt.heatingActive = _heatingController.isActive();
+    _mqtt.heatingMode = static_cast<int>(_heatingController.mode());
+    _mqtt.nightTimeTemp = _heatingController.nightTimeTemp() / 10.f;
 }
