@@ -34,6 +34,11 @@ void setup()
     appConfig.logging.syslog.serverHostName = Config::Logging::SyslogServerHost;
     appConfig.logging.syslog.serverPort = Config::Logging::SyslogServerPort;
 
+    appConfig.mqtt.enabled = true;
+    appConfig.mqtt.id = Config::Mqtt::Id;
+    appConfig.mqtt.brokerIp = Config::Mqtt::BrokerIp;
+    appConfig.mqtt.brokerPort = Config::Mqtt::BrokerPort;
+
     appConfig.otaUpdate.updateCheckIntervalMs = 60000;
     appConfig.otaUpdate.updateUrl = Config::OtaUpdate::FirmwareUpdateUrl;
     appConfig.otaUpdate.arduinoOtaPasswordHash = Config::OtaUpdate::ArduinoOtaPasswordHash;
