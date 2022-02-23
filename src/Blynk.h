@@ -30,6 +30,7 @@
 
 class HeatingController;
 class IBlynkHandler;
+class Settings;
 class Ui;
 
 class Blynk
@@ -38,7 +39,8 @@ public:
     Blynk(
         IBlynkHandler& blynkHandler,
         HeatingController& heatingController,
-        Ui& ui
+        Ui& ui,
+        Settings& settings
     );
 
     void task();
@@ -59,6 +61,7 @@ private:
     IBlynkHandler& _blynkHandler;
     HeatingController& _heatingController;
     Ui& _ui;
+    Settings& _settings;
     Logger _log{ "Blynk" };
 
     bool m_callIncrementTempCb = false;

@@ -11,7 +11,7 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
     , _temperatureSensor(_settings)
     , _heatingController(_settings, _coreApplication.systemClock(), _temperatureSensor)
     , _ui(_settings, _coreApplication.systemClock(), _keypad, _heatingController, _temperatureSensor)
-    , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui)
+    , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui, _settings)
     , _mqtt(_coreApplication)
 {
     if (_appConfig.mqtt.enabled) {
@@ -22,15 +22,21 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
         });
     }
 
-    _coreApplication.setBlynkUpdateHandler([this] {
-        updateBlynk();
-    });
+    if (!_settings.data.Scheduler.DisableBlynk) {
+        _coreApplication.setBlynkUpdateHandler([this] {
+            updateBlynk();
+        });
+    }
 }
 
 void Thermostat::task()
 {
     _coreApplication.task();
-    _blynk.task();
+
+    if (!_settings.data.Scheduler.DisableBlynk) {
+        _blynk.task();
+    }
+
     _ui.task();
     _temperatureSensor.task();
 

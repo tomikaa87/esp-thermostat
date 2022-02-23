@@ -181,4 +181,8 @@ void Settings::dumpData() const
         data.Scheduler.Enabled,
         schDays.str().c_str()
     );
+
+    _log.debug("Extra{ DisableBlynk=%u }",
+        data.Scheduler.DisableBlynk
+    );
 }

@@ -20,6 +20,7 @@
 
 #include "Blynk.h"
 #include "HeatingController.h"
+#include "Settings.h"
 
 #include <IBlynkHandler.h>
 
@@ -73,13 +74,17 @@ namespace VirtualPins
 Blynk::Blynk(
     IBlynkHandler& blynkHandler,
     HeatingController& heatingController,
-    Ui& ui
+    Ui& ui,
+    Settings& settings
 )
     : _blynkHandler(blynkHandler)
     , _heatingController(heatingController)
     , _ui(ui)
+    , _settings(settings)
 {
-    setupHandlers();
+    if (!_settings.data.Scheduler.DisableBlynk) {
+        setupHandlers();
+    }
 }
 
 void Blynk::task()
@@ -304,6 +309,10 @@ void Blynk::onConnected()
 
 void Blynk::updateActiveTemperature(const float celsius)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     m_targetTemperature = celsius;
     if (m_targetTemperature.changed()) {
         _blynkHandler.writePin(
@@ -315,6 +324,10 @@ void Blynk::updateActiveTemperature(const float celsius)
 
 void Blynk::updateDaytimeTemperature(const float celsius)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     m_daytimeTemperature = celsius;
     if (m_daytimeTemperature.changed()) {
         _blynkHandler.writePin(
@@ -326,6 +339,10 @@ void Blynk::updateDaytimeTemperature(const float celsius)
 
 void Blynk::updateNightTimeTemperature(const float celsius)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     m_nightTimeTemperature = celsius;
     if (m_nightTimeTemperature.changed()) {
         _blynkHandler.writePin(
@@ -337,6 +354,10 @@ void Blynk::updateNightTimeTemperature(const float celsius)
 
 void Blynk::updateCurrentTemperature(const float celsius)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     m_currentTemperature = celsius;
 
     char buf[10] = { 0 };
@@ -350,6 +371,10 @@ void Blynk::updateCurrentTemperature(const float celsius)
 
 void Blynk::updateIsBoostActive(const bool active)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     if (m_boostActive == active)
         return;
 
@@ -363,6 +388,10 @@ void Blynk::updateIsBoostActive(const bool active)
 
 void Blynk::updateIsHeatingActive(const bool active)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     if (m_heatingActive == active)
         return;
 
@@ -376,6 +405,10 @@ void Blynk::updateIsHeatingActive(const bool active)
 
 void Blynk::updateBoostRemaining(const uint32_t secs)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     if (m_boostRemainingSecs == secs)
         return;
 
@@ -394,6 +427,10 @@ void Blynk::updateBoostRemaining(const uint32_t secs)
 
 void Blynk::updateMode(const uint8_t mode)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     m_mode = mode;
 
     if (m_mode.changed()) {
@@ -406,6 +443,10 @@ void Blynk::updateMode(const uint8_t mode)
 
 void Blynk::updateNextSwitch(const uint8_t state, const uint8_t weekday, const uint8_t hour, const uint8_t minute)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     if (state > 1 || weekday > 6 || hour > 23 || minute > 59)
     {
         _blynkHandler.writePin(
@@ -439,6 +480,10 @@ void Blynk::updateNextSwitch(const uint8_t state, const uint8_t weekday, const u
 
 void Blynk::terminalPrintln(const char* msg)
 {
+    if (_settings.data.Scheduler.DisableBlynk) {
+        return;
+    }
+
     _blynkHandler.writeTerminal(VirtualPins::Terminal, msg);
 }
 

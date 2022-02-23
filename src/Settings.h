@@ -89,6 +89,13 @@ public:
     DECLARE_SETTINGS_STRUCT(SchedulerSettings)
     {
         uint8_t Enabled: 1;
+
+        // This is just a hack to make Blynk switchable run-time.
+        // To preserve the settings data, the flag must be added
+        // to an already existing empty space. This way the header
+        // checksum won't change after the update.
+        uint8_t DisableBlynk: 1;
+
         uint8_t: 0;
         SchedulerDayData DayData[7] = { {} };
     };
