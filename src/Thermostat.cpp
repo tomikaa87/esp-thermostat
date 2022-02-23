@@ -14,14 +14,16 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
     , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui)
     , _mqtt(_coreApplication)
 {
-    setupMqtt();
+    if (_appConfig.mqtt.enabled) {
+        setupMqtt();
+
+        _coreApplication.setMqttUpdateHandler([this] {
+            updateMqtt();
+        });
+    }
 
     _coreApplication.setBlynkUpdateHandler([this] {
         updateBlynk();
-    });
-
-    _coreApplication.setMqttUpdateHandler([this] {
-        updateMqtt();
     });
 }
 
