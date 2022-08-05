@@ -47,6 +47,13 @@ namespace VirtualPins
         static constexpr auto NextSwitchTimeLabel = 118;
     }
 
+    namespace ModeSwitches
+    {
+        static constexpr auto NormalMode = 117;
+        static constexpr auto BoostMode = 116;
+        static constexpr auto OffMode = 115;
+    }
+
     static constexpr auto ModeSelector = 120;
     static constexpr auto BoostRemainingSeconds = 121;
     static constexpr auto HeatingState = 122;
@@ -111,6 +118,7 @@ void Blynk::setupHandlers()
         VirtualPins::ModeSelector,
         [this](const int pin, const Variant& value) {
             m_mode = static_cast<int>(value) - 1;
+            updateModeSwitches();
         }
     );
 
@@ -167,6 +175,36 @@ void Blynk::setupHandlers()
         VirtualPins::Buttons::DecrementTemp,
         [this](const int pin, const Variant& value) {
             m_callDecrementTempCb = value == 1;
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::ModeSwitches::NormalMode,
+        [this](const int pin, const Variant& value) {
+            if (value == 1) {
+                m_mode = 0;
+                m_updateModeSwitchesRequested = true;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::ModeSwitches::BoostMode,
+        [this](const int pin, const Variant& value) {
+            if (value == 1) {
+                m_mode = 1;
+                m_updateModeSwitchesRequested = true;
+            }
+        }
+    );
+
+    _blynkHandler.setPinWrittenHandler(
+        VirtualPins::ModeSwitches::OffMode,
+        [this](const int pin, const Variant& value) {
+            if (value == 1) {
+                m_mode = 2;
+                m_updateModeSwitchesRequested = true;
+            }
         }
     );
 
@@ -438,6 +476,8 @@ void Blynk::updateMode(const uint8_t mode)
             VirtualPins::ModeSelector,
             Variant{ m_mode + 1 }
         );
+
+        updateModeSwitches();
     }
 }
 
@@ -509,6 +549,11 @@ void Blynk::processButtonCallbackRequests()
         _heatingController.deactivateBoost();
     }
 
+    if (m_updateModeSwitchesRequested) {
+        m_updateModeSwitchesRequested = false;
+        updateModeSwitches();
+    }
+
     m_callIncrementTempCb = false;
     m_callDecrementTempCb = false;
     m_callActivateBoostCb = false;
@@ -569,6 +614,24 @@ void Blynk::processKeypadButtonPresses()
     _keypadButton = 0;
 }
 #endif // DEBUG_BLYNK_KEYPAD
+
+void Blynk::updateModeSwitches()
+{
+    _blynkHandler.writePin(
+        VirtualPins::ModeSwitches::NormalMode,
+        Variant{ m_mode == 0 ? 1 : 0 }
+    );
+
+    _blynkHandler.writePin(
+        VirtualPins::ModeSwitches::BoostMode,
+        Variant{ m_mode == 1 ? 1 : 0 }
+    );
+
+    _blynkHandler.writePin(
+        VirtualPins::ModeSwitches::OffMode,
+        Variant{ m_mode == 2 ? 1 : 0 }
+    );
+}
 
 template <typename T, int size>
 inline void Blynk::floatToStr(const float f, T(&buf)[size])

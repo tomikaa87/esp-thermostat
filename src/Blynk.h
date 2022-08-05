@@ -68,6 +68,7 @@ private:
     bool m_callDecrementTempCb = false;
     bool m_callActivateBoostCb = false;
     bool m_callDeactivateBoostCb = false;
+    bool m_updateModeSwitchesRequested = false;
 
     float m_currentTemperature = 0;
 
@@ -92,6 +93,8 @@ private:
 
     void processButtonCallbackRequests();
     void processValueUpdates();
+
+    void updateModeSwitches();
 
     template <typename T, int size>
     inline void floatToStr(const float f, T(&buf)[size]);
