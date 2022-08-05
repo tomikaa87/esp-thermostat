@@ -33,6 +33,7 @@ private:
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     uint32_t _lastSlowLoopUpdate = 0;
 
+#ifdef IOT_ENABLE_MQTT
     struct Mqtt {
         explicit Mqtt(CoreApplication& app)
             : activeTemp(PSTR("thermostat/temp/active"), PSTR("thermostat/temp/active/set"), app.mqttClient())
@@ -55,8 +56,9 @@ private:
         MqttVariable<int> heatingMode;
     } _mqtt;
 
-    void updateBlynk();
-
     void setupMqtt();
     void updateMqtt();
+#endif
+
+    void updateBlynk();
 };

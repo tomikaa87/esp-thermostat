@@ -12,8 +12,11 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
     , _heatingController(_settings, _coreApplication.systemClock(), _temperatureSensor)
     , _ui(_settings, _coreApplication.systemClock(), _keypad, _heatingController, _temperatureSensor)
     , _blynk(_coreApplication.blynkHandler(), _heatingController, _ui, _settings)
+#ifdef IOT_ENABLE_MQTT
     , _mqtt(_coreApplication)
+#endif
 {
+#ifdef IOT_ENABLE_MQTT
     if (_appConfig.mqtt.enabled) {
         setupMqtt();
 
@@ -21,6 +24,7 @@ Thermostat::Thermostat(const ApplicationConfig& appConfig)
             updateMqtt();
         });
     }
+#endif
 
     if (!_settings.data.Scheduler.DisableBlynk) {
         _coreApplication.setBlynkUpdateHandler([this] {
@@ -63,6 +67,7 @@ void Thermostat::updateBlynk()
     _blynk.updateNextSwitch(static_cast<uint8_t>(nt.state), nt.weekday, nt.hour, nt.minute);
 }
 
+#ifdef IOT_ENABLE_MQTT
 void Thermostat::setupMqtt()
 {
     _mqtt.activeTemp.setChangedHandler([this](const float v) {
@@ -112,3 +117,4 @@ void Thermostat::updateMqtt()
     _mqtt.heatingMode = static_cast<int>(_heatingController.mode());
     _mqtt.nightTimeTemp = _heatingController.nightTimeTemp() / 10.f;
 }
+#endif
