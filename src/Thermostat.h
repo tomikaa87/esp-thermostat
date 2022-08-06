@@ -39,14 +39,14 @@ private:
 
     struct Mqtt {
         explicit Mqtt(CoreApplication& app)
-            : activeTemp(PSTR("thermostat/temp/active"), PSTR("thermostat/temp/active/set"), app.mqttClient())
-            , currentTemp(PSTR("thermostat/temp/current"), app.mqttClient())
-            , daytimeTemp(PSTR("thermostat/temp/daytime"), PSTR("thermostat/temp/daytime/set"), app.mqttClient())
-            , nightTimeTemp(PSTR("thermostat/temp/nightTime"), PSTR("thermostat/temp/nightTime/set"), app.mqttClient())
-            , boostRemainingSecs(PSTR("thermostat/boost/remainingSecs"), app.mqttClient())
-            , boostActive(PSTR("thermostat/boost/active"), PSTR("thermostat/boost/active/set"), app.mqttClient())
-            , heatingActive(PSTR("thermostat/heating/active"), app.mqttClient())
-            , heatingMode(PSTR("thermostat/heating/mode"), PSTR("thermostat/heating/mode/set"), app.mqttClient())
+            : activeTemp(           PSTR("thermostat/temp/active"),     PSTR("thermostat/temp/active/set"), app.mqttClient())
+            , currentTemp(          PSTR("thermostat/temp/current"), app.mqttClient())
+            , daytimeTemp(          PSTR("thermostat/temp/daytime"),    PSTR("thermostat/temp/daytime/set"), app.mqttClient())
+            , nightTimeTemp(        PSTR("thermostat/temp/nightTime"),  PSTR("thermostat/temp/nightTime/set"), app.mqttClient())
+            , boostRemainingSecs(   PSTR("thermostat/boost/remainingSecs"), app.mqttClient())
+            , boostActive(          PSTR("thermostat/boost/active"),    PSTR("thermostat/boost/active/set"), app.mqttClient())
+            , heatingActive(        PSTR("thermostat/heating/active"), app.mqttClient())
+            , heatingMode(          PSTR("thermostat/heating/mode"),    PSTR("thermostat/heating/mode/set"), app.mqttClient())
         {}
 
         MqttVariable<float> activeTemp;
@@ -59,6 +59,22 @@ private:
         MqttVariable<int> heatingMode;
     } _mqtt;
 
+    struct MqttAccessory {
+        explicit MqttAccessory(CoreApplication& app)
+            : hvacConfig(PSTR("homeassistant/climate/thermostat/config"), app.mqttClient())
+            , hvacMode(PSTR("thermostat/hvac_mode"), PSTR("thermostat/hvac_mode/set"), app.mqttClient())
+            , boostActivateButtonConfig(PSTR("homeassistant/button/thermostat_boost_activate/config"), app.mqttClient())
+            , boostDeactivateButtonConfig(PSTR("homeassistant/button/thermostat_boost_deactivate/config"), app.mqttClient())
+            , boostRemainingSecondsConfig(PSTR("homeassistant/sensor/thermostat_boost_remaining/config"), app.mqttClient())
+
+        {}
+
+        MqttVariable<std::string> hvacConfig;
+        MqttVariable<std::string> hvacMode;
+        MqttVariable<std::string> boostActivateButtonConfig;
+        MqttVariable<std::string> boostDeactivateButtonConfig;
+        MqttVariable<std::string> boostRemainingSecondsConfig;
+    } _mqttAccessory;
 
     void setupMqtt();
     void updateMqtt();

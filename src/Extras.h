@@ -21,7 +21,10 @@
 #ifndef EXTRAS_H
 #define	EXTRAS_H
 
-#include <stdint.h>
+#include <pgmspace.h>
+
+#include <cstdint>
+#include <string>
 
 // Integer division from Linux kernel
 /*
@@ -62,6 +65,8 @@ namespace Extras
 
         return newValue;
     }
+
+    std::string pgmToStdString(PGM_P str);
 }
 
 #endif	/* EXTRAS_H */
