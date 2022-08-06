@@ -28,7 +28,11 @@ private:
     HeatingController _heatingController;
     Keypad _keypad;
     Ui _ui;
+
+#ifdef IOT_ENABLE_BLYNK
     Blynk _blynk;
+    void updateBlynk();
+#endif
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     uint32_t _lastSlowLoopUpdate = 0;
@@ -55,7 +59,6 @@ private:
         MqttVariable<int> heatingMode;
     } _mqtt;
 
-    void updateBlynk();
 
     void setupMqtt();
     void updateMqtt();

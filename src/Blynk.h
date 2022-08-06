@@ -20,6 +20,8 @@
 
 #pragma once
 
+#ifdef IOT_ENABLE_BLYNK
+
 #include "Logger.h"
 #include "TrackedVariable.h"
 
@@ -96,3 +98,5 @@ private:
     template <typename T, int size>
     inline void floatToStr(const float f, T(&buf)[size]);
 };
+
+#endif

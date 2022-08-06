@@ -18,6 +18,8 @@
     Created on 2017-01-12
 */
 
+#ifdef IOT_ENABLE_BLYNK
+
 #include "Blynk.h"
 #include "HeatingController.h"
 #include "Settings.h"
@@ -576,3 +578,5 @@ inline void Blynk::floatToStr(const float f, T(&buf)[size])
     static_assert(size >= 4, "Output buffer is too small");
     snprintf(buf, size - 1, "%0.1f", f);
 }
+
+#endif
