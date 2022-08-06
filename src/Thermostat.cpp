@@ -118,6 +118,7 @@ void Thermostat::setupMqtt()
 
     {
         std::stringstream config;
+
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:sun-thermometer")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Thermostat")"));
@@ -139,11 +140,17 @@ void Thermostat::setupMqtt()
         config << Extras::pgmToStdString(PSTR(R"(,"temperature_unit":"C")"));
         config << Extras::pgmToStdString(PSTR(R"(,"temp_step":0.5)"));
         config << '}';
-        _mqttAccessory.hvacConfig = config.str();
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/climate/thermostat/config"),
+            config.str(),
+            false
+        );
     }
 
     {
         std::stringstream config;
+
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:radiator")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Activate Boost")"));
@@ -152,11 +159,17 @@ void Thermostat::setupMqtt()
         config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"thermostat/boost/active/set")"));
         config << Extras::pgmToStdString(PSTR(R"(,"payload_press":"1")"));
         config << '}';
-        _mqttAccessory.boostActivateButtonConfig = config.str();
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/button/thermostat_boost_activate/config"),
+            config.str(),
+            false
+        );
     }
 
     {
         std::stringstream config;
+
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:radiator-off")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Deactivate Boost")"));
@@ -165,11 +178,17 @@ void Thermostat::setupMqtt()
         config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"thermostat/boost/active/set")"));
         config << Extras::pgmToStdString(PSTR(R"(,"payload_press":"0")"));
         config << '}';
-        _mqttAccessory.boostDeactivateButtonConfig = config.str();
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/button/thermostat_boost_deactivate/config"),
+            config.str(),
+            false
+        );
     }
 
     {
         std::stringstream config;
+
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:timer")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Boost Remaining")"));
@@ -178,7 +197,12 @@ void Thermostat::setupMqtt()
         config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"thermostat/boost/remainingSecs")"));
         config << Extras::pgmToStdString(PSTR(R"(,"unit_of_measurement":"s")"));
         config << '}';
-        _mqttAccessory.boostRemainingSecondsConfig = config.str();
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/sensor/thermostat_boost_remaining/config"),
+            config.str(),
+            false
+        );
     }
 
     _mqttAccessory.hvacMode.setChangedHandler([this](const std::string& mode) {

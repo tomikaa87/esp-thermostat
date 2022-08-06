@@ -61,19 +61,11 @@ private:
 
     struct MqttAccessory {
         explicit MqttAccessory(CoreApplication& app)
-            : hvacConfig(PSTR("homeassistant/climate/thermostat/config"), app.mqttClient())
-            , hvacMode(PSTR("thermostat/hvac_mode"), PSTR("thermostat/hvac_mode/set"), app.mqttClient())
-            , boostActivateButtonConfig(PSTR("homeassistant/button/thermostat_boost_activate/config"), app.mqttClient())
-            , boostDeactivateButtonConfig(PSTR("homeassistant/button/thermostat_boost_deactivate/config"), app.mqttClient())
-            , boostRemainingSecondsConfig(PSTR("homeassistant/sensor/thermostat_boost_remaining/config"), app.mqttClient())
+            : hvacMode(PSTR("thermostat/hvac_mode"), PSTR("thermostat/hvac_mode/set"), app.mqttClient())
 
         {}
 
-        MqttVariable<std::string> hvacConfig;
         MqttVariable<std::string> hvacMode;
-        MqttVariable<std::string> boostActivateButtonConfig;
-        MqttVariable<std::string> boostDeactivateButtonConfig;
-        MqttVariable<std::string> boostRemainingSecondsConfig;
     } _mqttAccessory;
 
     void setupMqtt();

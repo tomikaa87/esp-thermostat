@@ -23,7 +23,7 @@ void setup()
 
     static ApplicationConfig appConfig;
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 5, 0 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 5, 1 };
 
 #ifdef IOT_ENABLE_BLYNK
     appConfig.blynk.appToken = Config::Blynk::AppToken;
