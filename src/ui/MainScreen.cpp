@@ -137,7 +137,7 @@ void MainScreen::drawTargetTempBoostIndicator()
         uint16_t minutes = secs / 60;
         secs -= minutes * 60;
 
-        sprintf(s, " BST %3u:%02ld", minutes, secs);
+        sprintf(s, " BST %3u:%02lld", minutes, secs);
     }
 
     Text::draw(s, 0, 60, 0, false);
