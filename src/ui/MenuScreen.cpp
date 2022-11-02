@@ -524,7 +524,7 @@ void MenuScreen::adjustValue(int8_t amount)
 
     case Page::Reboot:
         if (amount > 0 && --_rebootCounter == 0) {
-            _log.warning("initiating manual reboot");
+            _log.warning_P(PSTR("initiating manual reboot"));
             ESP.restart();
         }
         updatePageReboot();

@@ -37,7 +37,7 @@ HeatingController::HeatingController(
     , _systemClock(systemClock)
     , _temperatureSensor(temperatureSensor)
 {
-    _log.info("initializing");
+    _log.info_P(PSTR("initializing"));
 
     // Setup relay control pin
     digitalWrite(D8, LOW);
@@ -65,7 +65,7 @@ void HeatingController::task()
         _boostActive = false;
         _boostDeactivated = true;
 
-        _log.info("boost ended");
+        _log.info_P(PSTR("boost ended"));
     }
 
     if (mode() == Mode::Normal) {
@@ -76,16 +76,16 @@ void HeatingController::task()
             _usingDaytimeSchedule = hasDtSched;
 
             if (_customTempSet) {
-                _log.info("resetting custom temperature");
+                _log.info_P(PSTR("resetting custom temperature"));
                 _customTempSet = false;
             }
 
             if (_usingDaytimeSchedule) {
-                _log.info("setting daytime temp as target: temp=%d", _settings.data.HeatingController.DaytimeTemp);
+                _log.info_P(PSTR("setting daytime temp as target: temp=%d"), _settings.data.HeatingController.DaytimeTemp);
                 _targetTemp = _settings.data.HeatingController.DaytimeTemp;
                 storeTargetTemp();
             } else {
-                _log.info("setting night time temp as target: temp=%d", _settings.data.HeatingController.NightTimeTemp);
+                _log.info_P(PSTR("setting night time temp as target: temp=%d"), _settings.data.HeatingController.NightTimeTemp);
                 _targetTemp = _settings.data.HeatingController.NightTimeTemp;
                 storeTargetTemp();
             }
@@ -122,7 +122,7 @@ void HeatingController::task()
             }
 
             if (mode() == Mode::Off) {
-                _log.info("stopping heating because Off mode");
+                _log.info_P(PSTR("stopping heating because Off mode"));
                 stopHeating();
                 break;
             }
@@ -130,18 +130,18 @@ void HeatingController::task()
             const auto tempHigh = _sensorTemp >= _targetTemp + _settings.data.HeatingController.Overshoot;
 
             if (_boostDeactivated && tempHigh) {
-                _log.info("stopping heating because boost ended");
+                _log.info_P(PSTR("stopping heating because boost ended"));
                 stopHeating();
                 break;
             }
 
             if (tempHigh) {
-                _log.info("stopping heating because of high temp");
+                _log.info_P(PSTR("stopping heating because of high temp"));
                 stopHeating();
             }
         } else {
             if (_boostActive) {
-                _log.info("starting heating because boost started");
+                _log.info_P(PSTR("starting heating because boost started"));
                 startHeating();
                 break;
             }
@@ -151,7 +151,7 @@ void HeatingController::task()
             }
 
             if (_sensorTemp <= _targetTemp - _settings.data.HeatingController.Undershoot) {
-                _log.info("starting heating because of low temp");
+                _log.info_P(PSTR("starting heating because of low temp"));
                 startHeating();
             }
         }
@@ -170,7 +170,7 @@ HeatingController::Mode HeatingController::mode() const
 
 void HeatingController::setMode(Mode mode)
 {
-    _log.info("setting mode to %d", static_cast<int>(mode));
+    _log.info_P(PSTR("setting mode to %d"), static_cast<int>(mode));
 
     if (mode == Mode::Boost) {
         if (!isBoostActive()) {
@@ -197,10 +197,10 @@ bool HeatingController::isBoostActive() const
 
 void HeatingController::activateBoost()
 {
-    _log.info("activating boost");
+    _log.info_P(PSTR("activating boost"));
 
     if (isBoostActive()) {
-        _log.warning("boost already active");
+        _log.warning_P(PSTR("boost already active"));
         return;
     }
 
@@ -210,10 +210,10 @@ void HeatingController::activateBoost()
 
 void HeatingController::deactivateBoost()
 {
-    _log.info("deactivating boost");
+    _log.info_P(PSTR("deactivating boost"));
 
     if (!isBoostActive()) {
-        _log.warning("boost already deactivated");
+        _log.warning_P(PSTR("boost already deactivated"));
         return;
     }
 
@@ -224,11 +224,11 @@ void HeatingController::deactivateBoost()
 void HeatingController::extendBoost()
 {
     _boostEnd += _settings.data.HeatingController.BoostIntervalMins * 60;
-    _log.info("extending boost, end: %ld", _boostEnd);
+    _log.info_P(PSTR("extending boost, end: %ld"), _boostEnd);
 
     // TODO load max value from settings
     if (boostRemaining() > 4 * 3600) {
-        _log.warning("maximum boost time reached: %ld", 4 * 3600);
+        _log.warning_P(PSTR("maximum boost time reached: %ld"), 4 * 3600);
         _boostEnd = _systemClock.utcTime() + 4 * 3600;
     }
 }
@@ -254,7 +254,7 @@ HeatingController::TenthsOfDegrees HeatingController::targetTemp() const
 
 void HeatingController::setTargetTemp(TenthsOfDegrees temp)
 {
-    _log.info("setting target temp: %d", temp);
+    _log.info_P(PSTR("setting target temp: %d"), temp);
 
     _targetTemp = temp;
     clampTargetTemp();
@@ -264,7 +264,7 @@ void HeatingController::setTargetTemp(TenthsOfDegrees temp)
 
 void HeatingController::incTargetTemp()
 {
-    _log.info("increasing target temp");
+    _log.info_P(PSTR("increasing target temp"));
 
     if (_targetTemp >= Limits::MaximumTemperature) {
         return;
@@ -278,7 +278,7 @@ void HeatingController::incTargetTemp()
 
 void HeatingController::decTargetTemp()
 {
-    _log.info("decreasing target temp");
+    _log.info_P(PSTR("decreasing target temp"));
 
     if (_targetTemp <= Limits::MinimumTemperature) {
         return;
@@ -297,7 +297,7 @@ HeatingController::TenthsOfDegrees HeatingController::daytimeTemp() const
 
 void HeatingController::setDaytimeTemp(TenthsOfDegrees temp)
 {
-    _log.info("setting daytime temp: %d", temp);
+    _log.info_P(PSTR("setting daytime temp: %d"), temp);
 
     _settings.data.HeatingController.DaytimeTemp = Extras::clampValue(
         temp,
@@ -313,7 +313,7 @@ HeatingController::TenthsOfDegrees HeatingController::nightTimeTemp() const
 
 void HeatingController::setNightTimeTemp(TenthsOfDegrees temp)
 {
-    _log.info("setting night time temp: %d", temp);
+    _log.info_P(PSTR("setting night time temp: %d"), temp);
 
     _settings.data.HeatingController.NightTimeTemp = Extras::clampValue(
         temp,
@@ -387,7 +387,7 @@ HeatingController::State HeatingController::scheduledStateAt(uint8_t weekday, ui
 
 void HeatingController::markCustomTempSet()
 {
-    _log.debug("custom temp set");
+    _log.debug_P(PSTR("custom temp set"));
 
     _customTempSet = true;
     _setTempLastChanged = _systemClock.utcTime();
@@ -412,7 +412,7 @@ void HeatingController::clampTargetTemp()
 
 void HeatingController::startHeating()
 {
-    _log.info("activating relay");
+    _log.info_P(PSTR("activating relay"));
 
     _heatingActive = true;
     digitalWrite(D8, HIGH);
@@ -420,7 +420,7 @@ void HeatingController::startHeating()
 
 void HeatingController::stopHeating()
 {
-    _log.info("deactivating relay");
+    _log.info_P(PSTR("deactivating relay"));
 
     _heatingActive = false;
     digitalWrite(D8, LOW);
@@ -438,7 +438,7 @@ bool HeatingController::isCustomTempResetNeeded() const
 
 void HeatingController::storeTargetTemp()
 {
-    _log.debug("storing target temp: value=%d", _targetTemp);
+    _log.debug_P(PSTR("storing target temp: value=%d"), _targetTemp);
 
     _settings.data.HeatingController.TargetTemp = _targetTemp;
     _settings.data.HeatingController.TargetTempSetTimestamp = _systemClock.utcTime();
@@ -446,19 +446,19 @@ void HeatingController::storeTargetTemp()
 
 void HeatingController::loadStoredTargetTemp()
 {
-    _log.debug("loading stored target temp");
+    _log.debug_P(PSTR("loading stored target temp"));
 
     _setTempLastChanged = _settings.data.HeatingController.TargetTempSetTimestamp;
     _customTempSet = true;
 
     if (_systemClock.utcTime() - _setTempLastChanged >= _settings.data.HeatingController.CustomTempTimeoutMins * 60) {
-        _log.debug("skip loading custom temperature because it timed out");
+        _log.debug_P(PSTR("skip loading custom temperature because it timed out"));
         return;
     }
 
     _targetTemp = _settings.data.HeatingController.TargetTemp;
 
-    _log.debug("loaded target temp: %d", _targetTemp);
+    _log.debug_P(PSTR("loaded target temp: %d"), _targetTemp);
 
     clampTargetTemp();
 }
