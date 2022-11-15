@@ -273,7 +273,7 @@ void MenuScreen::updatePageHeatCtlMode()
 {
     // FIXME: proper mode name must be shown
 
-    char num[3] = { 0 };
+    char num[4] = { 0 };
     sprintf(num, "%2d", _newSettings.HeatingController.Mode);
 
     Display::fillArea(0, 3, 128, 3, 0);
@@ -325,14 +325,14 @@ void MenuScreen::updatePageTempUndershoot()
 
 void MenuScreen::updatePageBoostIntval()
 {
-    char num[3] = { 0 };
+    char num[4] = { 0 };
     sprintf(num, "%2d", _newSettings.HeatingController.BoostIntervalMins);
     Text::draw7Seg(num, 2, 20);
 }
 
 void MenuScreen::updatePageCustomTempTimeout()
 {
-    char num[5] = { 0 };
+    char num[6] = { 0 };
     sprintf(num, "%4u", _newSettings.HeatingController.CustomTempTimeoutMins);
     Text::draw7Seg(num, 2, 20);
 }
@@ -524,7 +524,7 @@ void MenuScreen::adjustValue(int8_t amount)
 
     case Page::Reboot:
         if (amount > 0 && --_rebootCounter == 0) {
-            _log.warning("initiating manual reboot");
+            _log.warning_P(PSTR("initiating manual reboot"));
             ESP.restart();
         }
         updatePageReboot();

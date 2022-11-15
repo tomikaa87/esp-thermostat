@@ -28,7 +28,7 @@ Settings::Settings(ISettingsHandler& handler)
     : _handler(handler)
 {
     _handler.setDefaultsLoader([this](const ISettingsHandler::DefaultsLoadReason reason) {
-        _log.warning("defaults load requested from settings handler: reason=%d", reason);
+        _log.warning_P(PSTR("defaults load requested from settings handler: reason=%d"), reason);
         loadDefaults();
     });
 
@@ -41,12 +41,12 @@ bool Settings::load()
 {
     const auto ok = _handler.load();
 
-    _log.info("loading settings: ok=%d", ok);
+    _log.info_P(PSTR("loading settings: ok=%d"), ok);
 
     dumpData();
 
     if (!check()) {
-        _log.warning("loaded settings corrected");
+        _log.warning_P(PSTR("loaded settings corrected"));
         save();
     }
 
@@ -56,26 +56,26 @@ bool Settings::load()
 bool Settings::save()
 {
     if (!check()) {
-        _log.warning("settings corrected before saving");
+        _log.warning_P(PSTR("settings corrected before saving"));
     }
 
     dumpData();
 
     const auto ok = _handler.save();
 
-    _log.info("saving settings: ok=%d", ok);
+    _log.info_P(PSTR("saving settings: ok=%d"), ok);
 
     return ok;
 }
 
 void Settings::loadDefaults()
 {
-    _log.info("loading defaults");
+    _log.info_P(PSTR("loading defaults"));
 
     data = {};
 
     if (!check()) {
-        _log.warning("loaded defaults corrected");
+        _log.warning_P(PSTR("loaded defaults corrected"));
     }
 }
 

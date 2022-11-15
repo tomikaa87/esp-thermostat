@@ -28,7 +28,11 @@ private:
     HeatingController _heatingController;
     Keypad _keypad;
     Ui _ui;
+
+#ifdef IOT_ENABLE_BLYNK
     Blynk _blynk;
+    void updateBlynk();
+#endif
 
     static constexpr auto SlowLoopUpdateIntervalMs = 500;
     uint32_t _lastSlowLoopUpdate = 0;
@@ -36,14 +40,14 @@ private:
 #ifdef IOT_ENABLE_MQTT
     struct Mqtt {
         explicit Mqtt(CoreApplication& app)
-            : activeTemp(PSTR("thermostat/temp/active"), PSTR("thermostat/temp/active/set"), app.mqttClient())
-            , currentTemp(PSTR("thermostat/temp/current"), app.mqttClient())
-            , daytimeTemp(PSTR("thermostat/temp/daytime"), PSTR("thermostat/temp/daytime/set"), app.mqttClient())
-            , nightTimeTemp(PSTR("thermostat/temp/nightTime"), PSTR("thermostat/temp/nightTime/set"), app.mqttClient())
-            , boostRemainingSecs(PSTR("thermostat/boost/remainingSecs"), app.mqttClient())
-            , boostActive(PSTR("thermostat/boost/active"), PSTR("thermostat/boost/active/set"), app.mqttClient())
-            , heatingActive(PSTR("thermostat/heating/active"), app.mqttClient())
-            , heatingMode(PSTR("thermostat/heating/mode"), PSTR("thermostat/heating/mode/set"), app.mqttClient())
+            : activeTemp(           PSTR("thermostat/temp/active"),     PSTR("thermostat/temp/active/set"), app.mqttClient())
+            , currentTemp(          PSTR("thermostat/temp/current"), app.mqttClient())
+            , daytimeTemp(          PSTR("thermostat/temp/daytime"),    PSTR("thermostat/temp/daytime/set"), app.mqttClient())
+            , nightTimeTemp(        PSTR("thermostat/temp/nightTime"),  PSTR("thermostat/temp/nightTime/set"), app.mqttClient())
+            , boostRemainingSecs(   PSTR("thermostat/boost/remainingSecs"), app.mqttClient())
+            , boostActive(          PSTR("thermostat/boost/active"),    PSTR("thermostat/boost/active/set"), app.mqttClient())
+            , heatingActive(        PSTR("thermostat/heating/active"), app.mqttClient())
+            , heatingMode(          PSTR("thermostat/heating/mode"),    PSTR("thermostat/heating/mode/set"), app.mqttClient())
         {}
 
         MqttVariable<float> activeTemp;
@@ -55,6 +59,15 @@ private:
         MqttVariable<bool> heatingActive;
         MqttVariable<int> heatingMode;
     } _mqtt;
+
+    struct MqttAccessory {
+        explicit MqttAccessory(CoreApplication& app)
+            : hvacMode(PSTR("thermostat/hvac_mode"), PSTR("thermostat/hvac_mode/set"), app.mqttClient())
+
+        {}
+
+        MqttVariable<std::string> hvacMode;
+    } _mqttAccessory;
 
     void setupMqtt();
     void updateMqtt();

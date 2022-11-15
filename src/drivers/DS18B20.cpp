@@ -80,7 +80,7 @@ int16_t DS18B20::readSensor()
         celsius *= -1;
 
     if (celsius != _lastReading) {
-        _log.debug("temperature changed: %i/100 Celsius", celsius);
+        _log.debug_P(PSTR("temperature changed: %i/100 Celsius"), celsius);
     }
 
     return celsius;

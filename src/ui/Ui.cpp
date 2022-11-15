@@ -51,7 +51,7 @@ Ui::Ui(
     , _heatingController(heatingController)
     , _temperatureSensor(temperatureSensor)
 {
-    _log.info("initializing Display, brightness: %d", _settings.data.Display.Brightness);
+    _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.Display.Brightness);
     Display::init();
     Display::setContrast(_settings.data.Display.Brightness);
 
@@ -78,7 +78,7 @@ void Ui::update()
     if (_currentScreen) {
         _currentScreen->update();
     } else {
-        _log.warning("update: current screen is null");
+        _log.warning_P(PSTR("update: current screen is null"));
     }
 
     updateActiveState();
@@ -91,12 +91,12 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
 
     _lastKeyPressTime = _systemClock.utcTime();
 
-    _log.info("keys=%xh, _lastKeyPressTime=%ld", keys, _lastKeyPressTime);
+    _log.info_P(PSTR("keys=%xh, _lastKeyPressTime=%ld"), keys, _lastKeyPressTime);
 
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
     if (!Display::isPoweredOn()) {
-        _log.info("display is off, ignoring key press");
+        _log.info_P(PSTR("display is off, ignoring key press"));
         return;
     }
 
@@ -127,13 +127,13 @@ void Ui::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
-            _log.debug("powering on the display, brightness: %d", _settings.data.Display.Brightness);
+            _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.data.Display.Brightness);
             Display::powerOn();
             Display::setContrast(_settings.data.Display.Brightness);
         }
     } else {
         if (Display::isPoweredOn()) {
-            _log.debug("powering off the display");
+            _log.debug_P(PSTR("powering off the display"));
             Display::powerOff();
         }
     }
@@ -151,19 +151,19 @@ bool Ui::isActive() const
 void Ui::navigateForward(const char* name)
 {
     if (!name) {
-        _log.warning("navigating forward, screen name is null, going to main screen");
+        _log.warning_P(PSTR("navigating forward, screen name is null, going to main screen"));
         _currentScreen = _mainScreen;
         return;
     }
 
-    _log.debug("navigating forward, next screen: %s", name);
+    _log.debug_P(PSTR("navigating forward, next screen: %s"), name);
 
     const auto it = std::find_if(std::begin(_screens), std::end(_screens), [name](const std::unique_ptr<Screen>& scr) {
         return strcmp(scr->name(), name) == 0;
     });
 
     if (it == std::end(_screens)) {
-        _log.warning("screen not found: %s, going to main screen");
+        _log.warning_P(PSTR("screen not found: %s, going to main screen"));
         _currentScreen = _mainScreen;
         return;
     }
@@ -173,10 +173,10 @@ void Ui::navigateForward(const char* name)
 
 void Ui::navigateBackward()
 {
-    _log.debug("navigating back");
+    _log.debug_P(PSTR("navigating back"));
 
     if (_screenStack.empty()) {
-        _log.debug("screen stack is empty, navigating to main screen");
+        _log.debug_P(PSTR("screen stack is empty, navigating to main screen"));
         _currentScreen = _mainScreen;
         return;
     }
@@ -184,5 +184,5 @@ void Ui::navigateBackward()
     _currentScreen = _screenStack.top();
     _screenStack.pop();
 
-    _log.debug("current screen: %s", _currentScreen->name());
+    _log.debug_P(PSTR("current screen: %s"), _currentScreen->name());
 }

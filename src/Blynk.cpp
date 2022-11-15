@@ -18,6 +18,8 @@
     Created on 2017-01-12
 */
 
+#ifdef IOT_ENABLE_BLYNK
+
 #include "Blynk.h"
 #include "HeatingController.h"
 #include "Settings.h"
@@ -125,7 +127,7 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::TargetTemperature,
         [this](const int pin, const Variant& value) {
-            _log.debug("TargetTemperature written: %f", static_cast<double>(value));
+            _log.debug_P(PSTR("TargetTemperature written: %f"), static_cast<double>(value));
             m_targetTemperature = static_cast<double>(value);
         }
     );
@@ -133,7 +135,7 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::NightTimeTemperature,
         [this](const int pin, const Variant& value) {
-            _log.debug("NightTimeTemperature written: %f", static_cast<double>(value));
+            _log.debug_P(PSTR("NightTimeTemperature written: %f"), static_cast<double>(value));
             m_nightTimeTemperature = static_cast<double>(value);
         }
     );
@@ -141,7 +143,7 @@ void Blynk::setupHandlers()
     _blynkHandler.setPinWrittenHandler(
         VirtualPins::DaytimeTemperature,
         [this](const int pin, const Variant& value) {
-            _log.debug("DaytimeTemperature written: %f", static_cast<double>(value));
+            _log.debug_P(PSTR("DaytimeTemperature written: %f"), static_cast<double>(value));
             m_daytimeTemperature = static_cast<double>(value);
         }
     );
@@ -639,3 +641,5 @@ inline void Blynk::floatToStr(const float f, T(&buf)[size])
     static_assert(size >= 4, "Output buffer is too small");
     snprintf(buf, size - 1, "%0.1f", f);
 }
+
+#endif
