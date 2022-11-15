@@ -72,6 +72,4 @@ private:
     void setupMqtt();
     void updateMqtt();
 #endif
-
-    void updateBlynk();
 };

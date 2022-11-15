@@ -214,7 +214,7 @@ void Blynk::setupHandlers()
     // Read handlers
     //
 
-    char buf[10] = { 0 };
+    char buf[31] = { 0 };
 
     _blynkHandler.setPinReadHandler(
         VirtualPins::TargetTemperature,
@@ -456,8 +456,8 @@ void Blynk::updateBoostRemaining(const uint32_t secs)
 
     const int m = m_boostRemainingSecs / 60;
     const int s = m_boostRemainingSecs - m * 60;
-    char buf[10] = { 0 };
-    snprintf(buf, sizeof(buf), "%d:%02d", m, s);
+    char buf[21] = { 0 };
+    snprintf_P(buf, sizeof(buf), PSTR("%d:%02d"), m, s);
 
     _blynkHandler.writePin(
         VirtualPins::BoostRemainingSeconds,
@@ -506,7 +506,7 @@ void Blynk::updateNextSwitch(const uint8_t state, const uint8_t weekday, const u
         char buf[16] = { 0 };
         static const char Weekdays[7][4] = { "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" };
 
-        snprintf(buf, sizeof(buf), "%s %2d:%02d", Weekdays[weekday], hour, minute);
+        snprintf_P(buf, sizeof(buf), PSTR("%s %2d:%02d"), Weekdays[weekday], hour, minute);
 
         _blynkHandler.writePin(
             VirtualPins::Labels::NextSwitchLabel,
