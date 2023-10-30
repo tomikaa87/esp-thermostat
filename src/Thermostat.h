@@ -39,20 +39,24 @@ private:
 
     struct Mqtt {
         explicit Mqtt(CoreApplication& app)
-            : activeTemp(           PSTR("thermostat/temp/active"),     PSTR("thermostat/temp/active/set"), app.mqttClient())
-            , currentTemp(          PSTR("thermostat/temp/current"), app.mqttClient())
-            , daytimeTemp(          PSTR("thermostat/temp/daytime"),    PSTR("thermostat/temp/daytime/set"), app.mqttClient())
-            , nightTimeTemp(        PSTR("thermostat/temp/nightTime"),  PSTR("thermostat/temp/nightTime/set"), app.mqttClient())
-            , boostRemainingSecs(   PSTR("thermostat/boost/remainingSecs"), app.mqttClient())
-            , boostActive(          PSTR("thermostat/boost/active"),    PSTR("thermostat/boost/active/set"), app.mqttClient())
-            , heatingActive(        PSTR("thermostat/heating/active"), app.mqttClient())
-            , heatingMode(          PSTR("thermostat/heating/mode"),    PSTR("thermostat/heating/mode/set"), app.mqttClient())
+            : activeTemp(           PSTR("furnace/temp/active"),     PSTR("furnace/temp/active/set"), app.mqttClient())
+            , currentTemp(          PSTR("furnace/temp/current"), app.mqttClient())
+            , daytimeTemp(          PSTR("furnace/temp/daytime"),    PSTR("furnace/temp/daytime/set"), app.mqttClient())
+            , nightTimeTemp(        PSTR("furnace/temp/nightTime"),  PSTR("furnace/temp/nightTime/set"), app.mqttClient())
+            , remoteTemp(           PSTR("furnace/temp/remote"),     PSTR("furnace/temp/remote/set"), app.mqttClient())
+            , internalTemp(         PSTR("furnace/temp/internal"), app.mqttClient())
+            , boostRemainingSecs(   PSTR("furnace/boost/remainingSecs"), app.mqttClient())
+            , boostActive(          PSTR("furnace/boost/active"),    PSTR("furnace/boost/active/set"), app.mqttClient())
+            , heatingActive(        PSTR("furnace/heating/active"), app.mqttClient())
+            , heatingMode(          PSTR("furnace/heating/mode"),    PSTR("furnace/heating/mode/set"), app.mqttClient())
         {}
 
         MqttVariable<float> activeTemp;
         MqttVariable<float> currentTemp;
         MqttVariable<float> daytimeTemp;
         MqttVariable<float> nightTimeTemp;
+        MqttVariable<float> remoteTemp;
+        MqttVariable<float> internalTemp;
         MqttVariable<int> boostRemainingSecs;
         MqttVariable<bool> boostActive;
         MqttVariable<bool> heatingActive;
@@ -61,7 +65,7 @@ private:
 
     struct MqttAccessory {
         explicit MqttAccessory(CoreApplication& app)
-            : hvacMode(PSTR("thermostat/hvac_mode"), PSTR("thermostat/hvac_mode/set"), app.mqttClient())
+            : hvacMode(PSTR("furnace/hvac_mode"), PSTR("furnace/hvac_mode/set"), app.mqttClient())
 
         {}
 

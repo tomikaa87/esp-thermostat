@@ -78,6 +78,7 @@ public:
 
     std::time_t boostRemaining() const;
 
+    void setCurrentTemp(TenthsOfDegrees temp);
     TenthsOfDegrees currentTemp() const;
 
     TenthsOfDegrees targetTemp() const;

@@ -112,6 +112,10 @@ void Thermostat::setupMqtt()
         _heatingController.setNightTimeTemp(v * 10);
     });
 
+    _mqtt.remoteTemp.setChangedHandler([this](const float v) {
+        _heatingController.setCurrentTemp(v * 10);
+    });
+
     //
     // HVAC accessory for Home Assistant
     //
@@ -121,28 +125,71 @@ void Thermostat::setupMqtt()
 
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:sun-thermometer")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"name":"Thermostat")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"thermostat")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"thermostat")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"name":"Furnace")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace")"));
         config << Extras::pgmToStdString(PSTR(R"(,"max_temp":30)"));
         config << Extras::pgmToStdString(PSTR(R"(,"min_temp":10)"));
-        config << Extras::pgmToStdString(PSTR(R"(,"current_temperature_topic":"thermostat/temp/current")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"mode_command_topic":"thermostat/hvac_mode/set")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"mode_state_topic":"thermostat/hvac_mode")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"current_temperature_topic":"furnace/temp/current")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"mode_command_topic":"furnace/hvac_mode/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"mode_state_topic":"furnace/hvac_mode")"));
         config << Extras::pgmToStdString(PSTR(R"(,"modes":["auto","heat","off"])"));
         config << Extras::pgmToStdString(PSTR(R"(,"precision":0.1)"));
-        config << Extras::pgmToStdString(PSTR(R"(,"temperature_command_topic":"thermostat/temp/active/set")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"temperature_state_topic":"thermostat/temp/active")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"temperature_high_command_topic":"thermostat/temp/daytime/set")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"temperature_high_state_topic":"thermostat/temp/daytime")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"temperature_low_command_topic":"thermostat/temp/nightTime/set")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"temperature_low_state_topic":"thermostat/temp/nightTime")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"temperature_command_topic":"furnace/temp/active/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"temperature_state_topic":"furnace/temp/active")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"temperature_high_command_topic":"furnace/temp/daytime/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"temperature_high_state_topic":"furnace/temp/daytime")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"temperature_low_command_topic":"furnace/temp/nightTime/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"temperature_low_state_topic":"furnace/temp/nightTime")"));
         config << Extras::pgmToStdString(PSTR(R"(,"temperature_unit":"C")"));
         config << Extras::pgmToStdString(PSTR(R"(,"temp_step":0.5)"));
         config << '}';
 
         _coreApplication.mqttClient().publish(
-            PSTR("homeassistant/climate/thermostat/config"),
+            PSTR("homeassistant/climate/furnace/config"),
+            config.str(),
+            false
+        );
+    }
+
+    {
+        std::stringstream config;
+
+        config << '{';
+        config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:thermometer")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"name":"Remote Temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_remote_temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_remote_temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"furnace/temp/remote/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"furnace/temp/remote")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"mode":"box")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"max":50)"));
+        config << Extras::pgmToStdString(PSTR(R"(,"min":-50)"));
+        config << Extras::pgmToStdString(PSTR(R"(,"step":0.1)"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unit_of_measurement":"C")"));
+        config << '}';
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/number/furnace_remote_temperature/config"),
+            config.str(),
+            false
+        );
+    }
+
+    {
+        std::stringstream config;
+
+        config << '{';
+        config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:thermometer")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"name":"Internal Temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_internal_temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_internal_temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"furnace/temp/internal")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unit_of_measurement":"C")"));
+        config << '}';
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/sensor/furnace_internal_temperature/config"),
             config.str(),
             false
         );
@@ -154,14 +201,14 @@ void Thermostat::setupMqtt()
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:radiator")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Activate Boost")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"thermostat_boost_activate")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"thermostat_boost_activate")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"thermostat/boost/active/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_boost_activate")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_boost_activate")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"furnace/boost/active/set")"));
         config << Extras::pgmToStdString(PSTR(R"(,"payload_press":"1")"));
         config << '}';
 
         _coreApplication.mqttClient().publish(
-            PSTR("homeassistant/button/thermostat_boost_activate/config"),
+            PSTR("homeassistant/button/furnace_boost_activate/config"),
             config.str(),
             false
         );
@@ -173,14 +220,14 @@ void Thermostat::setupMqtt()
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:radiator-off")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Deactivate Boost")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"thermostat_boost_deactivate")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"thermostat_boost_deactivate")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"thermostat/boost/active/set")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_boost_deactivate")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_boost_deactivate")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"command_topic":"furnace/boost/active/set")"));
         config << Extras::pgmToStdString(PSTR(R"(,"payload_press":"0")"));
         config << '}';
 
         _coreApplication.mqttClient().publish(
-            PSTR("homeassistant/button/thermostat_boost_deactivate/config"),
+            PSTR("homeassistant/button/furnace_boost_deactivate/config"),
             config.str(),
             false
         );
@@ -192,14 +239,14 @@ void Thermostat::setupMqtt()
         config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:timer")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Boost Remaining")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"thermostat_boost_remaining")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"thermostat_boost_remaining")"));
-        config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"thermostat/boost/remainingSecs")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_boost_remaining")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_boost_remaining")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"furnace/boost/remainingSecs")"));
         config << Extras::pgmToStdString(PSTR(R"(,"unit_of_measurement":"s")"));
         config << '}';
 
         _coreApplication.mqttClient().publish(
-            PSTR("homeassistant/sensor/thermostat_boost_remaining/config"),
+            PSTR("homeassistant/sensor/furnace_boost_remaining/config"),
             config.str(),
             false
         );
@@ -224,6 +271,7 @@ void Thermostat::updateMqtt()
     _mqtt.boostActive = _heatingController.isBoostActive();
     _mqtt.boostRemainingSecs = _heatingController.boostRemaining();
     _mqtt.currentTemp = _heatingController.currentTemp() / 10.f;
+    _mqtt.internalTemp = _temperatureSensor.read() / 100.f;
     _mqtt.daytimeTemp = _heatingController.daytimeTemp() / 10.f;
     _mqtt.heatingActive = _heatingController.isActive();
     _mqtt.heatingMode = static_cast<int>(_heatingController.mode());

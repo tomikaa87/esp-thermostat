@@ -191,7 +191,7 @@ void MainScreen::updateModeIndicator()
 
 void MainScreen::drawTemperatureDisplay()
 {
-    const auto reading = _temperatureSensor.read();
+    const auto reading = _heatingController.currentTemp() * 10;
     draw_temperature_value(10, reading / 100,
         (reading % 100) / 10);
 }

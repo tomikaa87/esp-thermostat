@@ -18,7 +18,7 @@
     Created on 2017-01-02
 */
 
-#include "graphics.h"
+#include "Graphics.h"
 #include "display/Display.h"
 
 void graphics_draw_bitmap(

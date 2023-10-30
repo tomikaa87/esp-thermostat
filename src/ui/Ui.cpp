@@ -18,7 +18,7 @@
     Created on 2017-01-07
 */
 
-#include "ui.h"
+#include "Ui.h"
 #include "Settings.h"
 #include "SystemClock.h"
 #include "TemperatureSensor.h"

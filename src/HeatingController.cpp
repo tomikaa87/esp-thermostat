@@ -48,8 +48,10 @@ HeatingController::HeatingController(
 
 void HeatingController::task()
 {
+#if 0
     // Read temperature sensor and store it in tenths of degrees
     _sensorTemp = _temperatureSensor.read() / 10;
+#endif
 
 #ifdef HEATCL_DEBUG
     printf("heatctl: s_tmp=%d\r\n", sensor_temp);
@@ -240,6 +242,11 @@ std::time_t HeatingController::boostRemaining() const
     }
 
     return _boostEnd - _systemClock.utcTime();
+}
+
+void HeatingController::setCurrentTemp(const TenthsOfDegrees temp)
+{
+    _sensorTemp = temp;
 }
 
 HeatingController::TenthsOfDegrees HeatingController::currentTemp() const

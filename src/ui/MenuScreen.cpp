@@ -169,7 +169,7 @@ void MenuScreen::draw()
         drawPageWifiPassword();
         break;
 
-    case Page::Last:
+    default:
         break;
     }
 
@@ -180,7 +180,7 @@ void MenuScreen::draw()
         }
 
         // "->" next page indicator
-        if (static_cast<int>(_page) < static_cast<int>(Page::Last) - 1) {
+        if (static_cast<int>(_page) < static_cast<int>(Page::Last)) {
             Text::draw("->", 7, 115, 0, false);
         }
     }
@@ -391,7 +391,7 @@ void MenuScreen::drawPageTitle(const char* text)
 
 void MenuScreen::nextPage()
 {
-    if (static_cast<int>(_page) < static_cast<int>(Page::Last) - 1) {
+    if (static_cast<int>(_page) < static_cast<int>(Page::Last)) {
         _page = static_cast<Page>(static_cast<int>(_page) + 1);
         draw();
     }
@@ -541,8 +541,7 @@ void MenuScreen::adjustValue(int8_t amount)
         drawPageWifiPassword();
         break;
 
-    case Page::Last:
-    case Page::WIFI_PASSWORD:
+    default:
         break;
     }
 }

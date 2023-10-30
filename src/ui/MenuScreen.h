@@ -61,13 +61,17 @@ private:
         DisplayTimeout,
         TempCorrection,
         Reboot,
-        BlynkSwitch,
-
-        Last,
 
         // These pages cannot be accessed by normal navigation
+        BlynkSwitch,
         WiFi,
-        WIFI_PASSWORD
+        WIFI_PASSWORD,
+
+#ifdef IOT_ENABLE_BLYNK
+        Last = BlynkSwitch
+#else
+        Last = Reboot
+#endif
     } _page = Page::First;
 
     void draw();
