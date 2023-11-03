@@ -199,6 +199,25 @@ void Thermostat::setupMqtt()
         std::stringstream config;
 
         config << '{';
+        config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:thermometer")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"name":"Active Temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_active_temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_active_temperature")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"furnace/temp/active")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unit_of_measurement":"C")"));
+        config << '}';
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/sensor/furnace_active_temperature/config"),
+            config.str(),
+            false
+        );
+    }
+
+    {
+        std::stringstream config;
+
+        config << '{';
         config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:radiator")"));
         config << Extras::pgmToStdString(PSTR(R"(,"name":"Activate Boost")"));
         config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_boost_activate")"));
@@ -247,6 +266,26 @@ void Thermostat::setupMqtt()
 
         _coreApplication.mqttClient().publish(
             PSTR("homeassistant/sensor/furnace_boost_remaining/config"),
+            config.str(),
+            false
+        );
+    }
+
+    {
+        std::stringstream config;
+
+        config << '{';
+        config << Extras::pgmToStdString(PSTR(R"("icon":"mdi:fire")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"name":"Heating")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"object_id":"furnace_heating")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"unique_id":"furnace_heating")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"state_topic":"furnace/heating/active")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"payload_on":"1")"));
+        config << Extras::pgmToStdString(PSTR(R"(,"payload_off":"0")"));
+        config << '}';
+
+        _coreApplication.mqttClient().publish(
+            PSTR("homeassistant/binary_sensor/furnace_heating/config"),
             config.str(),
             false
         );
