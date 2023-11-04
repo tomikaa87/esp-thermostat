@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 
 class HeatingZoneController
 {
@@ -21,8 +22,9 @@ public:
         uint32_t overrideTimeoutSeconds{ 120 * 60 };
         uint32_t boostInitialDurationSeconds{ 30 * 60 };
         uint32_t boostExtensionDurationSeconds{ 15 * 60 };
-        DeciDegrees heatingOvershoot{};
-        DeciDegrees heatingUndershoot{};
+        DeciDegrees heatingOvershoot{ 50 };
+        DeciDegrees heatingUndershoot{ 50 };
+        DeciDegrees holidayModeTemperature{ 180 };
         ScheduleData scheduleData{{}};
     };
 
@@ -32,7 +34,7 @@ public:
         Auto,
         Holiday
     };
-    
+
     explicit HeatingZoneController(Configuration config);
 
     void updateConfig(Configuration config);
@@ -43,6 +45,14 @@ public:
     void startOrExtendBoost();
     void stopBoost();
     [[nodiscard]] bool boostActive() const;
+    [[nodiscard]] uint32_t boostRemainingSeconds() const;
+
+    /**
+     * @brief Inputs a temperature value coming from a sensor.
+     *
+     * @param value
+     */
+    void inputTemperature(DeciDegrees value);
 
     void setHighTargetTemperature(DeciDegrees value);
     void setLowTargetTemperature(DeciDegrees value);
@@ -56,27 +66,34 @@ public:
 
     /**
      * @brief Checks if target temperature override is active.
-     * 
-     * @return true 
-     * @return false 
+     *
+     * @return true
+     * @return false
      */
     [[nodiscard]] bool targetTemperatureOverrideActive() const;
 
     /**
      * @brief Returns the effective target temperature based on the schedule
      * and if there is an override.
-     * 
-     * @return Temperature 
+     *
+     * @return Temperature
      */
-    [[nodiscard]] DeciDegrees targetTemperature() const;
+    [[nodiscard]] std::optional<DeciDegrees> targetTemperature() const;
 
     /**
      * @brief Checks if heating is requested for the current zone.
-     * 
-     * @return true 
-     * @return false 
+     *
+     * @return true
+     * @return false
      */
     [[nodiscard]] bool callingForHeating() const;
+
+    /**
+     * @brief Runs the state machine.
+     *
+     * @param systemClockMillis Current system clock in milliseconds
+     */
+    void task(uint32_t systemClockMillis);
 
 private:
     Configuration _config;
