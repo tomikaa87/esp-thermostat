@@ -528,6 +528,223 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostExtended_HeatingCall
     EXPECT_TRUE(controller.callingForHeating());
 }
 
+TEST(HeatingZoneController, TargetTemperatureOvershoot)
+{
+    const HeatingZoneController::DeciDegrees overshoot{ 50 };
+
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .heatingOvershoot = overshoot
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(200);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(230);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(230 + overshoot);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, TargetTemperatureUndershoot)
+{
+    const HeatingZoneController::DeciDegrees undershoot{ 50 };
+
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .heatingUndershoot = undershoot
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(230);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(210);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(210 - undershoot);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, HolidayTargetTemperatureOvershoot)
+{
+    const HeatingZoneController::DeciDegrees overshoot{ 50 };
+    const HeatingZoneController::DeciDegrees target{ 180 };
+
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .heatingOvershoot = overshoot,
+            .holidayModeTemperature = target
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Holiday);
+    EXPECT_EQ(controller.targetTemperature(), target);
+
+    controller.inputTemperature(target - 200);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(target);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(target + overshoot);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, HolidayTargetTemperatureUndershoot)
+{
+    const HeatingZoneController::DeciDegrees undershoot{ 50 };
+    const HeatingZoneController::DeciDegrees target{ 180 };
+
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .heatingUndershoot = undershoot,
+            .holidayModeTemperature = target
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Holiday);
+    EXPECT_EQ(controller.targetTemperature(), target);
+
+    controller.inputTemperature(target + 200);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(target);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(target - undershoot);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+class MultiModeTest
+    : public ::testing::TestWithParam<HeatingZoneController::Mode>
+{
+public:
+    MultiModeTest()
+        : controller{
+            HeatingZoneController::Configuration{
+                .heatingOvershoot = 50,
+                .heatingUndershoot = 50,
+                .holidayModeTemperature = 180
+            }
+        }
+    {
+        controller.setMode(GetParam());
+    }
+
+    HeatingZoneController controller;
+}; 
+
+TEST_P(MultiModeTest, ModeIsCorrect)
+{
+    EXPECT_EQ(controller.mode(), GetParam());
+}
+
+TEST_P(MultiModeTest, BoostDefaultStopped)
+{
+    EXPECT_FALSE(controller.boostActive());
+}
+
+TEST_P(MultiModeTest, BoostCanBeStarted)
+{
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_EQ(
+        controller.boostRemainingSeconds(),
+        HeatingZoneController::Configuration{}.boostInitialDurationSeconds
+    );
+}
+
+TEST_P(MultiModeTest, BoostCanBeExtended)
+{
+    controller.startOrExtendBoost();
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_EQ(
+        controller.boostRemainingSeconds(),
+        HeatingZoneController::Configuration{}.boostInitialDurationSeconds
+        + HeatingZoneController::Configuration{}.boostExtensionDurationSeconds
+    );
+}
+
+TEST_P(MultiModeTest, BoostTimesOutAfterStarted)
+{
+    controller.startOrExtendBoost();
+    controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_FALSE(controller.boostActive());
+    EXPECT_EQ(controller.boostRemainingSeconds(), 0);
+}
+
+TEST_P(MultiModeTest, BoostTimesOutAfterExtended)
+{
+    controller.startOrExtendBoost();
+    controller.startOrExtendBoost();
+    controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_TRUE(controller.boostActive());
+    controller.task(HeatingZoneController::Configuration{}.boostExtensionDurationSeconds * 1000);
+    EXPECT_FALSE(controller.boostActive());
+    EXPECT_EQ(controller.boostRemainingSeconds(), 0);
+}
+
+TEST_P(MultiModeTest, BoostCausesCallingForHeating)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(300);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MultiModeTest, NoCallingForHeatingWithHighTemperature)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(300);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    HeatingZoneController,
+    MultiModeTest,
+    ::testing::Values(
+        HeatingZoneController::Mode::Off,
+        HeatingZoneController::Mode::Auto,
+        HeatingZoneController::Mode::Holiday
+    )
+);
+
+uint32_t delta(const uint32_t start, const uint32_t now)
+{
+    return now - start;
+}
+
+TEST(UnsignedDelta, WithoutOverflow)
+{
+    EXPECT_EQ(delta(1, 2), 1);
+}
+
+TEST(UnsignedDelta, WithOverflow)
+{
+    EXPECT_EQ(delta(0xFFFFFFFFu, 0), 1);
+    EXPECT_EQ(delta(0xFFFFFFFFu, 1), 2);
+    EXPECT_EQ(delta(0xFFFFFFFEu, 0), 2);
+}
+
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

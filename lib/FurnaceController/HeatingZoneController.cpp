@@ -1,11 +1,13 @@
 #include "HeatingZoneController.h"
 
 HeatingZoneController::HeatingZoneController(Configuration config)
+    : _config{ std::move(config) }
 {
 }
 
-void HeatingZoneController::setMode(Mode mode)
+void HeatingZoneController::setMode(const Mode mode)
 {
+    _mode = mode;
 }
 
 HeatingZoneController::Mode HeatingZoneController::mode() const
@@ -15,20 +17,26 @@ HeatingZoneController::Mode HeatingZoneController::mode() const
 
 void HeatingZoneController::startOrExtendBoost()
 {
+    if (boostActive()) {
+        _requestedBoostTimeMs += _config.boostExtensionDurationSeconds * 1000;
+    } else {
+        _requestedBoostTimeMs = _config.boostInitialDurationSeconds * 1000;
+    }
 }
 
 void HeatingZoneController::stopBoost()
 {
+    _requestedBoostTimeMs = 0;
 }
 
 bool HeatingZoneController::boostActive() const
 {
-    return false;
+    return _requestedBoostTimeMs > 0;
 }
 
 uint32_t HeatingZoneController::boostRemainingSeconds() const
 {
-    return 0;
+    return _requestedBoostTimeMs / 1000;
 }
 
 void HeatingZoneController::inputTemperature(DeciDegrees value)
@@ -63,9 +71,20 @@ std::optional<HeatingZoneController::DeciDegrees> HeatingZoneController::targetT
 
 bool HeatingZoneController::callingForHeating() const
 {
+    if (boostActive()) {
+        return true;
+    }
+
     return false;
 }
 
-void HeatingZoneController::task(uint32_t systemClockMillis)
+void HeatingZoneController::task(uint32_t systemClockDeltaMs)
 {
+    if (boostActive()) {
+        if (systemClockDeltaMs <= _requestedBoostTimeMs) {
+            _requestedBoostTimeMs -= systemClockDeltaMs;
+        } else {
+            _requestedBoostTimeMs = 0;
+        }
+    }
 }

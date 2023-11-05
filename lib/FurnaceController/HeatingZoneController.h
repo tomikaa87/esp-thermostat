@@ -91,9 +91,9 @@ public:
     /**
      * @brief Runs the state machine.
      *
-     * @param systemClockMillis Current system clock in milliseconds
+     * @param systemClockDeltaMs Elapsed system time since the last call, in milliseconds
      */
-    void task(uint32_t systemClockMillis);
+    void task(uint32_t systemClockDeltaMs);
 
 private:
     Configuration _config;
@@ -102,4 +102,6 @@ private:
 
     bool _overrideActive{ false };
     DeciDegrees _overrideTemperature{};
+
+    uint32_t _requestedBoostTimeMs{ 0 };
 };
