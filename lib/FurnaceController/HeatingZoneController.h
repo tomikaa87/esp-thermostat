@@ -22,8 +22,8 @@ public:
         uint32_t overrideTimeoutSeconds{ 120 * 60 };
         uint32_t boostInitialDurationSeconds{ 30 * 60 };
         uint32_t boostExtensionDurationSeconds{ 15 * 60 };
-        DeciDegrees heatingOvershoot{ 50 };
-        DeciDegrees heatingUndershoot{ 50 };
+        DeciDegrees heatingOvershoot{ 5 };
+        DeciDegrees heatingUndershoot{ 5 };
         DeciDegrees holidayModeTemperature{ 180 };
         ScheduleData scheduleData{{}};
     };
@@ -72,6 +72,8 @@ public:
      */
     [[nodiscard]] bool targetTemperatureOverrideActive() const;
 
+    [[nodiscard]] uint32_t targetTemperatureOverrideRemainingSeconds() const;
+
     /**
      * @brief Returns the effective target temperature based on the schedule
      * and if there is an override.
@@ -100,8 +102,17 @@ private:
 
     Mode _mode{ Mode::Off };
 
-    bool _overrideActive{ false };
-    DeciDegrees _overrideTemperature{};
+    DeciDegrees _lastInputTemperature{};
+    DeciDegrees _highTargetTemperature{};
+    DeciDegrees _lowTargetTemperature{};
 
-    uint32_t _requestedBoostTimeMs{ 0 };
+    DeciDegrees _overrideTemperature{};
+    uint32_t _overrideRemainingMs{};
+
+    bool _callForHeatByTemperature{};
+
+    uint32_t _requestedBoostTimeMs{};
+
+    void updateCallForHeatByTemperature();
+    DeciDegrees targetTemperatureBySchedule() const;
 };
