@@ -18,7 +18,7 @@ void HeatingZoneController::setMode(const Mode mode)
     _mode = mode;
 
     if (_mode == Mode::Off) {
-        _overrideRemainingMs = 0;
+        resetTargetTemperature();
     }
 
     updateCallForHeatByTemperature();

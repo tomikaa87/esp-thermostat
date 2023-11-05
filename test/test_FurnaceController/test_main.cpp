@@ -752,6 +752,40 @@ TEST_P(ActiveModeTest, OverrideCanBeReset)
     EXPECT_EQ(controller.targetTemperature(), originalTargetTemperature);
 }
 
+TEST_P(ActiveModeTest, KeepHeatingOnAfterBoostTimesOut)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(100);
+
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_FALSE(controller.boostActive());
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST_P(ActiveModeTest, KeepHeatingOnAfterBoostStoppedManually)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(100);
+
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.stopBoost();
+    EXPECT_FALSE(controller.boostActive());
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     HeatingZoneController,
     ActiveModeTest,
