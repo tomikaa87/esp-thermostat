@@ -4,16 +4,7 @@
 
 #include <optional>
 
-/*
-    Test case naming:
-        Mode<mode>_Schedule<schedule>_Boost<boost>_Heating<heating>_<details>
-
-        mode := Off | Auto | Holiday
-        schedule := AllLow | AllHigh
-        boost := Stopped | Started | Extended
-        heating := Idle | Calling
-        details: Extra info if needed
-*/
+#pragma region Utilities
 
 namespace TestUtils
 {
@@ -26,30 +17,6 @@ namespace TestUtils
         return data;
     }
 }
-
-struct InputParams
-{
-    HeatingZoneController::Mode mode{ HeatingZoneController::Mode::Off };
-    HeatingZoneController::DeciDegrees highTargetTemperature{ 230 };
-    HeatingZoneController::DeciDegrees lowTargetTemperature{ 210 };
-    HeatingZoneController::DeciDegrees holidayTargetTemperature{ 180 };
-    HeatingZoneController::DeciDegrees inputTemperature{ 220 };
-
-    enum class Boost
-    {
-        Stopped,
-        Started,
-        Extended
-    } boost{ Boost::Stopped };
-
-    bool expectedCallingForHeating{ false };
-    bool expectedBoostActive{ false };
-    std::optional<HeatingZoneController::DeciDegrees> expectedTargetTemperature;
-
-    std::optional<uint32_t> taskSystemClockMillis;
-
-    HeatingZoneController::ScheduleData scheduleData{};
-};
 
 std::ostream& operator<<(std::ostream& str, const HeatingZoneController::Mode mode)
 {
@@ -83,6 +50,30 @@ std::ostream& operator<<(std::ostream& str, const InputParams::Boost mode)
     return str;
 }
 
+struct InputParams
+{
+    HeatingZoneController::Mode mode{ HeatingZoneController::Mode::Off };
+    HeatingZoneController::DeciDegrees highTargetTemperature{ 230 };
+    HeatingZoneController::DeciDegrees lowTargetTemperature{ 210 };
+    HeatingZoneController::DeciDegrees holidayTargetTemperature{ 180 };
+    HeatingZoneController::DeciDegrees inputTemperature{ 220 };
+
+    enum class Boost
+    {
+        Stopped,
+        Started,
+        Extended
+    } boost{ Boost::Stopped };
+
+    bool expectedCallingForHeating{ false };
+    bool expectedBoostActive{ false };
+    std::optional<HeatingZoneController::DeciDegrees> expectedTargetTemperature;
+
+    std::optional<uint32_t> taskSystemClockMillis;
+
+    HeatingZoneController::ScheduleData scheduleData{};
+};
+
 std::ostream& operator<<(std::ostream& str, const InputParams& p)
 {
     str << "{";
@@ -103,6 +94,10 @@ std::ostream& operator<<(std::ostream& str, const InputParams& p)
     str << "}";
     return str;
 }
+
+#pragma endregion
+
+#pragma region Fully parameterized tests, should be cleaned up
 
 class HeatingZoneControllerParameterized
     : public ::testing::TestWithParam<InputParams>
@@ -293,6 +288,21 @@ INSTANTIATE_TEST_SUITE_P(
         }
     )
 );
+
+#pragma endregion
+
+#pragma region Long-named tests, should be cleaned up
+
+/*
+    Test case naming:
+        Mode<mode>_Schedule<schedule>_Boost<boost>_Heating<heating>_<details>
+
+        mode := Off | Auto | Holiday
+        schedule := AllLow | AllHigh
+        boost := Stopped | Started | Extended
+        heating := Idle | Calling
+        details: Extra info if needed
+*/
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_InitialState)
 {
@@ -527,6 +537,8 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostExtended_HeatingCall
     EXPECT_TRUE(controller.boostActive());
     EXPECT_TRUE(controller.callingForHeating());
 }
+
+#pragma endregion
 
 #pragma region General tests
 
@@ -896,6 +908,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 #pragma endregion
 
+#pragma region Other tests
+
 uint32_t delta(const uint32_t start, const uint32_t now)
 {
     return now - start;
@@ -912,6 +926,8 @@ TEST(UnsignedDelta, WithOverflow)
     EXPECT_EQ(delta(0xFFFFFFFFu, 1), 2);
     EXPECT_EQ(delta(0xFFFFFFFEu, 0), 2);
 }
+
+#pragma endregion
 
 int main(int argc, char** argv)
 {
