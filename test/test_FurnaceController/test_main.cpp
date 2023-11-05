@@ -34,22 +34,6 @@ std::ostream& operator<<(std::ostream& str, const HeatingZoneController::Mode mo
     return str;
 }
 
-std::ostream& operator<<(std::ostream& str, const InputParams::Boost mode)
-{
-    switch (mode) {
-        case InputParams::Boost::Stopped:
-            str << "Stopped";
-            break;
-        case InputParams::Boost::Started:
-            str << "Started";
-            break;
-        case InputParams::Boost::Extended:
-            str << "Extended";
-            break;
-    }
-    return str;
-}
-
 struct InputParams
 {
     HeatingZoneController::Mode mode{ HeatingZoneController::Mode::Off };
@@ -74,6 +58,22 @@ struct InputParams
     HeatingZoneController::ScheduleData scheduleData{};
 };
 
+std::ostream& operator<<(std::ostream& str, const InputParams::Boost mode)
+{
+    switch (mode) {
+        case InputParams::Boost::Stopped:
+            str << "Stopped";
+            break;
+        case InputParams::Boost::Started:
+            str << "Started";
+            break;
+        case InputParams::Boost::Extended:
+            str << "Extended";
+            break;
+    }
+    return str;
+}
+
 std::ostream& operator<<(std::ostream& str, const InputParams& p)
 {
     str << "{";
@@ -94,200 +94,6 @@ std::ostream& operator<<(std::ostream& str, const InputParams& p)
     str << "}";
     return str;
 }
-
-#pragma endregion
-
-#pragma region Fully parameterized tests, should be cleaned up
-
-class HeatingZoneControllerParameterized
-    : public ::testing::TestWithParam<InputParams>
-{
-public:
-    HeatingZoneControllerParameterized()
-        : controller{
-            HeatingZoneController::Configuration{
-                .holidayModeTemperature = GetParam().holidayTargetTemperature
-            }
-        }
-    {
-        controller.setMode(GetParam().mode);
-        controller.setLowTargetTemperature(GetParam().lowTargetTemperature);
-        controller.setHighTargetTemperature(GetParam().highTargetTemperature);
-        controller.inputTemperature(GetParam().inputTemperature);
-
-        switch (GetParam().boost) {
-            case InputParams::Boost::Stopped:
-                controller.stopBoost();
-                break;
-            case InputParams::Boost::Started:
-                controller.startOrExtendBoost();
-                break;
-            case InputParams::Boost::Extended:
-                controller.startOrExtendBoost();
-                controller.startOrExtendBoost();
-                break;
-        }
-
-        // Must be called after Boost operations
-        if (GetParam().taskSystemClockMillis.has_value()) {
-            controller.task(GetParam().taskSystemClockMillis.value());
-        }
-    }
-
-    HeatingZoneController controller;
-};
-
-TEST_P(HeatingZoneControllerParameterized, CallingForHeating)
-{
-    EXPECT_EQ(controller.callingForHeating(), GetParam().expectedCallingForHeating);
-}
-
-TEST_P(HeatingZoneControllerParameterized, BoostActive)
-{
-    EXPECT_EQ(controller.boostActive(), GetParam().expectedBoostActive);
-}
-
-TEST_P(HeatingZoneControllerParameterized, TargetTemperature)
-{
-    if (GetParam().expectedTargetTemperature.has_value()) {
-        EXPECT_EQ(controller.targetTemperature(), GetParam().expectedTargetTemperature.value());
-    }
-}
-
-TEST_P(HeatingZoneControllerParameterized, TargetTemperatureOverride)
-{
-    if (controller.mode() == HeatingZoneController::Mode::Auto) {
-        const auto original = controller.targetTemperature();
-
-        controller.overrideTargetTemperature(300);
-        EXPECT_EQ(controller.targetTemperature(), 300);
-
-        controller.resetTargetTemperature();
-        EXPECT_EQ(controller.targetTemperature(), original);
-    }
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    Something,
-    HeatingZoneControllerParameterized,
-    testing::Values(
-        // "Off" mode tests
-        InputParams{},
-        InputParams{
-            .inputTemperature = 0
-        },
-        InputParams{
-            .inputTemperature = 100
-        },
-        InputParams{
-            .inputTemperature = 180
-        },
-        InputParams{
-            .inputTemperature = 210
-        },
-        InputParams{
-            .inputTemperature = 230
-        },
-        InputParams{
-            .inputTemperature = 250
-        },
-        InputParams{
-            .boost = InputParams::Boost::Started,
-            .expectedCallingForHeating = true,
-            .expectedBoostActive = true
-        },
-        InputParams{
-            .boost = InputParams::Boost::Started,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .taskSystemClockMillis = HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000
-        },
-        InputParams{
-            .boost = InputParams::Boost::Extended,
-            .expectedCallingForHeating = true,
-            .expectedBoostActive = true
-        },
-        InputParams{
-            .boost = InputParams::Boost::Extended,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .taskSystemClockMillis =
-                (HeatingZoneController::Configuration{}.boostInitialDurationSeconds
-                    + HeatingZoneController::Configuration{}.boostExtensionDurationSeconds)
-                * 1000
-        },
-        // "Holiday" mode tests
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .inputTemperature = 0,
-            .expectedCallingForHeating = true,
-            .expectedBoostActive = false,
-            .expectedTargetTemperature = 180
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .inputTemperature = 100,
-            .expectedCallingForHeating = true,
-            .expectedBoostActive = false,
-            .expectedTargetTemperature = 180
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .inputTemperature = 180,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .expectedTargetTemperature = 180
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .inputTemperature = 210,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .expectedTargetTemperature = 180
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .inputTemperature = 230,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .expectedTargetTemperature = 180
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .inputTemperature = 250,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .expectedTargetTemperature = 180
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .boost = InputParams::Boost::Started,
-            .expectedCallingForHeating = true,
-            .expectedBoostActive = true
-        },
-        InputParams{
-            .boost = InputParams::Boost::Started,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .taskSystemClockMillis = HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000
-        },
-        InputParams{
-            .mode = HeatingZoneController::Mode::Holiday,
-            .boost = InputParams::Boost::Extended,
-            .expectedCallingForHeating = true,
-            .expectedBoostActive = true
-        },
-        InputParams{
-            .boost = InputParams::Boost::Extended,
-            .expectedCallingForHeating = false,
-            .expectedBoostActive = false,
-            .taskSystemClockMillis =
-                (HeatingZoneController::Configuration{}.boostInitialDurationSeconds
-                    + HeatingZoneController::Configuration{}.boostExtensionDurationSeconds)
-                * 1000
-        }
-    )
-);
 
 #pragma endregion
 
@@ -689,6 +495,161 @@ TEST(HeatingZoneController, HolidayTargetTemperatureUndershoot)
     EXPECT_FALSE(controller.callingForHeating());
 
     controller.inputTemperature(target - undershoot);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, OffModeReportsNoTargetTemperature)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    EXPECT_EQ(controller.targetTemperature(), std::nullopt);
+}
+
+TEST(HeatingZoneController, OffModeDoesNotCallForHeatingAutomatically)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, OffModeDisablesOverride)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    controller.overrideTargetTemperature(250);
+    controller.inputTemperature(100);
+
+    EXPECT_EQ(controller.targetTemperatureOverrideRemainingSeconds(), 0);
+    EXPECT_FALSE(controller.targetTemperatureOverrideActive());
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, SwitchingToOffModeDisablesOverride)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.overrideTargetTemperature(250);
+    controller.inputTemperature(100);
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    EXPECT_EQ(controller.targetTemperatureOverrideRemainingSeconds(), 0);
+    EXPECT_FALSE(controller.targetTemperatureOverrideActive());
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, SwitchingToOffModeKeepsBoostRunning)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, SwitchingToOffModeTurnsOffHeating)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(100);
+
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeating)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(100);
+
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeatingWithHighTarget)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .scheduleData = TestUtils::generateAllHighSchedule()
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    controller.setLowTargetTemperature(210);
+    controller.setHighTargetTemperature(230);
+    controller.inputTemperature(220);
+
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, SwitchingToHolidayModeTurnsOnHeating)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{}
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    controller.inputTemperature(100);
+
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setMode(HeatingZoneController::Mode::Holiday);
+
     EXPECT_TRUE(controller.callingForHeating());
 }
 

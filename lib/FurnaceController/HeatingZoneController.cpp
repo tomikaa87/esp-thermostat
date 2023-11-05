@@ -16,6 +16,12 @@ HeatingZoneController::HeatingZoneController(Configuration config)
 void HeatingZoneController::setMode(const Mode mode)
 {
     _mode = mode;
+
+    if (_mode == Mode::Off) {
+        _overrideRemainingMs = 0;
+    }
+
+    updateCallForHeatByTemperature();
 }
 
 HeatingZoneController::Mode HeatingZoneController::mode() const
@@ -65,6 +71,10 @@ void HeatingZoneController::setLowTargetTemperature(const DeciDegrees value)
 
 void HeatingZoneController::overrideTargetTemperature(const DeciDegrees value)
 {
+    if (_mode == Mode::Off) {
+        return;
+    }
+
     _overrideRemainingMs = _config.overrideTimeoutSeconds * 1000;
     _overrideTemperature = value;
 }
@@ -109,7 +119,7 @@ bool HeatingZoneController::callingForHeating() const
     }
 
     if (_mode == Mode::Auto || _mode == Mode::Holiday) {
-        return _callForHeatByTemperature;
+        return _callForHeatingByTemperature;
     }
 
     return false;
@@ -137,7 +147,7 @@ void HeatingZoneController::task(const uint32_t systemClockDeltaMs)
 void HeatingZoneController::updateCallForHeatByTemperature()
 {
     if (_mode == Mode::Off) {
-        _callForHeatByTemperature = false;
+        _callForHeatingByTemperature = false;
         return;
     }
 
@@ -148,13 +158,13 @@ void HeatingZoneController::updateCallForHeatByTemperature()
 
     std::cout << __func__
         << ": calculatedTargetTemperature=" << calculatedTargetTemperature
-        << ", _callForHeatByTemperature=" << _callForHeatByTemperature
+        << ", _callForHeatingByTemperature=" << _callForHeatingByTemperature
         << ", _lastInputTemperature=" << _lastInputTemperature
         << ", _config.heatingOvershoot=" << _config.heatingOvershoot
         << ", _config.heatingUndershoot=" << _config.heatingUndershoot
         << '\n';
 
-    if (_callForHeatByTemperature) {
+    if (_callForHeatingByTemperature) {
         const auto target = calculatedTargetTemperature + _config.heatingOvershoot;
 
         std::cout << __func__
@@ -165,7 +175,7 @@ void HeatingZoneController::updateCallForHeatByTemperature()
             _lastInputTemperature >= target
             || _lastInputTemperature >= FailSafeHighTarget
         ) {
-            _callForHeatByTemperature = false;
+            _callForHeatingByTemperature = false;
         }
     } else {
         const auto target = calculatedTargetTemperature - _config.heatingUndershoot;
@@ -178,7 +188,7 @@ void HeatingZoneController::updateCallForHeatByTemperature()
             _lastInputTemperature <= target
             || _lastInputTemperature <= FailSafeLowTarget
         ) {
-            _callForHeatByTemperature = true;
+            _callForHeatingByTemperature = true;
         }
     }
 }

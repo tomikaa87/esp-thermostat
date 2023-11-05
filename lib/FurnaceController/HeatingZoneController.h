@@ -109,7 +109,7 @@ private:
     DeciDegrees _overrideTemperature{};
     uint32_t _overrideRemainingMs{};
 
-    bool _callForHeatByTemperature{};
+    bool _callForHeatingByTemperature{};
 
     uint32_t _requestedBoostTimeMs{};
 
