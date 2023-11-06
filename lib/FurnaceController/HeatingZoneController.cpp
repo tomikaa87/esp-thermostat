@@ -10,7 +10,29 @@ namespace
 
 HeatingZoneController::HeatingZoneController(Configuration config)
     : _config{ std::move(config) }
+    , _highTargetTemperature{ FailSafeLowTarget }
+    , _lowTargetTemperature{ FailSafeLowTarget }
+    , _lastInputTemperature{ FailSafeHighTarget }
 {
+}
+
+void HeatingZoneController::updateDateTime(
+    const int dayOfWeek,
+    const int hour,
+    const int minute
+)
+{
+    if (hour > 23 || minute > 59 || dayOfWeek > 6) {
+        return;
+    }
+
+    const auto intervalIndex = (hour & 0b11111) << 1 | (minute >= 30 ? 1 : 0);
+
+    _scheduleDataDay = dayOfWeek;
+    _scheduleDataByte = intervalIndex >> 3;
+    _scheduleDataMask = 1 << (intervalIndex & 0b111);
+
+    updateCallForHeatByTemperature();
 }
 
 void HeatingZoneController::setMode(const Mode mode)
@@ -195,5 +217,13 @@ void HeatingZoneController::updateCallForHeatByTemperature()
 
 HeatingZoneController::DeciDegrees HeatingZoneController::targetTemperatureBySchedule() const
 {
+    if (_scheduleDataDay > 6 || _scheduleDataByte > 5) {
+        return _lowTargetTemperature;
+    }
+
+    if (_config.scheduleData[_scheduleDataDay * 6 + _scheduleDataByte] & _scheduleDataMask) {
+        return _highTargetTemperature;
+    }
+
     return _lowTargetTemperature;
 }

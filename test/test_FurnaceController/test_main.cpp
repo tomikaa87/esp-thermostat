@@ -16,6 +16,24 @@ namespace TestUtils
         }
         return data;
     }
+
+    HeatingZoneController::ScheduleData generateHighScheduleForEveryFirstHalfHour()
+    {
+        HeatingZoneController::ScheduleData data{{}};
+        for (auto& byte : data) {
+            byte = 0b01010101;
+        }
+        return data;
+    }
+
+    HeatingZoneController::ScheduleData generateHighScheduleForEverySecondHalfHour()
+    {
+        HeatingZoneController::ScheduleData data{{}};
+        for (auto& byte : data) {
+            byte = 0b10101010;
+        }
+        return data;
+    }
 }
 
 std::ostream& operator<<(std::ostream& str, const HeatingZoneController::Mode mode)
@@ -121,7 +139,7 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_Init
     EXPECT_FALSE(controller.callingForHeating());
     EXPECT_EQ(controller.mode(), HeatingZoneController::Mode::Off);
     EXPECT_FALSE(controller.targetTemperatureOverrideActive());
-    EXPECT_EQ(controller.targetTemperature(), HeatingZoneController::DeciDegrees{});
+    EXPECT_FALSE(controller.targetTemperature().has_value());
 }
 
 TEST(HeatingZoneController, ModeAuto_ScheduleAllLow_BoostStopped_HeatingIdle_LowTargetTemp)
@@ -262,11 +280,10 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_Afte
     EXPECT_TRUE(controller.boostActive());
     EXPECT_EQ(
         controller.boostRemainingSeconds(),
-        HeatingZoneController::Configuration{}.boostInitialDurationSeconds
-        + HeatingZoneController::Configuration{}.boostExtensionDurationSeconds
+        HeatingZoneController::Configuration{}.boostExtensionDurationSeconds
     );
 
-    controller.task(controller.boostRemainingSeconds() * 1000);
+    controller.task(HeatingZoneController::Configuration{}.boostExtensionDurationSeconds * 1000);
     EXPECT_FALSE(controller.boostActive());
 }
 
@@ -388,13 +405,13 @@ TEST(HeatingZoneController, HighTargetTemperatureUndershoot)
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
 
+    controller.inputTemperature(250);
+    EXPECT_FALSE(controller.callingForHeating());
+
     controller.inputTemperature(230);
     EXPECT_FALSE(controller.callingForHeating());
 
-    controller.inputTemperature(210);
-    EXPECT_FALSE(controller.callingForHeating());
-
-    controller.inputTemperature(210 - undershoot);
+    controller.inputTemperature(230 - undershoot);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
@@ -633,6 +650,7 @@ TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeatingWithHighTarget)
 
     controller.setMode(HeatingZoneController::Mode::Auto);
 
+    EXPECT_EQ(controller.targetTemperature(), 230);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
@@ -651,6 +669,158 @@ TEST(HeatingZoneController, SwitchingToHolidayModeTurnsOnHeating)
     controller.setMode(HeatingZoneController::Mode::Holiday);
 
     EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, AlwaysHighTargetTemperatureForAllHighSchedule)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .scheduleData = TestUtils::generateAllHighSchedule()
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    for (auto dayOfWeek = 0; dayOfWeek < 7; ++dayOfWeek) {
+        for (auto hour = 0; hour < 24; ++hour) {
+            for (auto minute = 0; minute < 60; ++minute) {
+                controller.updateDateTime(dayOfWeek, hour, minute);
+
+                EXPECT_EQ(controller.targetTemperature(), 230);
+
+                if (controller.targetTemperature() != 230) {
+                    std::cout
+                        << "dayOfWeek=" << dayOfWeek
+                        << ",hour=" << hour
+                        << ",minute=" << minute
+                        << '\n';
+                }
+            }
+        }
+    }
+}
+
+TEST(HeatingZoneController, AlwaysLowTargetTemperatureForAllLowSchedule)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .scheduleData = {}
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    for (auto dayOfWeek = 0; dayOfWeek < 7; ++dayOfWeek) {
+        for (auto hour = 0; hour < 24; ++hour) {
+            for (auto minute = 0; minute < 60; ++minute) {
+                controller.updateDateTime(dayOfWeek, hour, minute);
+
+                EXPECT_EQ(controller.targetTemperature(), 210);
+
+                if (controller.targetTemperature() != 210) {
+                    std::cout
+                        << "dayOfWeek=" << dayOfWeek
+                        << ",hour=" << hour
+                        << ",minute=" << minute
+                        << '\n';
+                }
+            }
+        }
+    }
+}
+
+TEST(HeatingZoneController, TargetTemperatureForAlternatingSchedule1)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .scheduleData = TestUtils::generateHighScheduleForEveryFirstHalfHour()
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(220);
+
+    for (auto dayOfWeek = 0; dayOfWeek < 7; ++dayOfWeek) {
+        for (auto hour = 0; hour < 24; ++hour) {
+            for (auto minute = 0; minute < 60; ++minute) {
+                controller.updateDateTime(dayOfWeek, hour, minute);
+
+                bool expectFailed{ false };
+
+                if (minute < 30) {
+                    EXPECT_EQ(controller.targetTemperature(), 230);
+                    expectFailed = controller.targetTemperature() != 230;
+
+                    EXPECT_TRUE(controller.callingForHeating());
+                } else {
+                    EXPECT_EQ(controller.targetTemperature(), 210);
+                    expectFailed = controller.targetTemperature() != 210;
+
+                    EXPECT_FALSE(controller.callingForHeating());
+                }
+
+                if (expectFailed) {
+                    std::cout
+                        << "dayOfWeek=" << dayOfWeek
+                        << ",hour=" << hour
+                        << ",minute=" << minute
+                        << '\n';
+                }
+            }
+        }
+    }
+}
+
+TEST(HeatingZoneController, TargetTemperatureForAlternatingSchedule2)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .scheduleData = TestUtils::generateHighScheduleForEverySecondHalfHour()
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(220);
+
+    for (auto dayOfWeek = 0; dayOfWeek < 7; ++dayOfWeek) {
+        for (auto hour = 0; hour < 24; ++hour) {
+            for (auto minute = 0; minute < 60; ++minute) {
+                controller.updateDateTime(dayOfWeek, hour, minute);
+
+                bool expectFailed{ false };
+
+                if (minute < 30) {
+                    EXPECT_EQ(controller.targetTemperature(), 210);
+                    expectFailed = controller.targetTemperature() != 210;
+
+                    EXPECT_FALSE(controller.callingForHeating());
+                } else {
+                    EXPECT_EQ(controller.targetTemperature(), 230);
+                    expectFailed = controller.targetTemperature() != 230;
+
+                    EXPECT_TRUE(controller.callingForHeating());
+                }
+
+                if (expectFailed) {
+                    std::cout
+                        << "dayOfWeek=" << dayOfWeek
+                        << ",hour=" << hour
+                        << ",minute=" << minute
+                        << '\n';
+                }
+            }
+        }
+    }
 }
 
 #pragma endregion
@@ -677,6 +847,11 @@ public:
     HeatingZoneController::DeciDegrees undershoot{ 5 };
     HeatingZoneController controller;
 };
+
+TEST_P(ActiveModeTest, TargetTemperatureIsValid)
+{
+    EXPECT_NE(controller.targetTemperature(), std::nullopt);
+}
 
 TEST_P(ActiveModeTest, OverrideTemperatureOvershoot)
 {

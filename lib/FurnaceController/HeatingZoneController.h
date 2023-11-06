@@ -39,6 +39,8 @@ public:
 
     void updateConfig(Configuration config);
 
+    void updateDateTime(int dayOfWeek, int hour, int minute);
+
     void setMode(Mode mode);
     [[nodiscard]] Mode mode() const;
 
@@ -101,6 +103,10 @@ private:
     Configuration _config;
 
     Mode _mode{ Mode::Off };
+
+    int _scheduleDataDay{};
+    int _scheduleDataByte{};
+    int _scheduleDataMask{ 1 };
 
     DeciDegrees _lastInputTemperature{};
     DeciDegrees _highTargetTemperature{};
