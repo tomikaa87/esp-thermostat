@@ -1,13 +1,17 @@
 #include "main.h"
+#include "FurnaceController.h"
 #include "Peripherals.h"
 #include "PrivateConfig.h"
-#include "Thermostat.h"
 
 #include <Arduino.h>
 
 #include <memory>
 
-static std::unique_ptr<Thermostat> _thermostat;
+namespace
+{
+    ApplicationConfig appConfig;
+    std::unique_ptr<FurnaceController> controller;
+}
 
 void initializeTempSensor()
 {
@@ -20,8 +24,6 @@ void initializeTempSensor()
 void setup()
 {
     initializeTempSensor();
-
-    static ApplicationConfig appConfig;
 
     appConfig.firmwareVersion = VersionNumber{ 1, 0, 0 };
 
@@ -56,12 +58,10 @@ void setup()
 
     appConfig.hostName = Config::HostName;
 
-    _thermostat.reset(new Thermostat(appConfig));
+    controller = std::make_unique<FurnaceController>(appConfig);
 }
 
 void loop()
 {
-    if (_thermostat) {
-        _thermostat->task();
-    }
+    controller->task();
 }
