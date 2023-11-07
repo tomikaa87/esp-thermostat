@@ -44,7 +44,15 @@ void FurnaceController::setupRelayOutput() const
     pinMode(RelayOutputPin, OUTPUT);
 }
 
-void FurnaceController::setRelayOutputActive(const bool active) const
+void FurnaceController::setRelayOutputActive(const bool active)
 {
+    if (active == _relayOutputActive) {
+        return;
+    }
+
+    _relayOutputActive = active;
+
+    _log.info("%s: active=%d", __func__, active);
+
     digitalWrite(RelayOutputPin, active ? HIGH : LOW);
 }

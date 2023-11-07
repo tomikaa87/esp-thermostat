@@ -1,6 +1,6 @@
 #include "HeatingZoneController.h"
 
-#include <iostream>
+// #include <iostream>
 
 namespace
 {
@@ -106,9 +106,19 @@ void HeatingZoneController::setHighTargetTemperature(const DeciDegrees value)
     _highTargetTemperature = value;
 }
 
+HeatingZoneController::DeciDegrees HeatingZoneController::highTargetTemperature() const
+{
+    return _highTargetTemperature;
+}
+
 void HeatingZoneController::setLowTargetTemperature(const DeciDegrees value)
 {
     _lowTargetTemperature = value;
+}
+
+HeatingZoneController::DeciDegrees HeatingZoneController::lowTargetTemperature() const
+{
+    return _lowTargetTemperature;
 }
 
 void HeatingZoneController::overrideTargetTemperature(const DeciDegrees value)
@@ -119,6 +129,8 @@ void HeatingZoneController::overrideTargetTemperature(const DeciDegrees value)
 
     _overrideRemainingMs = _config.overrideTimeoutSeconds * 1000;
     _overrideTemperature = value;
+
+    updateCallForHeatByTemperature();
 }
 
 void HeatingZoneController::resetTargetTemperature()
@@ -198,20 +210,20 @@ void HeatingZoneController::updateCallForHeatByTemperature()
         calculatedTargetTemperature = t.value();
     }
 
-    std::cout << __func__
-        << ": calculatedTargetTemperature=" << calculatedTargetTemperature
-        << ", _callForHeatingByTemperature=" << _callForHeatingByTemperature
-        << ", _lastInputTemperature=" << _lastInputTemperature
-        << ", _config.heatingOvershoot=" << _config.heatingOvershoot
-        << ", _config.heatingUndershoot=" << _config.heatingUndershoot
-        << '\n';
+    // std::cout << __func__
+    //     << ": calculatedTargetTemperature=" << calculatedTargetTemperature
+    //     << ", _callForHeatingByTemperature=" << _callForHeatingByTemperature
+    //     << ", _lastInputTemperature=" << _lastInputTemperature
+    //     << ", _config.heatingOvershoot=" << _config.heatingOvershoot
+    //     << ", _config.heatingUndershoot=" << _config.heatingUndershoot
+    //     << '\n';
 
     if (_callForHeatingByTemperature) {
         const auto target = calculatedTargetTemperature + _config.heatingOvershoot;
 
-        std::cout << __func__
-            << ": target=" << target
-            << '\n';
+        // std::cout << __func__
+        //     << ": target=" << target
+        //     << '\n';
 
         if (
             _lastInputTemperature >= target
@@ -222,9 +234,9 @@ void HeatingZoneController::updateCallForHeatByTemperature()
     } else {
         const auto target = calculatedTargetTemperature - _config.heatingUndershoot;
 
-        std::cout << __func__
-            << ": target=" << target
-            << '\n';
+        // std::cout << __func__
+        //     << ": target=" << target
+        //     << '\n';
 
         if (
             _lastInputTemperature <= target

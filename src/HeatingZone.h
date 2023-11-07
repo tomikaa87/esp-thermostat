@@ -3,6 +3,7 @@
 #include "network/MQTT/MqttVariable.h"
 
 #include <HeatingZoneController.h>
+#include <Logger.h>
 
 class CoreApplication;
 
@@ -20,6 +21,7 @@ public:
 
 private:
     CoreApplication& _app;
+    Logger _log;
     HeatingZoneController _controller;
     const std::string _topicPrefix;
 
@@ -37,6 +39,7 @@ private:
     void setupMqttChangeHandlers();
     void updateMqtt();
 
+    void onModeChanged(const std::string& mode);
     void onTargetTemperatureChanged(float value);
     void onLowTargetTemperatureChanged(float value);
     void onHighTargetTemperatureChanged(float value);

@@ -57,7 +57,11 @@ public:
     void inputTemperature(DeciDegrees value);
 
     void setHighTargetTemperature(DeciDegrees value);
+    [[nodiscard]] DeciDegrees highTargetTemperature() const;
+
     void setLowTargetTemperature(DeciDegrees value);
+    [[nodiscard]] DeciDegrees lowTargetTemperature() const;
+
     void overrideTargetTemperature(DeciDegrees value);
 
     /**

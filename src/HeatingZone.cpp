@@ -30,6 +30,7 @@ HeatingZone::HeatingZone(
     CoreApplication& app
 )
     : _app{ app }
+    , _log{ std::string{ "HeatingZone_" } + std::to_string(index) }
     , _controller{ HeatingZoneController::Configuration{} }
     , _topicPrefix{ std::string{ "furnace_" } + std::to_string(index) }
     , _mode{ _topicPrefix, PSTR("/mode"), PSTR("/mode/set"), app.mqttClient() }
@@ -40,9 +41,10 @@ HeatingZone::HeatingZone(
     , _action{ _topicPrefix, PSTR("/action"), app.mqttClient() }
     , _presetMode{ _topicPrefix, PSTR("/preset"), PSTR("/preset/set"), app.mqttClient() }
     , _boostRemainingSeconds{ _topicPrefix, PSTR("/boost/remaining"), app.mqttClient() }
-    , _boostActive{ _topicPrefix, PSTR("/boost/active"), app.mqttClient() }
+    , _boostActive{ _topicPrefix, PSTR("/boost/active"), PSTR("/boost/active/set"), app.mqttClient() }
 {
     setupMqttComponentConfigs();
+    setupMqttChangeHandlers();
 
     _app.setMqttUpdateHandler(
         [this] {
@@ -82,9 +84,9 @@ void HeatingZone::setupMqttComponentConfigs()
         },
         [this] {
             return makeButtonConfig(
-                PSTR("mdi:radiator-on"),
+                PSTR("mdi:radiator"),
                 PSTR("Activate Boost"),
-                PSTR("boost_deactivate"),
+                PSTR("boost_activate"),
                 PSTR("/boost/active/set"),
                 PSTR("1")
             );
@@ -141,6 +143,12 @@ void HeatingZone::setupMqttComponentConfigs()
 
 void HeatingZone::setupMqttChangeHandlers()
 {
+    _mode.setChangedHandler(
+        [this](const std::string& value) {
+            onModeChanged(value);
+        }
+    );
+
     _targetTemperature.setChangedHandler(
         [this](const std::string& value) {
             onTargetTemperatureChanged(std::atof(value.c_str()));
@@ -180,11 +188,32 @@ void HeatingZone::setupMqttChangeHandlers()
 
 void HeatingZone::updateMqtt()
 {
+    switch (_controller.mode()) {
+        case HeatingZoneController::Mode::Off:
+            _mode = "off";
+            _presetMode = "None";
+            break;
+
+        case HeatingZoneController::Mode::Auto:
+            _mode = "heat";
+            _presetMode = "None";
+            break;
+
+        case HeatingZoneController::Mode::Holiday:
+            _mode = "heat";
+            _presetMode = "away";
+            break;
+    }
+
     if (_controller.targetTemperature().has_value()) {
         _targetTemperature = std::to_string(_controller.targetTemperature().value() / 10.f);
     } else {
         _targetTemperature = "None";
     }
+
+    _lowTargetTemperature = _controller.lowTargetTemperature() / 10.f;
+
+    _highTargetTemperature = _controller.highTargetTemperature() / 10.f;
 
     if (_controller.callingForHeating()) {
         _action = "heating";
@@ -194,18 +223,23 @@ void HeatingZone::updateMqtt()
         _action = "off";
     }
 
-    if (_controller.mode() == HeatingZoneController::Mode::Holiday) {
-        _presetMode = "away";
-    } else {
-        _presetMode = "None";
-    }
-
     _boostRemainingSeconds = _controller.boostRemainingSeconds();
+
     _boostActive = _controller.boostActive() ? 1 : 0;
+}
+
+void HeatingZone::onModeChanged(const std::string& mode)
+{
+    if (mode == "heat") {
+        _controller.setMode(HeatingZoneController::Mode::Auto);
+    } else if (mode == "off") {
+        _controller.setMode(HeatingZoneController::Mode::Off);
+    }
 }
 
 void HeatingZone::onTargetTemperatureChanged(const float value)
 {
+    _log.info("%s: value=%f", __func__, value);
     _controller.overrideTargetTemperature(value * 10);
 }
 
@@ -226,9 +260,9 @@ void HeatingZone::onRemoteTemperatureChanged(const float value)
 
 void HeatingZone::onPresetModeChanged(const std::string& value)
 {
-    if (value == "away" && _controller.mode() == HeatingZoneController::Mode::Auto) {
+    if (value == "away") {
         _controller.setMode(HeatingZoneController::Mode::Holiday);
-    } else if (value == "none" && _controller.mode() == HeatingZoneController::Mode::Holiday) {
+    } else {
         _controller.setMode(HeatingZoneController::Mode::Auto);
     }
 }
@@ -333,7 +367,7 @@ std::string HeatingZone::makeSensorConfig(
     config << pgmToStdString(PSTR(R"(","name":")")) << pgmToStdString(name);
     config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
     config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","state_topic":")")) << _topicPrefix << '_' << pgmToStdString(stateTopic);
+    config << pgmToStdString(PSTR(R"(","state_topic":")")) << _topicPrefix << pgmToStdString(stateTopic);
     config << pgmToStdString(PSTR(R"(","unit_of_measurement":")")) << pgmToStdString(unit);
     config << '"';
 
@@ -359,15 +393,13 @@ std::string HeatingZone::makeRemoteTemperatureSensorConfig(
     config << pgmToStdString(PSTR(R"(,"name":")")) << pgmToStdString(name);
     config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
     config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","command_topic":")")) << _topicPrefix << '_' << pgmToStdString(commandTopic);
-    config << pgmToStdString(PSTR(R"(","state_topic":")")) << _topicPrefix << '_' << pgmToStdString(stateTopic);
+    config << pgmToStdString(PSTR(R"(","command_topic":")")) << _topicPrefix << pgmToStdString(commandTopic);
+    config << pgmToStdString(PSTR(R"(","state_topic":")")) << _topicPrefix << pgmToStdString(stateTopic);
     config << pgmToStdString(PSTR(R"(","unit_of_measurement":"C")"));
     config << pgmToStdString(PSTR(R"(,"mode":"slider")"));
     config << pgmToStdString(PSTR(R"(,"max":30)"));
     config << pgmToStdString(PSTR(R"(,"min":10)"));
     config << pgmToStdString(PSTR(R"(,"step":0.1)"));
-    config << pgmToStdString(PSTR(R"(,"unit_of_measurement":"C")"));
-    config << '"';
 
     config << '}';
 
