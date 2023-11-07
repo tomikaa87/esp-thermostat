@@ -9,11 +9,31 @@ namespace
 }
 
 HeatingZoneController::HeatingZoneController(Configuration config)
-    : _config{ std::move(config) }
+    : _lastInputTemperature{ FailSafeHighTarget }
     , _highTargetTemperature{ FailSafeLowTarget }
     , _lowTargetTemperature{ FailSafeLowTarget }
-    , _lastInputTemperature{ FailSafeHighTarget }
 {
+    updateConfig(std::move(config));
+}
+
+bool HeatingZoneController::updateConfig(Configuration config)
+{
+    if (
+        config.heatingOvershoot > 20
+        || config.heatingUndershoot > 20
+        || config.boostInitialDurationSeconds > 3600
+        || config.boostExtensionDurationSeconds > 3600
+        || config.holidayModeTemperature > FailSafeHighTarget
+        || config.overrideTimeoutSeconds > 4 * 3600
+    ) {
+        return false;
+    }
+
+    _config = std::move(config);
+
+    updateCallForHeatByTemperature();
+
+    return true;
 }
 
 void HeatingZoneController::updateDateTime(

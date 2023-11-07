@@ -37,7 +37,7 @@ public:
 
     explicit HeatingZoneController(Configuration config);
 
-    void updateConfig(Configuration config);
+    bool updateConfig(Configuration config);
 
     void updateDateTime(int dayOfWeek, int hour, int minute);
 
