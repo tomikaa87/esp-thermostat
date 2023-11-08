@@ -21,7 +21,6 @@
 #include "DrawHelper.h"
 #include "Extras.h"
 #include "Graphics.h"
-#include "HeatingController.h"
 #include "Keypad.h"
 #include "MenuScreen.h"
 #include "Settings.h"
@@ -273,91 +272,91 @@ void MenuScreen::updatePageHeatCtlMode()
 {
     // FIXME: proper mode name must be shown
 
-    char num[4] = { 0 };
-    sprintf(num, "%2d", _newSettings.HeatingController.Mode);
+    // char num[4] = { 0 };
+    // sprintf(num, "%2d", _newSettings.HeatingController.Mode);
 
     Display::fillArea(0, 3, 128, 3, 0);
 
-    switch (static_cast<HeatingController::Mode>(_newSettings.HeatingController.Mode)) {
-    case HeatingController::Mode::Normal:
-        graphics_draw_multipage_bitmap(graphics_calendar_icon_20x3p, 20, 3, 20, 2);
-        Text::draw("NORMAL", 3, 50, 0, false);
-        Text::draw("(SCHEDULE)", 4, 50, 0, false);
-        break;
+    // switch (static_cast<HeatingController::Mode>(_newSettings.HeatingController.Mode)) {
+    // case HeatingController::Mode::Normal:
+    //     graphics_draw_multipage_bitmap(graphics_calendar_icon_20x3p, 20, 3, 20, 2);
+    //     Text::draw("NORMAL", 3, 50, 0, false);
+    //     Text::draw("(SCHEDULE)", 4, 50, 0, false);
+    //     break;
 
-    case HeatingController::Mode::Off:
-        graphics_draw_multipage_bitmap(graphics_off_icon_20x3p, 20, 3, 20, 2);
-        Text::draw("OFF", 3, 50, 0, false);
-        break;
+    // case HeatingController::Mode::Off:
+    //     graphics_draw_multipage_bitmap(graphics_off_icon_20x3p, 20, 3, 20, 2);
+    //     Text::draw("OFF", 3, 50, 0, false);
+    //     break;
 
-    case HeatingController::Mode::Boost:
-        break;
-    }
+    // case HeatingController::Mode::Boost:
+    //     break;
+    // }
 }
 
 void MenuScreen::updatePageDaytimeTemp()
 {
-    draw_temperature_value(20,
-        _newSettings.HeatingController.DaytimeTemp / 10,
-        _newSettings.HeatingController.DaytimeTemp % 10);
+    // draw_temperature_value(20,
+    //     _newSettings.HeatingController.DaytimeTemp / 10,
+    //     _newSettings.HeatingController.DaytimeTemp % 10);
 }
 
 void MenuScreen::updatePageNightTimeTemp()
 {
-    draw_temperature_value(20,
-        _newSettings.HeatingController.NightTimeTemp / 10,
-        _newSettings.HeatingController.NightTimeTemp % 10);
+    // draw_temperature_value(20,
+    //     _newSettings.HeatingController.NightTimeTemp / 10,
+    //     _newSettings.HeatingController.NightTimeTemp % 10);
 }
 
 void MenuScreen::updatePageTempOvershoot()
 {
-    draw_temperature_value(20,
-        _newSettings.HeatingController.Overshoot / 10,
-        _newSettings.HeatingController.Overshoot % 10);
+    // draw_temperature_value(20,
+    //     _newSettings.HeatingController.Overshoot / 10,
+    //     _newSettings.HeatingController.Overshoot % 10);
 }
 
 void MenuScreen::updatePageTempUndershoot()
 {
-    draw_temperature_value(20,
-        _newSettings.HeatingController.Undershoot / 10,
-        _newSettings.HeatingController.Undershoot % 10);
+    // draw_temperature_value(20,
+    //     _newSettings.HeatingController.Undershoot / 10,
+    //     _newSettings.HeatingController.Undershoot % 10);
 }
 
 void MenuScreen::updatePageBoostIntval()
 {
-    char num[4] = { 0 };
-    sprintf(num, "%2d", _newSettings.HeatingController.BoostIntervalMins);
-    Text::draw7Seg(num, 2, 20);
+    // char num[4] = { 0 };
+    // sprintf(num, "%2d", _newSettings.HeatingController.BoostIntervalMins);
+    // Text::draw7Seg(num, 2, 20);
 }
 
 void MenuScreen::updatePageCustomTempTimeout()
 {
-    char num[6] = { 0 };
-    sprintf(num, "%4u", _newSettings.HeatingController.CustomTempTimeoutMins);
-    Text::draw7Seg(num, 2, 20);
+    // char num[6] = { 0 };
+    // sprintf(num, "%4u", _newSettings.HeatingController.CustomTempTimeoutMins);
+    // Text::draw7Seg(num, 2, 20);
 }
 
 void MenuScreen::updatePageTempCorrection()
 {
-    draw_temperature_value(20,
-        _newSettings.HeatingController.TempCorrection / 10,
-        _newSettings.HeatingController.TempCorrection% 10);
+    // draw_temperature_value(20,
+    //     _newSettings.HeatingController.TempCorrection / 10,
+    //     _newSettings.HeatingController.TempCorrection% 10);
 }
 
 void MenuScreen::updatePageDisplayBrightness()
 {
-    char num[4] = { 0 };
-    sprintf(num, "%3d", _newSettings.Display.Brightness);
-    Text::draw7Seg(num, 2, 20);
+    // char num[4] = { 0 };
+    // sprintf(num, "%3d", _newSettings.Display.Brightness);
+    // Text::draw7Seg(num, 2, 20);
 
-    Display::setContrast(_newSettings.Display.Brightness);
+    // Display::setContrast(_newSettings.Display.Brightness);
 }
 
 void MenuScreen::updatePageDisplayTimeout()
 {
-    char num[4] = { 0 };
-    sprintf(num, "%3d", _newSettings.Display.TimeoutSecs);
-    Text::draw7Seg(num, 2, 20);
+    // char num[4] = { 0 };
+    // sprintf(num, "%3d", _newSettings.Display.TimeoutSecs);
+    // Text::draw7Seg(num, 2, 20);
 }
 
 void MenuScreen::updatePageReboot()
@@ -410,10 +409,10 @@ void MenuScreen::applySettings()
     _settings.data = _newSettings;
 
     auto rebootAfterSave = false;
-    if (_settings.data.Scheduler.DisableBlynk != _blynkDisableValue) {
-        _settings.data.Scheduler.DisableBlynk = _blynkDisableValue;
-        rebootAfterSave = true;
-    }
+    // if (_settings.data.Scheduler.DisableBlynk != _blynkDisableValue) {
+    //     _settings.data.Scheduler.DisableBlynk = _blynkDisableValue;
+    //     rebootAfterSave = true;
+    // }
 
     _settings.save();
 
@@ -425,100 +424,100 @@ void MenuScreen::applySettings()
 void MenuScreen::revertSettings()
 {
     _newSettings = _settings.data;
-    _blynkDisableValue = _settings.data.Scheduler.DisableBlynk;
+    // _blynkDisableValue = _settings.data.Scheduler.DisableBlynk;
 
-    Display::setContrast(_settings.data.Display.Brightness);
+    Display::setContrast(_settings.data.display.Brightness);
 }
 
 void MenuScreen::adjustValue(int8_t amount)
 {
     switch (_page) {
     case Page::HeatCtlMode:
-        if (_newSettings.HeatingController.Mode == 0 && amount > 0) {
-            _newSettings.HeatingController.Mode = 2;
-        } else if (_newSettings.HeatingController.Mode == 2 && amount < 0) {
-            _newSettings.HeatingController.Mode = 0;
-        }
+        // if (_newSettings.HeatingController.Mode == 0 && amount > 0) {
+        //     _newSettings.HeatingController.Mode = 2;
+        // } else if (_newSettings.HeatingController.Mode == 2 && amount < 0) {
+        //     _newSettings.HeatingController.Mode = 0;
+        // }
         updatePageHeatCtlMode();
         break;
 
     case Page::DaytimeTemp:
-        _newSettings.HeatingController.DaytimeTemp = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.DaytimeTemp,
-            amount,
-            Limits::HeatingController::DaytimeTempMin,
-            Limits::HeatingController::DaytimeTempMax
-        );
+        // _newSettings.HeatingController.DaytimeTemp = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.DaytimeTemp,
+        //     amount,
+        //     Limits::HeatingController::DaytimeTempMin,
+        //     Limits::HeatingController::DaytimeTempMax
+        // );
         updatePageDaytimeTemp();
         break;
 
     case Page::NightTimeTemp:
-        _newSettings.HeatingController.NightTimeTemp = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.NightTimeTemp,
-            amount,
-            Limits::HeatingController::NightTimeTempMin,
-            Limits::HeatingController::NightTimeTempMax
-        );
+        // _newSettings.HeatingController.NightTimeTemp = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.NightTimeTemp,
+        //     amount,
+        //     Limits::HeatingController::NightTimeTempMin,
+        //     Limits::HeatingController::NightTimeTempMax
+        // );
         updatePageNightTimeTemp();
         break;
 
     case Page::TempOvershoot:
-        _newSettings.HeatingController.Overshoot = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.Overshoot,
-            amount,
-            Limits::HeatingController::TempOvershootMin,
-            Limits::HeatingController::TempOvershootMax
-        );
+        // _newSettings.HeatingController.Overshoot = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.Overshoot,
+        //     amount,
+        //     Limits::HeatingController::TempOvershootMin,
+        //     Limits::HeatingController::TempOvershootMax
+        // );
         updatePageTempOvershoot();
         break;
 
     case Page::TempUndershoot:
-        _newSettings.HeatingController.Undershoot = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.Undershoot,
-            amount,
-            Limits::HeatingController::TempUndershootMin,
-            Limits::HeatingController::TempUndershootMax
-        );
+        // _newSettings.HeatingController.Undershoot = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.Undershoot,
+        //     amount,
+        //     Limits::HeatingController::TempUndershootMin,
+        //     Limits::HeatingController::TempUndershootMax
+        // );
         updatePageTempUndershoot();
         break;
 
     case Page::BoostInterval:
-        _newSettings.HeatingController.BoostIntervalMins = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.BoostIntervalMins,
-            amount,
-            Limits::HeatingController::BoostIntervalMin,
-            Limits::HeatingController::BoostIntervalMax
-        );
+        // _newSettings.HeatingController.BoostIntervalMins = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.BoostIntervalMins,
+        //     amount,
+        //     Limits::HeatingController::BoostIntervalMin,
+        //     Limits::HeatingController::BoostIntervalMax
+        // );
         updatePageBoostIntval();
         break;
 
     case Page::CustomTempTimeout:
-        _newSettings.HeatingController.CustomTempTimeoutMins = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.CustomTempTimeoutMins,
-            amount,
-            Limits::HeatingController::CustomTempTimeoutMin,
-            Limits::HeatingController::CustomTempTimeoutMax
-        );
+        // _newSettings.HeatingController.CustomTempTimeoutMins = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.CustomTempTimeoutMins,
+        //     amount,
+        //     Limits::HeatingController::CustomTempTimeoutMin,
+        //     Limits::HeatingController::CustomTempTimeoutMax
+        // );
         updatePageCustomTempTimeout();
         break;
 
     case Page::DisplayBrightness:
-        _newSettings.Display.Brightness += amount;
+        // _newSettings.Display.Brightness += amount;
         updatePageDisplayBrightness();
         break;
 
     case Page::DisplayTimeout:
-        _newSettings.Display.TimeoutSecs += amount;
+        // _newSettings.Display.TimeoutSecs += amount;
         updatePageDisplayTimeout();
         break;
 
     case Page::TempCorrection:
-        _newSettings.HeatingController.TempCorrection = Extras::adjustValueWithRollOver(
-            _newSettings.HeatingController.TempCorrection,
-            amount,
-            Limits::HeatingController::TempCorrectionMin,
-            Limits::HeatingController::TempCorrectionMax
-        );
+        // _newSettings.HeatingController.TempCorrection = Extras::adjustValueWithRollOver(
+        //     _newSettings.HeatingController.TempCorrection,
+        //     amount,
+        //     Limits::HeatingController::TempCorrectionMin,
+        //     Limits::HeatingController::TempCorrectionMax
+        // );
         updatePageTempCorrection();
         break;
 

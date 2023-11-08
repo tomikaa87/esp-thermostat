@@ -19,7 +19,6 @@
 */
 
 #include "Settings.h"
-#include "HeatingController.h"
 
 #include <iomanip>
 #include <sstream>
@@ -83,106 +82,106 @@ bool Settings::check()
 {
     bool modified = false;
 
-    // Reset Heat Control mode if it's corrupted
-    if (data.HeatingController.Mode > static_cast<uint8_t>(HeatingController::Mode::Off)) {
-        data.HeatingController.Mode = static_cast<uint8_t>(HeatingController::Mode::Off);
-        modified = true;
-    }
+    // // Reset Heat Control mode if it's corrupted
+    // if (data.HeatingController.Mode > static_cast<uint8_t>(HeatingController::Mode::Off)) {
+    //     data.HeatingController.Mode = static_cast<uint8_t>(HeatingController::Mode::Off);
+    //     modified = true;
+    // }
 
-    // If daytime temp is out of range, reset to default
-    if (data.HeatingController.DaytimeTemp > Limits::HeatingController::DaytimeTempMax || data.HeatingController.DaytimeTemp < Limits::HeatingController::DaytimeTempMin) {
-        data.HeatingController.DaytimeTemp = DefaultSettings::HeatingController::DaytimeTemp;
-        modified = true;
-    }
+    // // If daytime temp is out of range, reset to default
+    // if (data.HeatingController.DaytimeTemp > Limits::HeatingController::DaytimeTempMax || data.HeatingController.DaytimeTemp < Limits::HeatingController::DaytimeTempMin) {
+    //     data.HeatingController.DaytimeTemp = DefaultSettings::HeatingController::DaytimeTemp;
+    //     modified = true;
+    // }
 
-    // If nighttime temp is out of range, reset to default
-    if (data.HeatingController.NightTimeTemp > Limits::HeatingController::NightTimeTempMax || data.HeatingController.NightTimeTemp < Limits::HeatingController::NightTimeTempMin) {
-        data.HeatingController.NightTimeTemp = DefaultSettings::HeatingController::NightTimeTemp;
-        modified = true;
-    }
+    // // If nighttime temp is out of range, reset to default
+    // if (data.HeatingController.NightTimeTemp > Limits::HeatingController::NightTimeTempMax || data.HeatingController.NightTimeTemp < Limits::HeatingController::NightTimeTempMin) {
+    //     data.HeatingController.NightTimeTemp = DefaultSettings::HeatingController::NightTimeTemp;
+    //     modified = true;
+    // }
 
-    // If temperature overshoot is out of range, reset to default
-    if (data.HeatingController.Overshoot > Limits::HeatingController::TempOvershootMax || data.HeatingController.NightTimeTemp < Limits::HeatingController::TempOvershootMin) {
-        data.HeatingController.Overshoot = DefaultSettings::HeatingController::TempOvershoot;
-        modified = true;
-    }
+    // // If temperature overshoot is out of range, reset to default
+    // if (data.HeatingController.Overshoot > Limits::HeatingController::TempOvershootMax || data.HeatingController.NightTimeTemp < Limits::HeatingController::TempOvershootMin) {
+    //     data.HeatingController.Overshoot = DefaultSettings::HeatingController::TempOvershoot;
+    //     modified = true;
+    // }
 
-    // If temperature undershoot is out of range, reset to default
-    if (data.HeatingController.Undershoot > Limits::HeatingController::TempUndershootMax || data.HeatingController.Undershoot < Limits::HeatingController::TempUndershootMin) {
-        data.HeatingController.Undershoot = DefaultSettings::HeatingController::TempUndershoot;
-        modified = true;
-    }
+    // // If temperature undershoot is out of range, reset to default
+    // if (data.HeatingController.Undershoot > Limits::HeatingController::TempUndershootMax || data.HeatingController.Undershoot < Limits::HeatingController::TempUndershootMin) {
+    //     data.HeatingController.Undershoot = DefaultSettings::HeatingController::TempUndershoot;
+    //     modified = true;
+    // }
 
-    // If temperature correction is out of range, reset to default
-    if (data.HeatingController.TempCorrection > Limits::HeatingController::TempCorrectionMax || data.HeatingController.TempCorrection < Limits::HeatingController::TempCorrectionMin) {
-        data.HeatingController.TempCorrection = DefaultSettings::HeatingController::TempCorrection;
-        modified = true;
-    }
+    // // If temperature correction is out of range, reset to default
+    // if (data.HeatingController.TempCorrection > Limits::HeatingController::TempCorrectionMax || data.HeatingController.TempCorrection < Limits::HeatingController::TempCorrectionMin) {
+    //     data.HeatingController.TempCorrection = DefaultSettings::HeatingController::TempCorrection;
+    //     modified = true;
+    // }
 
-    // If BOOST interval is out of range, reset to default
-    if (data.HeatingController.BoostIntervalMins > Limits::HeatingController::BoostIntervalMax || data.HeatingController.BoostIntervalMins < Limits::HeatingController::BoostIntervalMin) {
-        data.HeatingController.BoostIntervalMins = DefaultSettings::HeatingController::BoostInterval;
-        modified = true;
-    }
+    // // If BOOST interval is out of range, reset to default
+    // if (data.HeatingController.BoostIntervalMins > Limits::HeatingController::BoostIntervalMax || data.HeatingController.BoostIntervalMins < Limits::HeatingController::BoostIntervalMin) {
+    //     data.HeatingController.BoostIntervalMins = DefaultSettings::HeatingController::BoostInterval;
+    //     modified = true;
+    // }
 
-    // If Custom Temperature Timeout is out of range, reset to default
-    if (data.HeatingController.CustomTempTimeoutMins > Limits::HeatingController::CustomTempTimeoutMax || data.HeatingController.CustomTempTimeoutMins < Limits::HeatingController::CustomTempTimeoutMin) {
-            data.HeatingController.CustomTempTimeoutMins = DefaultSettings::HeatingController::CustomTempTimeout;
-            modified = true;
-    }
+    // // If Custom Temperature Timeout is out of range, reset to default
+    // if (data.HeatingController.CustomTempTimeoutMins > Limits::HeatingController::CustomTempTimeoutMax || data.HeatingController.CustomTempTimeoutMins < Limits::HeatingController::CustomTempTimeoutMin) {
+    //         data.HeatingController.CustomTempTimeoutMins = DefaultSettings::HeatingController::CustomTempTimeout;
+    //         modified = true;
+    // }
 
-    // If there was a correction, assume that the settings data is
-    // corrupted, so reset the brightness of the display to default.
-    // This check is necessary since all possible values (0-255) are valid
-    // for backlight level thus we cannot decide if it's corrupted or not.
-    // At last, save the corrected values.
-    if (modified) {
-        data.Display.Brightness = DefaultSettings::Display::Brightness;
-        data.Display.TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
-    }
+    // // If there was a correction, assume that the settings data is
+    // // corrupted, so reset the brightness of the display to default.
+    // // This check is necessary since all possible values (0-255) are valid
+    // // for backlight level thus we cannot decide if it's corrupted or not.
+    // // At last, save the corrected values.
+    // if (modified) {
+    //     data.Display.Brightness = DefaultSettings::Display::Brightness;
+    //     data.Display.TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
+    // }
 
     return !modified;
 }
 
 void Settings::dumpData() const
 {
-    _log.debug("Display{ Brightness=%u, TimeoutSecs=%u }",
-        data.Display.Brightness,
-        data.Display.TimeoutSecs
-    );
+    // _log.debug("Display{ Brightness=%u, TimeoutSecs=%u }",
+    //     data.Display.Brightness,
+    //     data.Display.TimeoutSecs
+    // );
 
-    _log.debug("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }",
-        data.HeatingController.Mode,
-        data.HeatingController.DaytimeTemp,
-        data.HeatingController.NightTimeTemp,
-        data.HeatingController.TargetTemp,
-        data.HeatingController.TargetTempSetTimestamp,
-        data.HeatingController.Overshoot,
-        data.HeatingController.Undershoot,
-        data.HeatingController.TempCorrection,
-        data.HeatingController.BoostIntervalMins,
-        data.HeatingController.CustomTempTimeoutMins
-    );
+    // _log.debug("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }",
+    //     data.HeatingController.Mode,
+    //     data.HeatingController.DaytimeTemp,
+    //     data.HeatingController.NightTimeTemp,
+    //     data.HeatingController.TargetTemp,
+    //     data.HeatingController.TargetTempSetTimestamp,
+    //     data.HeatingController.Overshoot,
+    //     data.HeatingController.Undershoot,
+    //     data.HeatingController.TempCorrection,
+    //     data.HeatingController.BoostIntervalMins,
+    //     data.HeatingController.CustomTempTimeoutMins
+    // );
 
-    std::stringstream schDays;
-    for (auto i = 0; i < 7; ++i) {
-        schDays << std::to_string(i) << "=";
-        schDays << std::hex << std::setw(2) << std::setfill('0');
-        for (auto j = 0; j < 6; ++j) {
-             schDays << static_cast<int>(data.Scheduler.DayData[i][j]);
-        }
-        schDays << std::resetiosflags << 'h';
-        if (i < 6) {
-            schDays << ", ";
-        }
-    }
+    // std::stringstream schDays;
+    // for (auto i = 0; i < 7; ++i) {
+    //     schDays << std::to_string(i) << "=";
+    //     schDays << std::hex << std::setw(2) << std::setfill('0');
+    //     for (auto j = 0; j < 6; ++j) {
+    //          schDays << static_cast<int>(data.Scheduler.DayData[i][j]);
+    //     }
+    //     schDays << std::resetiosflags << 'h';
+    //     if (i < 6) {
+    //         schDays << ", ";
+    //     }
+    // }
 
-    _log.debug("Scheduler{ Enabled=%u, Days=[ %s ] }",
-        data.Scheduler.Enabled,
-        schDays.str().c_str()
-    );
+    // _log.debug("Scheduler{ Enabled=%u, Days=[ %s ] }",
+    //     data.Scheduler.Enabled,
+    //     schDays.str().c_str()
+    // );
 
-    _log.debug("Extra{ DisableBlynk=%u }",
-        data.Scheduler.DisableBlynk
-    );
+    // _log.debug("Extra{ DisableBlynk=%u }",
+    //     data.Scheduler.DisableBlynk
+    // );
 }

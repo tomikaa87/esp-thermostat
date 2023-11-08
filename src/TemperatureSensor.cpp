@@ -39,7 +39,7 @@ void TemperatureSensor::task()
 int16_t TemperatureSensor::read() const
 {
     auto t = Peripherals::Sensors::MainTemperature::lastReading()
-        + _settings.data.HeatingController.TempCorrection * 10;
+        + _settings.data.system.internalSensorOffset * 10;
 
     return std::min(9999, std::max(-9999, t));
 }

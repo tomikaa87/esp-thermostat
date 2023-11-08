@@ -27,12 +27,6 @@ void setup()
 
     appConfig.firmwareVersion = VersionNumber{ 1, 0, 0 };
 
-#ifdef IOT_ENABLE_BLYNK
-    appConfig.blynk.appToken = Config::Blynk::AppToken;
-    appConfig.blynk.serverHostName = Config::Blynk::ServerHostName;
-    appConfig.blynk.serverPort = Config::Blynk::ServerPort;
-#endif
-
     appConfig.logging.syslog.enabled = false; // TODO set this to true
     appConfig.logging.syslog.hostName = Config::Logging::SyslogHostName;
     appConfig.logging.syslog.serverHostName = Config::Logging::SyslogServerHost;

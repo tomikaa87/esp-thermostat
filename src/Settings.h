@@ -20,9 +20,11 @@
 
 #pragma once
 
+#include <HeatingZoneController.h>
 #include <ISettingsHandler.h>
 #include <Logger.h>
 
+#include <array>
 #include <cstdint>
 #include <ctime>
 
@@ -57,19 +59,6 @@ namespace Limits
 
 namespace DefaultSettings
 {
-    namespace HeatingController
-    {
-        constexpr auto Mode = 0;
-        constexpr auto DaytimeTemp = 220;
-        constexpr auto NightTimeTemp = 200;
-        constexpr auto TargetTemp = NightTimeTemp;
-        constexpr auto TempOvershoot = 5;
-        constexpr auto TempUndershoot = 5;
-        constexpr auto BoostInterval = 10;
-        constexpr auto CustomTempTimeout = 120;
-        constexpr auto TempCorrection = 0;
-    }
-
     namespace Display
     {
         constexpr auto Brightness = 20;
@@ -84,55 +73,28 @@ public:
 
     explicit Settings(ISettingsHandler& handler);
 
-    using SchedulerDayData = uint8_t[6];
-
-    DECLARE_SETTINGS_STRUCT(SchedulerSettings)
-    {
-        uint8_t Enabled: 1;
-
-        // This is just a hack to make Blynk switchable run-time.
-        // To preserve the settings data, the flag must be added
-        // to an already existing empty space. This way the header
-        // checksum won't change after the update.
-        uint8_t DisableBlynk: 1;
-
-        uint8_t: 0;
-        SchedulerDayData DayData[7] = { {} };
-    };
-
     DECLARE_SETTINGS_STRUCT(DisplaySettings)
     {
         uint8_t Brightness = DefaultSettings::Display::Brightness;
         uint8_t TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
     };
 
-    DECLARE_SETTINGS_STRUCT(HeatingControllerSettings)
+    DECLARE_SETTINGS_STRUCT(HeatingZoneSettings)
     {
-        uint8_t Mode = DefaultSettings::HeatingController::Mode;
+        HeatingZoneController::Mode mode{ HeatingZoneController::Mode::Off };
+        HeatingZoneController::Configuration config{};
+    };
 
-        // Temperature values in 0.1 Celsius
-        int16_t DaytimeTemp = DefaultSettings::HeatingController::DaytimeTemp;
-        int16_t NightTimeTemp = DefaultSettings::HeatingController::NightTimeTemp;
-
-        // Target temperature settings
-        int16_t TargetTemp = DefaultSettings::HeatingController::TargetTemp;
-        std::time_t TargetTempSetTimestamp = 0;
-
-        // Values for histeresis in 0.1 Celsius
-        uint8_t Overshoot = DefaultSettings::HeatingController::TempOvershoot;
-        uint8_t Undershoot = DefaultSettings::HeatingController::TempUndershoot;
-        int8_t TempCorrection = DefaultSettings::HeatingController::TempCorrection;
-
-        // Values in minutes
-        uint8_t BoostIntervalMins = DefaultSettings::HeatingController::BoostInterval;
-        uint16_t CustomTempTimeoutMins = DefaultSettings::HeatingController::CustomTempTimeout;
+    DECLARE_SETTINGS_STRUCT(SystemSettings)
+    {
+        HeatingZoneController::DeciDegrees internalSensorOffset{ 0 };
     };
 
     DECLARE_SETTINGS_STRUCT(Data)
     {
-        SchedulerSettings Scheduler;
-        DisplaySettings Display;
-        HeatingControllerSettings HeatingController;
+        DisplaySettings display;
+        SystemSettings system;
+        std::array<HeatingZoneSettings, 1> heatingZones;
     };
 
     Data data;

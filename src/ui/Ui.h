@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "HeatingController.h"
 #include "Keypad.h"
 #include "Logger.h"
 
@@ -57,7 +56,7 @@ private:
     Settings& _settings;
     const ISystemClock& _systemClock;
     Keypad& _keypad;
-    HeatingController& _heatingController;
+    // HeatingController& _heatingController;
     const TemperatureSensor& _temperatureSensor;
     Logger _log{ "Ui" };
     std::time_t _lastKeyPressTime = 0;

@@ -24,6 +24,8 @@
 #include "Screen.h"
 #include "Settings.h"
 
+#include <HeatingZoneController.h>
+
 #include <cstdint>
 
 class ISystemClock;
@@ -43,7 +45,7 @@ private:
 
     uint8_t _day = 0;
     uint8_t _intvalIdx = 0;
-    Settings::SchedulerDayData _daysData[7];
+    HeatingZoneController::ScheduleData _daysData[7];
     uint8_t _menuPressCnt = 0;
 
     void draw();

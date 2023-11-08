@@ -37,7 +37,7 @@ public:
     MainScreen(
         Settings& settings,
         const ISystemClock& clock,
-        HeatingController& heatingController,
+        // HeatingController& heatingController,
         const TemperatureSensor& temperatureSensor
     );
 
@@ -48,7 +48,7 @@ public:
 private:
     Settings& _settings;
     const ISystemClock& _clock;
-    HeatingController& _heatingController;
+    // HeatingController& _heatingController;
     const TemperatureSensor& _temperatureSensor;
     Logger _log{ "MainScreen" };
     uint8_t _indicator = 0;

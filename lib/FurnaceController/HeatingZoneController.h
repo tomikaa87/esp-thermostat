@@ -10,7 +10,7 @@ public:
     /**
      * @brief Value of degrees multiplied by 10.
      */
-    using DeciDegrees = uint32_t;
+    using DeciDegrees = int32_t;
 
     /**
      * @brief Bit mask of high target temperature (30-minute slots) for 7 days.

@@ -2,13 +2,6 @@
 
 namespace Config
 {
-    namespace Blynk
-    {
-        constexpr auto AppToken = "<your app token>";
-        constexpr auto ServerHostName = "<blynk server e.g. blynk.cc>";
-        constexpr auto ServerPort = 80;
-    }
-
     namespace Logging
     {
         constexpr auto SyslogHostName = "esp-thermostat";
@@ -28,5 +21,15 @@ namespace Config
     {
         constexpr auto SSID = "<your AP's SSID>";
         constexpr auto Password = "<your password>";
+    }
+
+    namespace Mqtt
+    {
+        constexpr auto Enabled = true;
+        constexpr auto Id = "esp-furnace-controller";
+        const IPAddress BrokerIp{ <IP of the MQTT broker> };
+        constexpr uint16_t BrokerPort = 1883;
+        constexpr auto User = "<MQTT user name>";
+        constexpr auto Password = "<MQTT password>";
     }
 }

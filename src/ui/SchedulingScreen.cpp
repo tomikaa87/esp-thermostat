@@ -44,7 +44,8 @@ void SchedulingScreen::activate()
     struct tm* t = gmtime(&localTime);
     _day = t->tm_wday;
     _intvalIdx = 0;
-    memcpy(_daysData, _settings.data.Scheduler.DayData, sizeof(Settings::SchedulerDayData) * 7);
+    // TODO
+    // memcpy(_daysData, _settings.data.Scheduler.DayData, sizeof(Settings::SchedulerDayData) * 7);
     draw();
 }
 
@@ -191,6 +192,7 @@ void SchedulingScreen::prevDay()
 
 void SchedulingScreen::applyChanges()
 {
-    memcpy(_settings.data.Scheduler.DayData, _daysData, sizeof(Settings::SchedulerDayData) * 7);
-    _settings.save();
+    // TODO
+    // memcpy(_settings.data.Scheduler.DayData, _daysData, sizeof(Settings::SchedulerDayData) * 7);
+    // _settings.save();
 }

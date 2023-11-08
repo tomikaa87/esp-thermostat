@@ -21,6 +21,8 @@
 #ifndef DRAW_HELPER_H
 #define	DRAW_HELPER_H
 
+#include <HeatingZoneController.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -34,7 +36,7 @@ typedef enum {
 
 void draw_weekday(uint8_t x, uint8_t wday);
 void draw_mode_indicator(mode_indicator_t indicator);
-void draw_schedule_bar(Settings::SchedulerDayData sday);
+void draw_schedule_bar(const HeatingZoneController::ScheduleData& sday);
 void draw_schedule_indicator(uint8_t sch_intval_idx);
 void draw_temperature_value(uint8_t x, int8_t int_part, int8_t frac_part);
 

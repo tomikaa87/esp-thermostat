@@ -21,7 +21,6 @@
 #include "DrawHelper.h"
 #include "Extras.h"
 #include "Graphics.h"
-#include "HeatingController.h"
 #include "Keypad.h"
 #include "MainScreen.h"
 #include "Settings.h"
@@ -37,13 +36,13 @@
 MainScreen::MainScreen(
     Settings& settings,
     const ISystemClock& clock,
-    HeatingController& heatingController,
+    // HeatingController& heatingController,
     const TemperatureSensor& temperatureSensor
 )
     : Screen("Main")
     , _settings(settings)
     , _clock(clock)
-    , _heatingController(heatingController)
+    // , _heatingController(heatingController)
     , _temperatureSensor(temperatureSensor)
 {}
 
@@ -73,9 +72,9 @@ Screen::Action MainScreen::keyPress(Keypad::Keys keys)
     // 6: nighttime manual -> back to automatic
 
     if (keys & Keypad::Keys::Plus) {
-        _heatingController.incTargetTemp();
+        // _heatingController.incTargetTemp();
     } else if (keys & Keypad::Keys::Minus) {
-        _heatingController.decTargetTemp();
+        // _heatingController.decTargetTemp();
     } else if (keys & Keypad::Keys::Menu) {
         // Avoid entering the menu while exiting
         // from another screen with long press
@@ -84,14 +83,14 @@ Screen::Action MainScreen::keyPress(Keypad::Keys keys)
         }
     } else if (keys & Keypad::Keys::Boost) {
         if (keys & Keypad::Keys::LongPress) {
-            if (_heatingController.isBoostActive()) {
-                _heatingController.deactivateBoost();
-            }
+            // if (_heatingController.isBoostActive()) {
+            //     _heatingController.deactivateBoost();
+            // }
         } else {
-            if (!_heatingController.isBoostActive())
-                _heatingController.activateBoost();
-            else
-                _heatingController.extendBoost();
+            // if (!_heatingController.isBoostActive())
+            //     _heatingController.activateBoost();
+            // else
+            //     _heatingController.extendBoost();
         }
     // } else if (keys & KEY_LEFT) {
     // 	heatctl_deactivate_boost();
@@ -129,16 +128,16 @@ void MainScreen::drawTargetTempBoostIndicator()
 {
     char s[15] = "";
 
-    if (!_heatingController.isBoostActive()) {
-        uint16_t temp = _heatingController.targetTemp();
-        sprintf(s, "     %2d.%d C", temp / 10, temp % 10);
-    } else {
-        time_t secs = _heatingController.boostRemaining();
-        uint16_t minutes = secs / 60;
-        secs -= minutes * 60;
+    // if (!_heatingController.isBoostActive()) {
+    //     uint16_t temp = _heatingController.targetTemp();
+    //     sprintf(s, "     %2d.%d C", temp / 10, temp % 10);
+    // } else {
+    //     time_t secs = _heatingController.boostRemaining();
+    //     uint16_t minutes = secs / 60;
+    //     secs -= minutes * 60;
 
-        sprintf(s, " BST %3u:%02lld", minutes, secs);
-    }
+    //     sprintf(s, " BST %3u:%02lld", minutes, secs);
+    // }
 
     Text::draw(s, 0, 60, 0, false);
 }
@@ -148,7 +147,7 @@ void MainScreen::updateScheduleBar()
     const auto localTime = _clock.localTime();
     const struct tm* t = gmtime(&localTime);
 
-    draw_schedule_bar(_settings.data.Scheduler.DayData[t->tm_wday]);
+    // draw_schedule_bar(_settings.data.Scheduler.DayData[t->tm_wday]);
 
     uint8_t idx = calculate_schedule_intval_idx(t->tm_hour, t->tm_min);
 
@@ -160,38 +159,38 @@ void MainScreen::updateScheduleBar()
 
 void MainScreen::updateModeIndicator()
 {
-    switch (_heatingController.mode())
-    {
-    case HeatingController::Mode::Boost:
-    case HeatingController::Mode::Normal:
-        if (_heatingController.isActive()) {
-            if (_indicator != DH_MODE_HEATING)
-                _indicator = DH_MODE_HEATING;
-            else
-                return;
-        } else {
-            if (_indicator != DH_NO_INDICATOR)
-                _indicator = DH_NO_INDICATOR;
-            else
-                return;
-        }
-        break;
+    // switch (_heatingController.mode())
+    // {
+    // case HeatingController::Mode::Boost:
+    // case HeatingController::Mode::Normal:
+    //     if (_heatingController.isActive()) {
+    //         if (_indicator != DH_MODE_HEATING)
+    //             _indicator = DH_MODE_HEATING;
+    //         else
+    //             return;
+    //     } else {
+    //         if (_indicator != DH_NO_INDICATOR)
+    //             _indicator = DH_NO_INDICATOR;
+    //         else
+    //             return;
+    //     }
+    //     break;
 
-    case HeatingController::Mode::Off:
-        if (_indicator != DH_MODE_OFF) {
-            _indicator = DH_MODE_OFF;
-            break;
-        } else {
-            return;
-        }
-    }
+    // case HeatingController::Mode::Off:
+    //     if (_indicator != DH_MODE_OFF) {
+    //         _indicator = DH_MODE_OFF;
+    //         break;
+    //     } else {
+    //         return;
+    //     }
+    // }
 
     draw_mode_indicator(static_cast<mode_indicator_t>(_indicator));
 }
 
 void MainScreen::drawTemperatureDisplay()
 {
-    const auto reading = _heatingController.currentTemp() * 10;
-    draw_temperature_value(10, reading / 100,
-        (reading % 100) / 10);
+    // const auto reading = _heatingController.currentTemp() * 10;
+    // draw_temperature_value(10, reading / 100,
+    //     (reading % 100) / 10);
 }
