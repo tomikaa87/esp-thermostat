@@ -104,6 +104,7 @@ void HeatingZoneController::inputTemperature(const DeciDegrees value)
 void HeatingZoneController::setHighTargetTemperature(const DeciDegrees value)
 {
     _highTargetTemperature = value;
+    updateCallForHeatByTemperature();
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::highTargetTemperature() const
@@ -114,6 +115,7 @@ HeatingZoneController::DeciDegrees HeatingZoneController::highTargetTemperature(
 void HeatingZoneController::setLowTargetTemperature(const DeciDegrees value)
 {
     _lowTargetTemperature = value;
+    updateCallForHeatByTemperature();
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::lowTargetTemperature() const
@@ -136,6 +138,8 @@ void HeatingZoneController::overrideTargetTemperature(const DeciDegrees value)
 void HeatingZoneController::resetTargetTemperature()
 {
     _overrideRemainingMs = 0;
+
+    updateCallForHeatByTemperature();
 }
 
 bool HeatingZoneController::targetTemperatureOverrideActive() const

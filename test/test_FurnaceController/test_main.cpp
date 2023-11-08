@@ -365,6 +365,27 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostExtended_HeatingCall
 
 #pragma region General tests
 
+TEST(HeatingZoneController, HighTargetTemperatureChangeControlsHeating)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+            .scheduleData = TestUtils::generateAllHighSchedule()
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.inputTemperature(240);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setHighTargetTemperature(250);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setHighTargetTemperature(230);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
 TEST(HeatingZoneController, HighTargetTemperatureOvershoot)
 {
     const HeatingZoneController::DeciDegrees overshoot{ 5 };
@@ -403,7 +424,6 @@ TEST(HeatingZoneController, HighTargetTemperatureUndershoot)
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
-    controller.setLowTargetTemperature(210);
 
     controller.inputTemperature(250);
     EXPECT_FALSE(controller.callingForHeating());
@@ -413,6 +433,26 @@ TEST(HeatingZoneController, HighTargetTemperatureUndershoot)
 
     controller.inputTemperature(230 - undershoot);
     EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, LowTargetTemperatureChangeControlsHeating)
+{
+    HeatingZoneController controller{
+        HeatingZoneController::Configuration{
+        }
+    };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(220);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setLowTargetTemperature(230);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setLowTargetTemperature(210);
+    EXPECT_FALSE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, LowTargetTemperatureOvershoot)
@@ -927,6 +967,20 @@ TEST_P(ActiveModeTest, OverrideCanBeReset)
     EXPECT_EQ(controller.targetTemperature(), originalTargetTemperature);
 }
 
+TEST_P(ActiveModeTest, OverrideControlsHeatingWithoutTemperatureChange)
+{
+    controller.inputTemperature(240);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.resetTargetTemperature();
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
 TEST_P(ActiveModeTest, KeepHeatingOnAfterBoostTimesOut)
 {
     controller.setHighTargetTemperature(230);
@@ -1055,6 +1109,20 @@ TEST_P(AllModesTest, BoostCausesCallingForHeating)
     EXPECT_TRUE(controller.callingForHeating());
 
     controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(AllModesTest, StoppingBoostEndsCallingForHeating)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(300);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.stopBoost();
     EXPECT_FALSE(controller.callingForHeating());
 }
 
