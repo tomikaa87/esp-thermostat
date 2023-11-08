@@ -36,6 +36,13 @@ bool HeatingZoneController::updateConfig(Configuration config)
     return true;
 }
 
+void HeatingZoneController::updateSchedule(Schedule schedule)
+{
+    _schedule = std::move(schedule);
+
+    updateCallForHeatByTemperature();
+}
+
 void HeatingZoneController::updateDateTime(
     const int dayOfWeek,
     const int hour,
@@ -257,7 +264,7 @@ HeatingZoneController::DeciDegrees HeatingZoneController::targetTemperatureBySch
         return _lowTargetTemperature;
     }
 
-    if (_config.scheduleData[_scheduleDataDay * 6 + _scheduleDataByte] & _scheduleDataMask) {
+    if (_schedule[_scheduleDataDay * 6 + _scheduleDataByte] & _scheduleDataMask) {
         return _highTargetTemperature;
     }
 

@@ -15,7 +15,7 @@ public:
     /**
      * @brief Bit mask of high target temperature (30-minute slots) for 7 days.
      */
-    using ScheduleData = std::array<uint8_t, 6 * 7>;
+    using Schedule = std::array<uint8_t, 6 * 7>;
 
     struct Configuration
     {
@@ -25,7 +25,6 @@ public:
         DeciDegrees heatingOvershoot{ 5 };
         DeciDegrees heatingUndershoot{ 5 };
         DeciDegrees holidayModeTemperature{ 180 };
-        ScheduleData scheduleData{{}};
     };
 
     enum class Mode
@@ -38,6 +37,7 @@ public:
     explicit HeatingZoneController(Configuration config);
 
     bool updateConfig(Configuration config);
+    void updateSchedule(Schedule schedule);
 
     void updateDateTime(int dayOfWeek, int hour, int minute);
 
@@ -105,6 +105,7 @@ public:
 
 private:
     Configuration _config;
+    Schedule _schedule{{}};
 
     Mode _mode{ Mode::Off };
 

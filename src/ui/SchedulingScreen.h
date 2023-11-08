@@ -45,7 +45,7 @@ private:
 
     uint8_t _day = 0;
     uint8_t _intvalIdx = 0;
-    HeatingZoneController::ScheduleData _daysData[7];
+    HeatingZoneController::Schedule _daysData[7];
     uint8_t _menuPressCnt = 0;
 
     void draw();
