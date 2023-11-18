@@ -41,7 +41,6 @@ private:
     Logger _log{ "MenuScreen" };
     Settings& _settings;
     Settings::Data _newSettings;
-    bool _blynkDisableValue = false;
     char _wifiPsw[64] = { 0 };
 
     uint8_t _rebootCounter = 3;
@@ -63,15 +62,10 @@ private:
         Reboot,
 
         // These pages cannot be accessed by normal navigation
-        BlynkSwitch,
         WiFi,
         WIFI_PASSWORD,
 
-#ifdef IOT_ENABLE_BLYNK
-        Last = BlynkSwitch
-#else
         Last = Reboot
-#endif
     } _page = Page::First;
 
     void draw();
@@ -87,7 +81,6 @@ private:
     void drawPageDisplayTimeout();
     void drawPageTempCorrection();
     void drawPageReboot();
-    void drawPageBlynkSwitch();
     void drawPageWifi();
     void drawPageWifiPassword();
     void updatePageHeatCtlMode();
@@ -101,7 +94,6 @@ private:
     void updatePageDisplayBrightness();
     void updatePageDisplayTimeout();
     void updatePageReboot();
-    void updatePageBlynkSwitch();
     void updatePageWifi();
     void drawPageTitle(const char* text);
     void nextPage();

@@ -81,8 +81,9 @@ public:
 
     DECLARE_SETTINGS_STRUCT(HeatingZoneSettings)
     {
-        HeatingZoneController::Mode mode{ HeatingZoneController::Mode::Off };
         HeatingZoneController::Configuration config{};
+        HeatingZoneController::Schedule schedule{};
+        HeatingZoneController::State state{};
     };
 
     DECLARE_SETTINGS_STRUCT(SystemSettings)
@@ -94,7 +95,7 @@ public:
     {
         DisplaySettings display;
         SystemSettings system;
-        std::array<HeatingZoneSettings, 1> heatingZones;
+        std::array<HeatingZoneSettings, 5> heatingZones;
     };
 
     Data data;

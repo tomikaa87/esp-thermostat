@@ -130,10 +130,9 @@ std::ostream& operator<<(std::ostream& str, const InputParams& p)
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_InitialState)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     EXPECT_FALSE(controller.boostActive());
     EXPECT_FALSE(controller.callingForHeating());
@@ -144,10 +143,9 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_Init
 
 TEST(HeatingZoneController, ModeAuto_ScheduleAllLow_BoostStopped_HeatingIdle_LowTargetTemp)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -158,12 +156,11 @@ TEST(HeatingZoneController, ModeAuto_ScheduleAllLow_BoostStopped_HeatingIdle_Low
 
 TEST(HeatingZoneController, ModeAuto_ScheduleAllHigh_BoostStopped_HeatingIdle_HighTargetTemp)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -174,10 +171,9 @@ TEST(HeatingZoneController, ModeAuto_ScheduleAllHigh_BoostStopped_HeatingIdle_Hi
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
     controller.setHighTargetTemperature(230);
@@ -190,12 +186,11 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle)
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllHigh_BoostStopped_HeatingIdle)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
     controller.setHighTargetTemperature(230);
@@ -208,12 +203,11 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllHigh_BoostStopped_HeatingIdle)
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllHigh_BoostStarted_HeatingCalling)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
     controller.setHighTargetTemperature(230);
@@ -228,12 +222,11 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllHigh_BoostStarted_HeatingCalling)
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllHigh_BoostStopped_HeatingIdle_BoostStartedAndStopped)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
     controller.setHighTargetTemperature(230);
@@ -249,10 +242,9 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllHigh_BoostStopped_HeatingIdle_Boo
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_AfterInitialBoostDuration)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     EXPECT_FALSE(controller.boostActive());
 
@@ -269,10 +261,9 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_Afte
 
 TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_AfterExtendedBoostDuration)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     EXPECT_FALSE(controller.boostActive());
 
@@ -293,11 +284,11 @@ TEST(HeatingZoneController, ModeOff_ScheduleAllLow_BoostStopped_HeatingIdle_Afte
 
 TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostStopped_HeatingDependsOnTargetTemperature)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .holidayModeTemperature = 150
-        }
+    HeatingZoneController::Configuration config{
+        .holidayModeTemperature = 150
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
@@ -314,13 +305,13 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostStopped_HeatingDepen
 
 TEST(HeatingZoneController, ModeHoliday_ScheduleAllHigh_BoostStopped_HeatingDependsOnTargetTemperature)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .holidayModeTemperature = 150,
-        }
+    HeatingZoneController::Configuration config{
+        .holidayModeTemperature = 150
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
+    };
+    HeatingZoneController controller{ config, schedule };
 
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
@@ -331,11 +322,11 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllHigh_BoostStopped_HeatingDepe
 
 TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostStarted_HeatingCalling)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .holidayModeTemperature = 150
-        }
+    HeatingZoneController::Configuration config{
+        .holidayModeTemperature = 150
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
@@ -349,11 +340,11 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostStarted_HeatingCalli
 
 TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostExtended_HeatingCalling)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .holidayModeTemperature = 150
-        }
+    HeatingZoneController::Configuration config{
+        .holidayModeTemperature = 150
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
@@ -372,12 +363,11 @@ TEST(HeatingZoneController, ModeHoliday_ScheduleAllLow_BoostExtended_HeatingCall
 
 TEST(HeatingZoneController, HighTargetTemperatureChangeControlsHeating)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.inputTemperature(240);
@@ -394,15 +384,13 @@ TEST(HeatingZoneController, HighTargetTemperatureChangeControlsHeating)
 
 TEST(HeatingZoneController, HighTargetTemperatureOvershoot)
 {
-    const HeatingZoneController::DeciDegrees overshoot{ 5 };
-
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .heatingOvershoot = overshoot
-        }
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 5
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
+    };
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -414,21 +402,19 @@ TEST(HeatingZoneController, HighTargetTemperatureOvershoot)
     controller.inputTemperature(230);
     EXPECT_TRUE(controller.callingForHeating());
 
-    controller.inputTemperature(230 + overshoot);
+    controller.inputTemperature(230 + config.heatingOvershoot);
     EXPECT_FALSE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, HighTargetTemperatureUndershoot)
 {
-    const HeatingZoneController::DeciDegrees undershoot{ 5 };
-
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .heatingUndershoot = undershoot,
-        }
+    HeatingZoneController::Configuration config{
+        .heatingUndershoot = 5
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
+    };
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -439,16 +425,15 @@ TEST(HeatingZoneController, HighTargetTemperatureUndershoot)
     controller.inputTemperature(230);
     EXPECT_FALSE(controller.callingForHeating());
 
-    controller.inputTemperature(230 - undershoot);
+    controller.inputTemperature(230 - config.heatingUndershoot);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, LowTargetTemperatureChangeControlsHeating)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setLowTargetTemperature(210);
@@ -465,13 +450,11 @@ TEST(HeatingZoneController, LowTargetTemperatureChangeControlsHeating)
 
 TEST(HeatingZoneController, LowTargetTemperatureOvershoot)
 {
-    const HeatingZoneController::DeciDegrees overshoot{ 5 };
-
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .heatingOvershoot = overshoot
-        }
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 5
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -484,19 +467,17 @@ TEST(HeatingZoneController, LowTargetTemperatureOvershoot)
     controller.inputTemperature(210);
     EXPECT_TRUE(controller.callingForHeating());
 
-    controller.inputTemperature(210 + overshoot);
+    controller.inputTemperature(210 + config.heatingOvershoot);
     EXPECT_FALSE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, LowTargetTemperatureUndershoot)
 {
-    const HeatingZoneController::DeciDegrees undershoot{ 5 };
-
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .heatingUndershoot = undershoot
-        }
+    HeatingZoneController::Configuration config{
+        .heatingUndershoot = 5
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -509,65 +490,59 @@ TEST(HeatingZoneController, LowTargetTemperatureUndershoot)
     controller.inputTemperature(210);
     EXPECT_FALSE(controller.callingForHeating());
 
-    controller.inputTemperature(210 - undershoot);
+    controller.inputTemperature(210 - config.heatingUndershoot);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, HolidayTargetTemperatureOvershoot)
 {
-    const HeatingZoneController::DeciDegrees overshoot{ 5 };
-    const HeatingZoneController::DeciDegrees target{ 180 };
-
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .heatingOvershoot = overshoot,
-            .holidayModeTemperature = target
-        }
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 5,
+        .holidayModeTemperature = 180
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Holiday);
-    EXPECT_EQ(controller.targetTemperature(), target);
+    EXPECT_EQ(controller.targetTemperature(), config.holidayModeTemperature);
 
-    controller.inputTemperature(target - 20);
+    controller.inputTemperature(config.holidayModeTemperature - 20);
     EXPECT_TRUE(controller.callingForHeating());
 
-    controller.inputTemperature(target);
+    controller.inputTemperature(config.holidayModeTemperature);
     EXPECT_TRUE(controller.callingForHeating());
 
-    controller.inputTemperature(target + overshoot);
+    controller.inputTemperature(config.holidayModeTemperature + config.heatingOvershoot);
     EXPECT_FALSE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, HolidayTargetTemperatureUndershoot)
 {
-    const HeatingZoneController::DeciDegrees undershoot{ 5 };
-    const HeatingZoneController::DeciDegrees target{ 180 };
-
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-            .heatingUndershoot = undershoot,
-            .holidayModeTemperature = target
-        }
+    HeatingZoneController::Configuration config{
+        .heatingUndershoot = 5,
+        .holidayModeTemperature = 180
     };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Holiday);
-    EXPECT_EQ(controller.targetTemperature(), target);
+    EXPECT_EQ(controller.targetTemperature(), config.holidayModeTemperature);
 
-    controller.inputTemperature(target + 20);
+    controller.inputTemperature(config.holidayModeTemperature + 20);
     EXPECT_FALSE(controller.callingForHeating());
 
-    controller.inputTemperature(target);
+    controller.inputTemperature(config.holidayModeTemperature);
     EXPECT_FALSE(controller.callingForHeating());
 
-    controller.inputTemperature(target - undershoot);
+    controller.inputTemperature(config.holidayModeTemperature - config.heatingUndershoot);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
 TEST(HeatingZoneController, OffModeReportsNoTargetTemperature)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
 
@@ -576,9 +551,9 @@ TEST(HeatingZoneController, OffModeReportsNoTargetTemperature)
 
 TEST(HeatingZoneController, OffModeDoesNotCallForHeatingAutomatically)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
 
@@ -594,9 +569,9 @@ TEST(HeatingZoneController, OffModeDoesNotCallForHeatingAutomatically)
 
 TEST(HeatingZoneController, OffModeDisablesOverride)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
 
@@ -610,9 +585,9 @@ TEST(HeatingZoneController, OffModeDisablesOverride)
 
 TEST(HeatingZoneController, SwitchingToOffModeDisablesOverride)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
 
@@ -628,9 +603,9 @@ TEST(HeatingZoneController, SwitchingToOffModeDisablesOverride)
 
 TEST(HeatingZoneController, SwitchingToOffModeKeepsBoostRunning)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
 
@@ -646,9 +621,9 @@ TEST(HeatingZoneController, SwitchingToOffModeKeepsBoostRunning)
 
 TEST(HeatingZoneController, SwitchingToOffModeTurnsOffHeating)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
 
@@ -664,9 +639,9 @@ TEST(HeatingZoneController, SwitchingToOffModeTurnsOffHeating)
 
 TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeating)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
 
@@ -682,12 +657,11 @@ TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeating)
 
 TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeatingWithHighTarget)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
 
@@ -705,9 +679,9 @@ TEST(HeatingZoneController, SwitchingToAutoModeTurnsOnHeatingWithHighTarget)
 
 TEST(HeatingZoneController, SwitchingToHolidayModeTurnsOnHeating)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{}
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Off);
 
@@ -722,12 +696,11 @@ TEST(HeatingZoneController, SwitchingToHolidayModeTurnsOnHeating)
 
 TEST(HeatingZoneController, AlwaysHighTargetTemperatureForAllHighSchedule)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateAllHighSchedule()
     };
-
-    controller.updateSchedule(TestUtils::generateAllHighSchedule());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -754,10 +727,9 @@ TEST(HeatingZoneController, AlwaysHighTargetTemperatureForAllHighSchedule)
 
 TEST(HeatingZoneController, AlwaysLowTargetTemperatureForAllLowSchedule)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
-    };
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -784,12 +756,11 @@ TEST(HeatingZoneController, AlwaysLowTargetTemperatureForAllLowSchedule)
 
 TEST(HeatingZoneController, TargetTemperatureForAlternatingSchedule1)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateHighScheduleForEveryFirstHalfHour()
     };
-
-    controller.updateSchedule(TestUtils::generateHighScheduleForEveryFirstHalfHour());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -830,12 +801,11 @@ TEST(HeatingZoneController, TargetTemperatureForAlternatingSchedule1)
 
 TEST(HeatingZoneController, TargetTemperatureForAlternatingSchedule2)
 {
-    HeatingZoneController controller{
-        HeatingZoneController::Configuration{
-        }
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{
+        TestUtils::generateHighScheduleForEverySecondHalfHour()
     };
-
-    controller.updateSchedule(TestUtils::generateHighScheduleForEverySecondHalfHour());
+    HeatingZoneController controller{ config, schedule };
 
     controller.setMode(HeatingZoneController::Mode::Auto);
     controller.setHighTargetTemperature(230);
@@ -883,19 +853,17 @@ class ActiveModeTest
 {
 public:
     ActiveModeTest()
-        : controller{
-            HeatingZoneController::Configuration{
-                .heatingOvershoot = overshoot,
-                .heatingUndershoot = undershoot,
-                .holidayModeTemperature = 180
-            }
+        : config{
+            .heatingOvershoot = 5,
+            .heatingUndershoot = 5
         }
+        , controller{ config, schedule }
     {
         controller.setMode(GetParam());
     }
 
-    HeatingZoneController::DeciDegrees overshoot{ 5 };
-    HeatingZoneController::DeciDegrees undershoot{ 5 };
+    HeatingZoneController::Configuration config;
+    HeatingZoneController::Schedule schedule{{}};
     HeatingZoneController controller;
 };
 
@@ -919,7 +887,7 @@ TEST_P(ActiveModeTest, OverrideTemperatureOvershoot)
     controller.inputTemperature(250);
     EXPECT_TRUE(controller.callingForHeating());
 
-    controller.inputTemperature(250 + overshoot);
+    controller.inputTemperature(250 + config.heatingOvershoot);
     EXPECT_FALSE(controller.callingForHeating());
 }
 
@@ -938,7 +906,7 @@ TEST_P(ActiveModeTest, OverrideTemperatureUndershoot)
     controller.inputTemperature(250);
     EXPECT_FALSE(controller.callingForHeating());
 
-    controller.inputTemperature(250 - undershoot);
+    controller.inputTemperature(250 - config.heatingUndershoot);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
@@ -1044,17 +1012,21 @@ class AllModesTest
 {
 public:
     AllModesTest()
-        : controller{
-            HeatingZoneController::Configuration{
-                .heatingOvershoot = 50,
-                .heatingUndershoot = 50,
-                .holidayModeTemperature = 180
-            }
+        : config{
+            .heatingOvershoot = 50,
+            .heatingUndershoot = 50,
+            .holidayModeTemperature = 100
         }
+        , controller{ config, schedule }
     {
         controller.setMode(GetParam());
+
+        // Clear the state change indicator flag
+        (void)controller.saveState();
     }
 
+    HeatingZoneController::Configuration config;
+    HeatingZoneController::Schedule schedule{{}};
     HeatingZoneController controller;
 };
 
@@ -1143,6 +1115,75 @@ TEST_P(AllModesTest, NoCallingForHeatingWithHighTemperature)
     controller.setLowTargetTemperature(210);
     controller.inputTemperature(300);
     EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(AllModesTest, SettingModeChangesState)
+{
+    EXPECT_FALSE(controller.stateChanged());
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    EXPECT_TRUE(controller.stateChanged());
+    EXPECT_EQ(controller.saveState().mode, HeatingZoneController::Mode::Auto);
+}
+
+TEST_P(AllModesTest, SettingHighTargetChangesState)
+{
+    EXPECT_FALSE(controller.stateChanged());
+
+    controller.setHighTargetTemperature(230);
+
+    EXPECT_TRUE(controller.stateChanged());
+    EXPECT_EQ(controller.saveState().highTargetTemperature, 230);
+}
+
+TEST_P(AllModesTest, SettingLowTargetChangesState)
+{
+    EXPECT_FALSE(controller.stateChanged());
+
+    controller.setLowTargetTemperature(230);
+
+    EXPECT_TRUE(controller.stateChanged());
+    EXPECT_EQ(controller.saveState().lowTargetTemperature, 230);
+}
+
+TEST_P(AllModesTest, LoadingStateChangesMode)
+{
+    controller.setMode(HeatingZoneController::Mode::Off);
+
+    controller.loadState(
+        HeatingZoneController::State{
+            .mode = HeatingZoneController::Mode::Auto
+        }
+    );
+
+    EXPECT_EQ(controller.mode(), HeatingZoneController::Mode::Auto);
+}
+
+TEST_P(AllModesTest, LoadingStateChangesHighTargetTemperature)
+{
+    controller.setHighTargetTemperature(230);
+
+    controller.loadState(
+        HeatingZoneController::State{
+            .highTargetTemperature = 240
+        }
+    );
+
+    EXPECT_EQ(controller.highTargetTemperature(), 240);
+}
+
+TEST_P(AllModesTest, LoadingStateChangesLowTargetTemperature)
+{
+    controller.setLowTargetTemperature(230);
+
+    controller.loadState(
+        HeatingZoneController::State{
+            .lowTargetTemperature = 240
+        }
+    );
+
+    EXPECT_EQ(controller.lowTargetTemperature(), 240);
 }
 
 INSTANTIATE_TEST_SUITE_P(

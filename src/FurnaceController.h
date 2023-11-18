@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HeatingZone.h"
+#include "Settings.h"
 
 #include <CoreApplication.h>
 #include <Logger.h>
@@ -21,10 +22,12 @@ private:
     const ApplicationConfig& _appConfig;
     CoreApplication _app;
     Logger _log{ "FurnaceController" };
-    std::array<HeatingZone, 1> _zones;
+    std::array<HeatingZone, 5> _zones;
     uint32_t _lastTaskMillis{};
     bool _relayOutputActive{ false };
 
     void setupRelayOutput() const;
     void setRelayOutputActive(bool active);
+
+    void loadDefaultSettings();
 };

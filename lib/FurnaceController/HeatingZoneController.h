@@ -34,10 +34,17 @@ public:
         Holiday
     };
 
-    explicit HeatingZoneController(Configuration config);
+    struct State
+    {
+        Mode mode{};
+        DeciDegrees highTargetTemperature{};
+        DeciDegrees lowTargetTemperature{};
+    };
 
-    bool updateConfig(Configuration config);
-    void updateSchedule(Schedule schedule);
+    explicit HeatingZoneController(
+        Configuration& config,
+        Schedule& schedule
+    );
 
     void updateDateTime(int dayOfWeek, int hour, int minute);
 
@@ -94,7 +101,7 @@ public:
      * @return true
      * @return false
      */
-    [[nodiscard]] bool callingForHeating() const;
+    [[nodiscard]] bool callingForHeating();
 
     /**
      * @brief Runs the state machine.
@@ -103,9 +110,15 @@ public:
      */
     void task(uint32_t systemClockDeltaMs);
 
+    void loadState(const State& state);
+    [[nodiscard]] State saveState();
+    [[nodiscard]] bool stateChanged() const;
+
 private:
-    Configuration _config;
-    Schedule _schedule{{}};
+    Configuration& _config;
+    Schedule& _schedule;
+
+    bool _stateChanged{ false };
 
     Mode _mode{ Mode::Off };
 
@@ -124,6 +137,5 @@ private:
 
     uint32_t _requestedBoostTimeMs{};
 
-    void updateCallForHeatByTemperature();
     DeciDegrees targetTemperatureBySchedule() const;
 };

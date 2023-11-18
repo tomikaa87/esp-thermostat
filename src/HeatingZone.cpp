@@ -1,5 +1,7 @@
 #include "HeatingZone.h"
+
 #include "Extras.h"
+#include "PrivateConfig.h"
 
 #include <CoreApplication.h>
 
@@ -31,8 +33,8 @@ HeatingZone::HeatingZone(
 )
     : _app{ app }
     , _log{ std::string{ "HeatingZone_" } + std::to_string(index) }
-    , _controller{ HeatingZoneController::Configuration{} }
-    , _topicPrefix{ std::string{ "furnace_" } + std::to_string(index) }
+    , _controller{ _controllerConfig, _controllerSchedule }
+    , _topicPrefix{ std::string{ Config::Mqtt::HeatingZoneTopicPrefix } + std::to_string(index) }
     , _mode{ _topicPrefix, PSTR("/mode"), PSTR("/mode/set"), app.mqttClient() }
     , _targetTemperature{ _topicPrefix, PSTR("/temp/active"), PSTR("/temp/active/set"), app.mqttClient() }
     , _lowTargetTemperature{ _topicPrefix, PSTR("/temp/low"), PSTR("/temp/low/set"), app.mqttClient() }
@@ -46,21 +48,38 @@ HeatingZone::HeatingZone(
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
 
-    _app.setMqttUpdateHandler(
-        [this] {
-            updateMqtt();
-        }
-    );
+    _app.settings().registerSetting(_controllerConfig);
+    _app.settings().registerSetting(_controllerSchedule);
+    _app.settings().registerSetting(_controllerState);
 }
 
 void HeatingZone::task(const uint32_t systemClockDeltaMs)
 {
     _controller.task(systemClockDeltaMs);
+
+    _mqttUpdateTimer += systemClockDeltaMs;
+    if (_mqttUpdateTimer >= 1000) {
+        _mqttUpdateTimer = 0;
+        updateMqtt();
+    }
+
+    if (_controller.stateChanged()) {
+        _controllerState = _controller.saveState();
+    }
 }
 
-bool HeatingZone::callingForHeating() const
+bool HeatingZone::callingForHeating()
 {
     return _controller.callingForHeating();
+}
+
+void HeatingZone::loadDefaultSettings()
+{
+    _controllerConfig = {};
+    _controllerSchedule = {};
+    _controllerState = {};
+
+    _controller.loadState(_controllerState);
 }
 
 void HeatingZone::setupMqttComponentConfigs()

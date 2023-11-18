@@ -156,10 +156,6 @@ void MenuScreen::draw()
         drawPageReboot();
         break;
 
-    case Page::BlynkSwitch:
-        drawPageBlynkSwitch();
-        break;
-
     case Page::WiFi:
         drawPageWifi();
         break;
@@ -250,12 +246,6 @@ void MenuScreen::drawPageReboot()
     drawPageTitle("REBOOT");
     _rebootCounter = 3;
     updatePageReboot();
-}
-
-void MenuScreen::drawPageBlynkSwitch()
-{
-    drawPageTitle("BLYNK SWITCH");
-    updatePageBlynkSwitch();
 }
 
 void MenuScreen::drawPageWifi()
@@ -368,12 +358,6 @@ void MenuScreen::updatePageReboot()
     Text::draw(s, 3, 5, 0, 0);
 }
 
-void MenuScreen::updatePageBlynkSwitch()
-{
-    Text::draw("Disable Blynk:", 3, 5, 0, 0);
-    Text::draw(_blynkDisableValue ? "Yes" : "No ", 4, 10, 0, 0);
-}
-
 void MenuScreen::updatePageWifi()
 {
     // Text::draw("CONNECTED: YES", 2, 0, 0, false);
@@ -409,10 +393,6 @@ void MenuScreen::applySettings()
     _settings.data = _newSettings;
 
     auto rebootAfterSave = false;
-    // if (_settings.data.Scheduler.DisableBlynk != _blynkDisableValue) {
-    //     _settings.data.Scheduler.DisableBlynk = _blynkDisableValue;
-    //     rebootAfterSave = true;
-    // }
 
     _settings.save();
 
@@ -424,7 +404,6 @@ void MenuScreen::applySettings()
 void MenuScreen::revertSettings()
 {
     _newSettings = _settings.data;
-    // _blynkDisableValue = _settings.data.Scheduler.DisableBlynk;
 
     Display::setContrast(_settings.data.display.Brightness);
 }
@@ -527,11 +506,6 @@ void MenuScreen::adjustValue(int8_t amount)
             ESP.restart();
         }
         updatePageReboot();
-        break;
-
-    case Page::BlynkSwitch:
-        _blynkDisableValue = !_blynkDisableValue;
-        updatePageBlynkSwitch();
         break;
 
     // TODO dummy implementation

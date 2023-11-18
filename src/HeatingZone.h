@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Settings.h"
+
 #include "network/MQTT/MqttVariable.h"
 
 #include <HeatingZoneController.h>
@@ -17,11 +19,16 @@ public:
 
     void task(uint32_t systemClockDeltaMs);
 
-    [[nodiscard]] bool callingForHeating() const;
+    [[nodiscard]] bool callingForHeating();
+
+    void loadDefaultSettings();
 
 private:
     CoreApplication& _app;
     Logger _log;
+    HeatingZoneController::Configuration _controllerConfig{};
+    HeatingZoneController::Schedule _controllerSchedule{};
+    HeatingZoneController::State _controllerState{};
     HeatingZoneController _controller;
     const std::string _topicPrefix;
 
@@ -34,6 +41,8 @@ private:
     MqttVariable<std::string> _presetMode;
     MqttVariable<int> _boostRemainingSeconds;
     MqttVariable<int> _boostActive;
+
+    uint32_t _mqttUpdateTimer{};
 
     void setupMqttComponentConfigs();
     void setupMqttChangeHandlers();

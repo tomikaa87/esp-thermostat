@@ -1,46 +1,19 @@
 #include "HeatingZoneController.h"
 
-// #include <iostream>
-
 namespace
 {
     constexpr HeatingZoneController::DeciDegrees FailSafeLowTarget{ 100 };
     constexpr HeatingZoneController::DeciDegrees FailSafeHighTarget{ 300 };
 }
 
-HeatingZoneController::HeatingZoneController(Configuration config)
-    : _lastInputTemperature{ FailSafeHighTarget }
-    , _highTargetTemperature{ FailSafeLowTarget }
-    , _lowTargetTemperature{ FailSafeLowTarget }
+HeatingZoneController::HeatingZoneController(
+    Configuration& config,
+    Schedule& schedule
+)
+    : _config{ config }
+    , _schedule{ schedule }
+    , _lastInputTemperature{ FailSafeHighTarget }
 {
-    updateConfig(std::move(config));
-}
-
-bool HeatingZoneController::updateConfig(Configuration config)
-{
-    if (
-        config.heatingOvershoot > 20
-        || config.heatingUndershoot > 20
-        || config.boostInitialDurationSeconds > 3600
-        || config.boostExtensionDurationSeconds > 3600
-        || config.holidayModeTemperature > FailSafeHighTarget
-        || config.overrideTimeoutSeconds > 4 * 3600
-    ) {
-        return false;
-    }
-
-    _config = std::move(config);
-
-    updateCallForHeatByTemperature();
-
-    return true;
-}
-
-void HeatingZoneController::updateSchedule(Schedule schedule)
-{
-    _schedule = std::move(schedule);
-
-    updateCallForHeatByTemperature();
 }
 
 void HeatingZoneController::updateDateTime(
@@ -58,8 +31,6 @@ void HeatingZoneController::updateDateTime(
     _scheduleDataDay = dayOfWeek;
     _scheduleDataByte = intervalIndex >> 3;
     _scheduleDataMask = 1 << (intervalIndex & 0b111);
-
-    updateCallForHeatByTemperature();
 }
 
 void HeatingZoneController::setMode(const Mode mode)
@@ -70,7 +41,7 @@ void HeatingZoneController::setMode(const Mode mode)
         resetTargetTemperature();
     }
 
-    updateCallForHeatByTemperature();
+    _stateChanged = true;
 }
 
 HeatingZoneController::Mode HeatingZoneController::mode() const
@@ -105,13 +76,12 @@ uint32_t HeatingZoneController::boostRemainingSeconds() const
 void HeatingZoneController::inputTemperature(const DeciDegrees value)
 {
     _lastInputTemperature = value;
-    updateCallForHeatByTemperature();
 }
 
 void HeatingZoneController::setHighTargetTemperature(const DeciDegrees value)
 {
     _highTargetTemperature = value;
-    updateCallForHeatByTemperature();
+    _stateChanged = true;
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::highTargetTemperature() const
@@ -122,7 +92,7 @@ HeatingZoneController::DeciDegrees HeatingZoneController::highTargetTemperature(
 void HeatingZoneController::setLowTargetTemperature(const DeciDegrees value)
 {
     _lowTargetTemperature = value;
-    updateCallForHeatByTemperature();
+    _stateChanged = true;
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::lowTargetTemperature() const
@@ -138,15 +108,11 @@ void HeatingZoneController::overrideTargetTemperature(const DeciDegrees value)
 
     _overrideRemainingMs = _config.overrideTimeoutSeconds * 1000;
     _overrideTemperature = value;
-
-    updateCallForHeatByTemperature();
 }
 
 void HeatingZoneController::resetTargetTemperature()
 {
     _overrideRemainingMs = 0;
-
-    updateCallForHeatByTemperature();
 }
 
 bool HeatingZoneController::targetTemperatureOverrideActive() const
@@ -177,17 +143,42 @@ std::optional<HeatingZoneController::DeciDegrees> HeatingZoneController::targetT
     return {};
 }
 
-bool HeatingZoneController::callingForHeating() const
+bool HeatingZoneController::callingForHeating()
 {
     if (boostActive()) {
         return true;
     }
 
-    if (_mode == Mode::Auto || _mode == Mode::Holiday) {
-        return _callForHeatingByTemperature;
+    if (_mode != Mode::Auto && _mode != Mode::Holiday) {
+        return false;
     }
 
-    return false;
+    DeciDegrees calculatedTargetTemperature{};
+    if (const auto t = targetTemperature(); t.has_value()) {
+        calculatedTargetTemperature = t.value();
+    }
+
+    if (_callForHeatingByTemperature) {
+        const auto target = calculatedTargetTemperature + _config.heatingOvershoot;
+
+        if (
+            _lastInputTemperature >= target
+            || _lastInputTemperature >= FailSafeHighTarget
+        ) {
+            _callForHeatingByTemperature = false;
+        }
+    } else {
+        const auto target = calculatedTargetTemperature - _config.heatingUndershoot;
+
+        if (
+            _lastInputTemperature <= target
+            || _lastInputTemperature <= FailSafeLowTarget
+        ) {
+            _callForHeatingByTemperature = true;
+        }
+    }
+
+    return _callForHeatingByTemperature;
 }
 
 void HeatingZoneController::task(const uint32_t systemClockDeltaMs)
@@ -209,53 +200,45 @@ void HeatingZoneController::task(const uint32_t systemClockDeltaMs)
     }
 }
 
-void HeatingZoneController::updateCallForHeatByTemperature()
+void HeatingZoneController::loadState(const State& state)
 {
-    if (_mode == Mode::Off) {
-        _callForHeatingByTemperature = false;
-        return;
-    }
+    // Decomposition ensures we won't forget about new fields after they've added
+    const auto& [
+        mode,
+        highTargetTemperature,
+        lowTargetTemperature
+    ] = state;
 
-    DeciDegrees calculatedTargetTemperature{};
-    if (const auto t = targetTemperature(); t.has_value()) {
-        calculatedTargetTemperature = t.value();
-    }
+    _stateChanged = false;
 
-    // std::cout << __func__
-    //     << ": calculatedTargetTemperature=" << calculatedTargetTemperature
-    //     << ", _callForHeatingByTemperature=" << _callForHeatingByTemperature
-    //     << ", _lastInputTemperature=" << _lastInputTemperature
-    //     << ", _config.heatingOvershoot=" << _config.heatingOvershoot
-    //     << ", _config.heatingUndershoot=" << _config.heatingUndershoot
-    //     << '\n';
+    _mode = mode;
+    _highTargetTemperature = highTargetTemperature;
+    _lowTargetTemperature = lowTargetTemperature;
+}
 
-    if (_callForHeatingByTemperature) {
-        const auto target = calculatedTargetTemperature + _config.heatingOvershoot;
+HeatingZoneController::State HeatingZoneController::saveState()
+{
+    State state;
 
-        // std::cout << __func__
-        //     << ": target=" << target
-        //     << '\n';
+    _stateChanged = false;
 
-        if (
-            _lastInputTemperature >= target
-            || _lastInputTemperature >= FailSafeHighTarget
-        ) {
-            _callForHeatingByTemperature = false;
-        }
-    } else {
-        const auto target = calculatedTargetTemperature - _config.heatingUndershoot;
+    // Decomposition ensures we won't forget about new fields after they've added
+    auto& [
+        mode,
+        highTargetTemperature,
+        lowTargetTemperature
+    ] = state;
 
-        // std::cout << __func__
-        //     << ": target=" << target
-        //     << '\n';
+    mode = _mode;
+    highTargetTemperature = _highTargetTemperature;
+    lowTargetTemperature = _lowTargetTemperature;
 
-        if (
-            _lastInputTemperature <= target
-            || _lastInputTemperature <= FailSafeLowTarget
-        ) {
-            _callForHeatingByTemperature = true;
-        }
-    }
+    return state;
+}
+
+bool HeatingZoneController::stateChanged() const
+{
+    return _stateChanged;
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::targetTemperatureBySchedule() const
