@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Settings.h"
-
 #include "network/MQTT/MqttVariable.h"
 
+#include <SettingsHandler.h>
 #include <HeatingZoneController.h>
 #include <Logger.h>
 
@@ -24,11 +23,35 @@ public:
     void loadDefaultSettings();
 
 private:
+    struct ControllerState : HeatingZoneController::State
+    {
+        ControllerState() = default;
+        ControllerState(const ControllerState&) = default;
+        ControllerState(ControllerState&&) = delete;
+        ControllerState& operator=(const ControllerState&) = default;
+        ControllerState& operator=(ControllerState&&) = delete;
+        
+        ControllerState& operator=(const HeatingZoneController::State& s)
+        {
+            const auto& [
+                sMode,
+                sHighTargetTemperature,
+                sLowTargetTemperature
+            ] = s;
+
+            mode = sMode;
+            highTargetTemperature = sHighTargetTemperature;
+            lowTargetTemperature = sLowTargetTemperature;
+
+            return *this;
+        }
+    } __attribute__((packed));
+
     CoreApplication& _app;
     Logger _log;
-    HeatingZoneController::Configuration _controllerConfig{};
-    HeatingZoneController::Schedule _controllerSchedule{};
-    HeatingZoneController::State _controllerState{};
+    HeatingZoneController::Configuration _controllerConfig;
+    HeatingZoneController::Schedule _controllerSchedule;
+    Setting<HeatingZoneController::State> _stateSetting;
     HeatingZoneController _controller;
     const std::string _topicPrefix;
 

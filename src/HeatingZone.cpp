@@ -33,6 +33,7 @@ HeatingZone::HeatingZone(
 )
     : _app{ app }
     , _log{ std::string{ "HeatingZone_" } + std::to_string(index) }
+    , _stateSetting{ _app.settings().registerSetting<HeatingZoneController::State>() }
     , _controller{ _controllerConfig, _controllerSchedule }
     , _topicPrefix{ std::string{ Config::Mqtt::HeatingZoneTopicPrefix } + std::to_string(index) }
     , _mode{ _topicPrefix, PSTR("/mode"), PSTR("/mode/set"), app.mqttClient() }
@@ -48,9 +49,22 @@ HeatingZone::HeatingZone(
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
 
-    _app.settings().registerSetting(_controllerConfig);
-    _app.settings().registerSetting(_controllerSchedule);
-    _app.settings().registerSetting(_controllerState);
+    if (_stateSetting.load()) {
+        _log.info_P(PSTR("controller state loaded"));
+
+        _log.debug_P(
+            PSTR("mode=%u, high=%d, low=%d"),
+            _stateSetting.value().mode,
+            _stateSetting.value().highTargetTemperature,
+            _stateSetting.value().lowTargetTemperature
+        );
+
+        _controller.loadState(_stateSetting.value());
+    } else {
+        _log.warning_P(PSTR("failed to load controller state, resetting to default"));
+
+        _controller.loadState(HeatingZoneController::State{});
+    }
 }
 
 void HeatingZone::task(const uint32_t systemClockDeltaMs)
@@ -64,7 +78,13 @@ void HeatingZone::task(const uint32_t systemClockDeltaMs)
     }
 
     if (_controller.stateChanged()) {
-        _controllerState = _controller.saveState();
+        _log.debug_P(PSTR("controller state changed, saving"));
+
+        _stateSetting.value() = _controller.saveState();
+
+        if (!_stateSetting.save()) {
+            _log.warning_P(PSTR("failed to save controller state"));
+        }
     }
 }
 
@@ -75,11 +95,13 @@ bool HeatingZone::callingForHeating()
 
 void HeatingZone::loadDefaultSettings()
 {
+    _log.debug_P(PSTR("%s"), __func__);
+
     _controllerConfig = {};
     _controllerSchedule = {};
-    _controllerState = {};
+    // _controllerState = HeatingZoneController::State{};
 
-    _controller.loadState(_controllerState);
+    // _controller.loadState(_controllerState);
 }
 
 void HeatingZone::setupMqttComponentConfigs()
@@ -258,7 +280,7 @@ void HeatingZone::onModeChanged(const std::string& mode)
 
 void HeatingZone::onTargetTemperatureChanged(const float value)
 {
-    _log.info("%s: value=%f", __func__, value);
+    _log.info_P(PSTR("%s: value=%f"), __func__, value);
     _controller.overrideTargetTemperature(value * 10);
 }
 
@@ -306,39 +328,57 @@ std::string HeatingZone::makeClimateConfig() const
 {
     using namespace Extras;
 
-        std::stringstream config;
+    std::stringstream config;
 
-        config << '{';
+    config << '{';
 
-        config << pgmToStdString(PSTR(R"("icon":"mdi:sun-thermometer")"));
-        config << pgmToStdString(PSTR(R"(,"name":"Furnace Zone")"));
-        config << pgmToStdString(PSTR(R"(,"object_id":")")) << _topicPrefix;
-        config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix;
-        config << pgmToStdString(PSTR(R"(","max_temp":30)"));
-        config << pgmToStdString(PSTR(R"(,"min_temp":10)"));
-        config << pgmToStdString(PSTR(R"(,"modes":["heat","off"])"));
-        config << pgmToStdString(PSTR(R"(,"preset_modes":["away"])"));
-        config << pgmToStdString(PSTR(R"(,"precision":0.1)"));
-        config << pgmToStdString(PSTR(R"(,"temperature_unit":"C")"));
-        config << pgmToStdString(PSTR(R"(,"temp_step":0.5)"));
+    config
+        << pgmToStdString(PSTR(R"("device":{"sw_version":)"))
+        << '"'
+        << _app.config().firmwareVersion.toString() << '/'
+        << _app.config().applicationVersion.toString()
+        << '"';
+    config
+        << pgmToStdString(PSTR(R"(,"name":"Furnace Zone [)"))
+        << _topicPrefix
+        << "]\"";
+    config << pgmToStdString(PSTR(R"(,"model":"ESP Furnace Controller")"));
+    config << pgmToStdString(PSTR(R"(,"manufacturer":"ToMikaa")"));
+    config
+        << pgmToStdString(PSTR(R"(,"identifiers":"esp_furnace_controller_)"))
+        << _topicPrefix
+        << '"';
+    config << "},";
 
-        addTopicField(config, PSTR("mode_command_topic"), _topicPrefix, PSTR("/mode/set"));
-        addTopicField(config, PSTR("mode_state_topic"), _topicPrefix, PSTR("/mode"));
-        // Since we don't have a local sensor, we use the remote temperature for the current value
-        addTopicField(config, PSTR("current_temperature_topic"), _topicPrefix, PSTR("/temp/remote"));
-        addTopicField(config, PSTR("temperature_command_topic"), _topicPrefix, PSTR("/temp/active/set"));
-        addTopicField(config, PSTR("temperature_state_topic"), _topicPrefix, PSTR("/temp/active"));
-        addTopicField(config, PSTR("temperature_high_command_topic"), _topicPrefix, PSTR("/temp/high/set"));
-        addTopicField(config, PSTR("temperature_high_state_topic"), _topicPrefix, PSTR("/temp/high"));
-        addTopicField(config, PSTR("temperature_low_command_topic"), _topicPrefix, PSTR("/temp/low/set"));
-        addTopicField(config, PSTR("temperature_low_state_topic"), _topicPrefix, PSTR("/temp/low"));
-        addTopicField(config, PSTR("action_topic"), _topicPrefix, PSTR("/action"));
-        addTopicField(config, PSTR("preset_mode_command_topic"), _topicPrefix, PSTR("/preset/set"));
-        addTopicField(config, PSTR("preset_mode_state_topic"), _topicPrefix, PSTR("/preset"));
+    config << pgmToStdString(PSTR(R"("icon":"mdi:sun-thermometer")"));
+    config << pgmToStdString(PSTR(R"(,"name":"Furnace Zone")"));
+    config << pgmToStdString(PSTR(R"(,"object_id":")")) << _topicPrefix;
+    config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix;
+    config << pgmToStdString(PSTR(R"(","max_temp":30)"));
+    config << pgmToStdString(PSTR(R"(,"min_temp":10)"));
+    config << pgmToStdString(PSTR(R"(,"modes":["heat","off"])"));
+    config << pgmToStdString(PSTR(R"(,"preset_modes":["away"])"));
+    config << pgmToStdString(PSTR(R"(,"precision":0.1)"));
+    config << pgmToStdString(PSTR(R"(,"temperature_unit":"C")"));
+    config << pgmToStdString(PSTR(R"(,"temp_step":0.5)"));
 
-        config << '}';
+    addTopicField(config, PSTR("mode_command_topic"), _topicPrefix, PSTR("/mode/set"));
+    addTopicField(config, PSTR("mode_state_topic"), _topicPrefix, PSTR("/mode"));
+    // Since we don't have a local sensor, we use the remote temperature for the current value
+    addTopicField(config, PSTR("current_temperature_topic"), _topicPrefix, PSTR("/temp/remote"));
+    addTopicField(config, PSTR("temperature_command_topic"), _topicPrefix, PSTR("/temp/active/set"));
+    addTopicField(config, PSTR("temperature_state_topic"), _topicPrefix, PSTR("/temp/active"));
+    addTopicField(config, PSTR("temperature_high_command_topic"), _topicPrefix, PSTR("/temp/high/set"));
+    addTopicField(config, PSTR("temperature_high_state_topic"), _topicPrefix, PSTR("/temp/high"));
+    addTopicField(config, PSTR("temperature_low_command_topic"), _topicPrefix, PSTR("/temp/low/set"));
+    addTopicField(config, PSTR("temperature_low_state_topic"), _topicPrefix, PSTR("/temp/low"));
+    addTopicField(config, PSTR("action_topic"), _topicPrefix, PSTR("/action"));
+    addTopicField(config, PSTR("preset_mode_command_topic"), _topicPrefix, PSTR("/preset/set"));
+    addTopicField(config, PSTR("preset_mode_state_topic"), _topicPrefix, PSTR("/preset"));
 
-        return config.str();
+    config << '}';
+
+    return config.str();
 }
 
 std::string HeatingZone::makeButtonConfig(
@@ -351,21 +391,21 @@ std::string HeatingZone::makeButtonConfig(
 {
     using namespace Extras;
 
-        std::stringstream config;
+    std::stringstream config;
 
-        config << '{';
+    config << '{';
 
-        config << pgmToStdString(PSTR(R"("icon":")")) << pgmToStdString(icon);
-        config << pgmToStdString(PSTR(R"(","name":")")) << pgmToStdString(name);
-        config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-        config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-        config << pgmToStdString(PSTR(R"(","command_topic":")")) << _topicPrefix << pgmToStdString(commandTopic);
-        config << pgmToStdString(PSTR(R"(","payload_press":")")) << pgmToStdString(pressPayload);
-        config << '"';
+    config << pgmToStdString(PSTR(R"("icon":")")) << pgmToStdString(icon);
+    config << pgmToStdString(PSTR(R"(","name":")")) << pgmToStdString(name);
+    config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
+    config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
+    config << pgmToStdString(PSTR(R"(","command_topic":")")) << _topicPrefix << pgmToStdString(commandTopic);
+    config << pgmToStdString(PSTR(R"(","payload_press":")")) << pgmToStdString(pressPayload);
+    config << '"';
 
-        config << '}';
+    config << '}';
 
-        return config.str();
+    return config.str();
 }
 
 std::string HeatingZone::makeSensorConfig(

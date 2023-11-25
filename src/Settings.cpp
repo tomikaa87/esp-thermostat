@@ -60,7 +60,7 @@ bool Settings::save()
 
     dumpData();
 
-    const auto ok = _handler.save();
+    const auto ok = _handler.save() != ISettingsHandler::SaveResult::Error;
 
     _log.info_P(PSTR("saving settings: ok=%d"), ok);
 

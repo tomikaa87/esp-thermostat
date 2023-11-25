@@ -36,9 +36,9 @@ public:
 
     struct State
     {
-        Mode mode{};
-        DeciDegrees highTargetTemperature{};
-        DeciDegrees lowTargetTemperature{};
+        Mode mode{ Mode::Off };
+        DeciDegrees highTargetTemperature{ 220 };
+        DeciDegrees lowTargetTemperature{ 220 };
     };
 
     explicit HeatingZoneController(
