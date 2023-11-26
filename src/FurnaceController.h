@@ -14,11 +14,7 @@ class ApplicationConfig;
 class FurnaceController
 {
 public:
-#ifdef TEST_BUILD
-    static constexpr auto ZoneCount = 1;
-#else
     static constexpr auto ZoneCount = 5;
-#endif
 
     explicit FurnaceController(const ApplicationConfig& appConfig);
 

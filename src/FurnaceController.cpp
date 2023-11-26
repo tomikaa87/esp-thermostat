@@ -12,12 +12,10 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
     , _app{ _appConfig }
     , _zones{
         HeatingZone{ 0, _app },
-#ifndef TEST_BUILD
         HeatingZone{ 1, _app },
         HeatingZone{ 2, _app },
         HeatingZone{ 10, _app },
         HeatingZone{ 11, _app }
-#endif
     }
 {
     setupRelayOutput();
