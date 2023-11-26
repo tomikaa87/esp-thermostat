@@ -1,10 +1,12 @@
 #pragma once
 
 #include "HeatingZone.h"
-#include "Settings.h"
 
 #include <CoreApplication.h>
 #include <Logger.h>
+#include <SettingsHandler.h>
+
+#include <network/MQTT/MqttVariable.h>
 
 #include <array>
 #include <cstdint>
@@ -23,11 +25,25 @@ public:
 private:
     const ApplicationConfig& _appConfig;
     CoreApplication _app;
+    
+    struct Settings
+    {
+        bool masterEnable{ false };
+    };
+
+    Setting<Settings> _settings;
+
     Logger _log{ "FurnaceController" };
     std::array<HeatingZone, ZoneCount> _zones;
     uint32_t _lastTaskMillis{};
     bool _relayOutputActive{ false };
 
+    MqttVariable<int> _masterSwitch;
+
     void setupRelayOutput() const;
     void setRelayOutputActive(bool active);
+
+    void setupMqttComponentConfigs();
+    void setupMqttChangeHandlers();
+    void updateMqtt();
 };

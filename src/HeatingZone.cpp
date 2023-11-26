@@ -19,10 +19,10 @@ namespace
     {
         ss
             << ",\""
-            << Extras::pgmToStdString(name)
+            << Extras::fromPstr(name)
             << "\":\""
             << prefix
-            << Extras::pgmToStdString(topic)
+            << Extras::fromPstr(topic)
             << "\"";
     }
 }
@@ -340,9 +340,9 @@ void HeatingZone::onBoostActiveChanged(const int value)
 
 std::string HeatingZone::makeTopic(PGM_P prependToPrefix, PGM_P appendToPrefix) const
 {
-    return Extras::pgmToStdString(prependToPrefix)
+    return Extras::fromPstr(prependToPrefix)
         + _topicPrefix
-        + Extras::pgmToStdString(appendToPrefix);
+        + Extras::fromPstr(appendToPrefix);
 }
 
 std::string HeatingZone::makeClimateConfig() const
@@ -354,34 +354,34 @@ std::string HeatingZone::makeClimateConfig() const
     config << '{';
 
     config
-        << pgmToStdString(PSTR(R"("device":{"sw_version":)"))
+        << fromPstr(PSTR(R"("device":{"sw_version":)"))
         << '"'
         << _app.config().firmwareVersion.toString() << '/'
         << _app.config().applicationVersion.toString()
         << '"';
     config
-        << pgmToStdString(PSTR(R"(,"name":"Furnace Zone [)"))
+        << fromPstr(PSTR(R"(,"name":"Furnace Zone [)"))
         << _topicPrefix
         << "]\"";
-    config << pgmToStdString(PSTR(R"(,"model":"ESP Furnace Controller")"));
-    config << pgmToStdString(PSTR(R"(,"manufacturer":"ToMikaa")"));
+    config << fromPstr(PSTR(R"(,"model":"ESP Furnace Controller")"));
+    config << fromPstr(PSTR(R"(,"manufacturer":"ToMikaa")"));
     config
-        << pgmToStdString(PSTR(R"(,"identifiers":"esp_furnace_controller_)"))
+        << fromPstr(PSTR(R"(,"identifiers":"esp_furnace_controller_)"))
         << _topicPrefix
         << '"';
     config << "},";
 
-    config << pgmToStdString(PSTR(R"("icon":"mdi:sun-thermometer")"));
-    config << pgmToStdString(PSTR(R"(,"name":"Furnace Zone")"));
-    config << pgmToStdString(PSTR(R"(,"object_id":")")) << _topicPrefix;
-    config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix;
-    config << pgmToStdString(PSTR(R"(","max_temp":30)"));
-    config << pgmToStdString(PSTR(R"(,"min_temp":10)"));
-    config << pgmToStdString(PSTR(R"(,"modes":["heat","off"])"));
-    config << pgmToStdString(PSTR(R"(,"preset_modes":["away"])"));
-    config << pgmToStdString(PSTR(R"(,"precision":0.1)"));
-    config << pgmToStdString(PSTR(R"(,"temperature_unit":"C")"));
-    config << pgmToStdString(PSTR(R"(,"temp_step":0.5)"));
+    config << fromPstr(PSTR(R"("icon":"mdi:sun-thermometer")"));
+    config << fromPstr(PSTR(R"(,"name":"Furnace Zone")"));
+    config << fromPstr(PSTR(R"(,"object_id":")")) << _topicPrefix;
+    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix;
+    config << fromPstr(PSTR(R"(","max_temp":30)"));
+    config << fromPstr(PSTR(R"(,"min_temp":10)"));
+    config << fromPstr(PSTR(R"(,"modes":["heat","off"])"));
+    config << fromPstr(PSTR(R"(,"preset_modes":["away"])"));
+    config << fromPstr(PSTR(R"(,"precision":0.1)"));
+    config << fromPstr(PSTR(R"(,"temperature_unit":"C")"));
+    config << fromPstr(PSTR(R"(,"temp_step":0.5)"));
 
     addTopicField(config, PSTR("mode_command_topic"), _topicPrefix, PSTR("/mode/set"));
     addTopicField(config, PSTR("mode_state_topic"), _topicPrefix, PSTR("/mode"));
@@ -416,12 +416,12 @@ std::string HeatingZone::makeButtonConfig(
 
     config << '{';
 
-    config << pgmToStdString(PSTR(R"("icon":")")) << pgmToStdString(icon);
-    config << pgmToStdString(PSTR(R"(","name":")")) << pgmToStdString(name);
-    config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","command_topic":")")) << _topicPrefix << pgmToStdString(commandTopic);
-    config << pgmToStdString(PSTR(R"(","payload_press":")")) << pgmToStdString(pressPayload);
+    config << fromPstr(PSTR(R"("icon":")")) << fromPstr(icon);
+    config << fromPstr(PSTR(R"(","name":")")) << fromPstr(name);
+    config << fromPstr(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << fromPstr(id);
+    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
+    config << fromPstr(PSTR(R"(","command_topic":")")) << _topicPrefix << fromPstr(commandTopic);
+    config << fromPstr(PSTR(R"(","payload_press":")")) << fromPstr(pressPayload);
     config << '"';
 
     config << '}';
@@ -443,12 +443,12 @@ std::string HeatingZone::makeSensorConfig(
 
     config << '{';
 
-    config << pgmToStdString(PSTR(R"("icon":")")) << pgmToStdString(icon);
-    config << pgmToStdString(PSTR(R"(","name":")")) << pgmToStdString(name);
-    config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","state_topic":")")) << _topicPrefix << pgmToStdString(stateTopic);
-    config << pgmToStdString(PSTR(R"(","unit_of_measurement":")")) << pgmToStdString(unit);
+    config << fromPstr(PSTR(R"("icon":")")) << fromPstr(icon);
+    config << fromPstr(PSTR(R"(","name":")")) << fromPstr(name);
+    config << fromPstr(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << fromPstr(id);
+    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
+    config << fromPstr(PSTR(R"(","state_topic":")")) << _topicPrefix << fromPstr(stateTopic);
+    config << fromPstr(PSTR(R"(","unit_of_measurement":")")) << fromPstr(unit);
     config << '"';
 
     config << '}';
@@ -469,17 +469,17 @@ std::string HeatingZone::makeRemoteTemperatureSensorConfig(
 
     config << '{';
 
-    config << pgmToStdString(PSTR(R"("icon":"mdi:thermometer")"));
-    config << pgmToStdString(PSTR(R"(,"name":")")) << pgmToStdString(name);
-    config << pgmToStdString(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << pgmToStdString(id);
-    config << pgmToStdString(PSTR(R"(","command_topic":")")) << _topicPrefix << pgmToStdString(commandTopic);
-    config << pgmToStdString(PSTR(R"(","state_topic":")")) << _topicPrefix << pgmToStdString(stateTopic);
-    config << pgmToStdString(PSTR(R"(","unit_of_measurement":"C")"));
-    config << pgmToStdString(PSTR(R"(,"mode":"slider")"));
-    config << pgmToStdString(PSTR(R"(,"max":30)"));
-    config << pgmToStdString(PSTR(R"(,"min":10)"));
-    config << pgmToStdString(PSTR(R"(,"step":0.1)"));
+    config << fromPstr(PSTR(R"("icon":"mdi:thermometer")"));
+    config << fromPstr(PSTR(R"(,"name":")")) << fromPstr(name);
+    config << fromPstr(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << fromPstr(id);
+    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
+    config << fromPstr(PSTR(R"(","command_topic":")")) << _topicPrefix << fromPstr(commandTopic);
+    config << fromPstr(PSTR(R"(","state_topic":")")) << _topicPrefix << fromPstr(stateTopic);
+    config << fromPstr(PSTR(R"(","unit_of_measurement":"C")"));
+    config << fromPstr(PSTR(R"(,"mode":"slider")"));
+    config << fromPstr(PSTR(R"(,"max":30)"));
+    config << fromPstr(PSTR(R"(,"min":10)"));
+    config << fromPstr(PSTR(R"(,"step":0.1)"));
 
     config << '}';
 

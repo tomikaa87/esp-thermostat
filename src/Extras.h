@@ -66,7 +66,7 @@ namespace Extras
         return newValue;
     }
 
-    std::string pgmToStdString(PGM_P str);
+    std::string fromPstr(PGM_P str);
 }
 
 #endif	/* EXTRAS_H */

@@ -27,7 +27,7 @@ uint8_t calculate_schedule_intval_idx(const uint8_t hours, const uint8_t minutes
 	return (hours << 1) + (minutes >= 30 ? 1 : 0);
 }
 
-std::string Extras::pgmToStdString(PGM_P str)
+std::string Extras::fromPstr(PGM_P str)
 {
     const auto len = strlen_P(str);
     std::string ss(len, 0);
