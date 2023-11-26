@@ -23,30 +23,6 @@ public:
     void loadDefaultSettings();
 
 private:
-    struct ControllerState : HeatingZoneController::State
-    {
-        ControllerState() = default;
-        ControllerState(const ControllerState&) = default;
-        ControllerState(ControllerState&&) = delete;
-        ControllerState& operator=(const ControllerState&) = default;
-        ControllerState& operator=(ControllerState&&) = delete;
-        
-        ControllerState& operator=(const HeatingZoneController::State& s)
-        {
-            const auto& [
-                sMode,
-                sHighTargetTemperature,
-                sLowTargetTemperature
-            ] = s;
-
-            mode = sMode;
-            highTargetTemperature = sHighTargetTemperature;
-            lowTargetTemperature = sLowTargetTemperature;
-
-            return *this;
-        }
-    } __attribute__((packed));
-
     CoreApplication& _app;
     Logger _log;
     HeatingZoneController::Configuration _controllerConfig;

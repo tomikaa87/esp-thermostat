@@ -64,7 +64,13 @@ HeatingZone::HeatingZone(
         _log.warning_P(PSTR("failed to load controller state, resetting to default"));
 
         _controller.loadState(HeatingZoneController::State{});
+
+        if (!_stateSetting.save()) {
+            _log.warning_P(PSTR("failed to save the default state"));
+        }
     }
+
+    updateMqtt();
 }
 
 void HeatingZone::task(const uint32_t systemClockDeltaMs)
@@ -267,6 +273,21 @@ void HeatingZone::updateMqtt()
     _boostRemainingSeconds = _controller.boostRemainingSeconds();
 
     _boostActive = _controller.boostActive() ? 1 : 0;
+
+#ifdef TEST_BUILD
+    _log.debug_P(
+        PSTR("%s: m=%s, pm=%s, tt=%s, lt=%0.1f, ht=%0.1f, a=%s, ba=%d, br=%d"),
+        __func__,
+        static_cast<const std::string&>(_mode).c_str(),
+        static_cast<const std::string&>(_presetMode).c_str(),
+        static_cast<const std::string&>(_targetTemperature).c_str(),
+        static_cast<const float&>(_lowTargetTemperature),
+        static_cast<const float&>(_highTargetTemperature),
+        static_cast<const std::string&>(_action).c_str(),
+        static_cast<const int&>(_boostActive),
+        static_cast<const int&>(_boostRemainingSeconds)
+    );
+#endif
 }
 
 void HeatingZone::onModeChanged(const std::string& mode)
