@@ -55,19 +55,4 @@ private:
     void onRemoteTemperatureChanged(float value);
     void onPresetModeChanged(const std::string& value);
     void onBoostActiveChanged(int value);
-
-    std::string makeTopic(PGM_P prependToPrefix, PGM_P appendToPrefix) const;
-    std::string makeButtonConfig(
-        PGM_P icon,
-        PGM_P name,
-        PGM_P id,
-        PGM_P commandTopic,
-        PGM_P pressPayload
-    ) const;
-    std::string makeRemoteTemperatureSensorConfig(
-        PGM_P name,
-        PGM_P id,
-        PGM_P commandTopic,
-        PGM_P stateTopic
-    ) const;
 };

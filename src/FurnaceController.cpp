@@ -17,6 +17,12 @@ namespace Devices::MasterSwitch
     auto stateTopic() { return PSTR("/master_switch"); }
 }
 
+namespace Devices::CallingForHeatingSensor
+{
+    auto uniqueId() { return PSTR("calling_for_heating_sensor"); }
+    auto stateTopic() { return PSTR("/calling_for_heating"); }
+}
+
 FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
     : _appConfig{ appConfig }
     , _app{ _appConfig }
@@ -37,6 +43,11 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
         Devices::MasterSwitch::commandTopic(),
         _app.mqttClient()
     }
+    , _callingForHeatingState{
+        _topicPrefix,
+        Devices::CallingForHeatingSensor::stateTopic(),
+        _app.mqttClient()
+    }
 {
     if (!_settings.load()) {
         _log.warning_P("failed to load settings, restoring defaults");
@@ -45,6 +56,7 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
     setupRelayOutput();
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
+    updateMqtt();
 }
 
 void FurnaceController::task()
@@ -55,15 +67,25 @@ void FurnaceController::task()
 
     _app.task();
 
+    _mqttUpdateTimer += deltaMillis;
+    if (_mqttUpdateTimer >= 1000) {
+        _mqttUpdateTimer = 0;
+        updateMqtt();
+    }
+
     bool callingForHeating{ false };
 
     for (auto& zone : _zones) {
         zone.task(deltaMillis);
 
-        if (zone.callingForHeating()) {
-            callingForHeating = true;
+        if (_settings.value().masterEnable) {
+            if (zone.callingForHeating()) {
+                callingForHeating = true;
+            }
         }
     }
+
+    _callingForHeatingState = callingForHeating ? 1 : 0;
 
     setRelayOutputActive(callingForHeating);
 }
@@ -115,17 +137,45 @@ void FurnaceController::setupMqttComponentConfigs()
             );
         }
     );
+
+    _app.mqttClient().publish(
+        [] {
+            return HomeAssistant::makeConfigTopic(
+                fromPstr("sensor"),
+                fromPstr(Devices::CallingForHeatingSensor::uniqueId())
+            );
+        },
+        [&] {
+            return HomeAssistant::makeSensorConfig(
+                fromPstr(PSTR("mdi:radiator")),
+                fromPstr(PSTR("Calling for heating")),
+                fromPstr(Devices::CallingForHeatingSensor::uniqueId()),
+                _topicPrefix,
+                fromPstr(Devices::CallingForHeatingSensor::stateTopic()),
+                "",
+                [&](auto& config) {
+                    HomeAssistant::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
+            );
+        }
+    );
 }
 
 void FurnaceController::setupMqttChangeHandlers()
 {
     _masterSwitch.setChangedHandler(
         [this](const auto value) {
-            _log.debug_P(PSTR("setupMqttChangeHandlers: masterSwitch=%d"), value);
+            _log.debug_P(PSTR("masterSwitch=%d"), value);
+            _settings.value().masterEnable = value != 0;
+            _settings.save();
         }
     );
 }
 
 void FurnaceController::updateMqtt()
 {
+    _masterSwitch = _settings.value().masterEnable;
 }

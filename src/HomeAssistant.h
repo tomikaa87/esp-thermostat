@@ -11,6 +11,53 @@
 
 namespace HomeAssistant
 {
+    namespace Topics
+    {
+        namespace Temperature
+        {
+            namespace Remote
+            {
+                PGM_P command();
+                PGM_P state();
+            }
+
+            namespace Active
+            {
+                PGM_P command();
+                PGM_P state();
+            }
+
+            namespace High
+            {
+                PGM_P command();
+                PGM_P state();
+            }
+
+            namespace Low
+            {
+                PGM_P command();
+                PGM_P state();
+            }
+        }
+
+        namespace Preset
+        {
+            PGM_P command();
+            PGM_P state();
+        }
+
+        namespace Mode
+        {
+            PGM_P command();
+            PGM_P state();
+        }
+
+        namespace Action
+        {
+            PGM_P state();
+        }
+    }
+
     using ConfigAppender = std::function<void (std::stringstream&)>;
 
     void addDeviceConfig(
@@ -39,6 +86,8 @@ namespace HomeAssistant
     );
 
     std::string makeClimateConfig(
+        const std::string_view& name,
+        const std::string_view& uniqueId,
         const std::string_view& topicPrefix,
         const ConfigAppender& appender = {}
     );
@@ -58,6 +107,27 @@ namespace HomeAssistant
         const std::string_view& name,
         const std::string_view& uniqueId,
         const std::string_view& topicPrefix,
+        const std::string_view& stateTopic,
+        const std::string_view& unit,
+        const ConfigAppender& appender = {}
+    );
+
+    std::string makeButtonConfig(
+        const std::string_view& icon,
+        const std::string_view& name,
+        const std::string_view& uniqueId,
+        const std::string_view& topicPrefix,
+        const std::string_view& commandTopic,
+        const std::string_view& pressPayload,
+        const ConfigAppender& appender = {}
+    );
+
+    std::string makeNumberConfig(
+        const std::string_view& icon,
+        const std::string_view& name,
+        const std::string_view& uniqueId,
+        const std::string_view& topicPrefix,
+        const std::string_view& commandTopic,
         const std::string_view& stateTopic,
         const std::string_view& unit,
         const ConfigAppender& appender = {}

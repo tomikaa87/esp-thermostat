@@ -36,10 +36,12 @@ private:
     Logger _log{ "FurnaceController" };
     std::array<HeatingZone, ZoneCount> _zones;
     uint32_t _lastTaskMillis{};
+    uint32_t _mqttUpdateTimer{};
     bool _relayOutputActive{ false };
 
     std::string _topicPrefix;
     MqttVariable<int> _masterSwitch;
+    MqttVariable<int> _callingForHeatingState;
 
     void setupRelayOutput() const;
     void setRelayOutputActive(bool active);

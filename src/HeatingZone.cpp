@@ -9,6 +9,8 @@
 #include <string>
 #include <sstream>
 
+namespace HA = HomeAssistant;
+
 namespace
 {
     std::string zoneDependentName(
@@ -43,10 +45,36 @@ namespace
     }
 }
 
+namespace Devices::Climate
+{
+    auto uniqueId() { return PSTR("climate"); };
+}
+
 namespace Devices::BoostRemainingSensor
 {
     auto uniqueId() { return PSTR("boost_remaining"); }
     auto stateTopic() { return PSTR("/boost/remaining"); }
+}
+
+namespace Devices::BoostActivateButton
+{
+    auto uniqueId() { return PSTR("boost_activate"); }
+}
+
+namespace Devices::BoostDeactivateButton
+{
+    auto uniqueId() { return PSTR("boost_deactivate"); }
+}
+
+namespace Devices::RemoteTemperatureNumber
+{
+    auto uniqueId() { return PSTR("remote_temperature"); }
+}
+
+namespace Topics::BoostActive
+{
+    auto state() { return PSTR("/boost/active"); }
+    auto command() { return PSTR("/boost/active/set"); }
 }
 
 HeatingZone::HeatingZone(
@@ -59,21 +87,27 @@ HeatingZone::HeatingZone(
     , _stateSetting{ _app.settings().registerSetting<HeatingZoneController::State>() }
     , _controller{ _controllerConfig, _controllerSchedule }
     , _topicPrefix{
-        HomeAssistant::makeUniqueId()
+        HA::makeUniqueId()
             + appendIndex(Extras::fromPstr(PSTR("/zone")), _index)
     }
-    , _mode{ _topicPrefix, PSTR("/mode"), PSTR("/mode/set"), app.mqttClient() }
-    , _targetTemperature{ _topicPrefix, PSTR("/temp/active"), PSTR("/temp/active/set"), app.mqttClient() }
-    , _lowTargetTemperature{ _topicPrefix, PSTR("/temp/low"), PSTR("/temp/low/set"), app.mqttClient() }
-    , _highTargetTemperature{ _topicPrefix, PSTR("/temp/high"), PSTR("/temp/high/set"), app.mqttClient() }
-    , _remoteTemperature{ _topicPrefix, PSTR("/temp/remote"), PSTR("/temp/remote/set"), app.mqttClient() }
-    , _action{ _topicPrefix, PSTR("/action"), app.mqttClient() }
-    , _presetMode{ _topicPrefix, PSTR("/preset"), PSTR("/preset/set"), app.mqttClient() }
+    , _mode{ _topicPrefix, HA::Topics::Mode::state(), HA::Topics::Mode::command(), app.mqttClient() }
+    , _targetTemperature{ _topicPrefix, HA::Topics::Temperature::Active::state(), HA::Topics::Temperature::Active::command(), app.mqttClient() }
+    , _lowTargetTemperature{ _topicPrefix, HA::Topics::Temperature::Low::state(), HA::Topics::Temperature::Low::command(), app.mqttClient() }
+    , _highTargetTemperature{ _topicPrefix, HA::Topics::Temperature::High::state(), HA::Topics::Temperature::High::command(), app.mqttClient() }
+    , _remoteTemperature{ _topicPrefix, HA::Topics::Temperature::Remote::state(), HA::Topics::Temperature::Remote::command(), app.mqttClient() }
+    , _action{ _topicPrefix, HA::Topics::Action::state(), app.mqttClient() }
+    , _presetMode{ _topicPrefix, HA::Topics::Preset::state(), HA::Topics::Preset::command(), app.mqttClient() }
     , _boostRemainingSeconds{
-        _topicPrefix, Devices::BoostRemainingSensor::stateTopic(),
+        _topicPrefix,
+        Devices::BoostRemainingSensor::stateTopic(),
         app.mqttClient()
     }
-    , _boostActive{ _topicPrefix, PSTR("/boost/active"), PSTR("/boost/active/set"), app.mqttClient() }
+    , _boostActive{
+        _topicPrefix,
+        Topics::BoostActive::state(),
+        Topics::BoostActive::command(),
+        app.mqttClient()
+    }
 {
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
@@ -146,13 +180,24 @@ void HeatingZone::setupMqttComponentConfigs()
     // Climate config
     _app.mqttClient().publish(
         [this] {
-            return makeTopic(PSTR("homeassistant/climate/"), PSTR("/config"));
+            return HA::makeConfigTopic(
+                fromPstr("climate"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::Climate::uniqueId()),
+                    _index
+                )
+            );
         },
         [this] {
-            return HomeAssistant::makeClimateConfig(
+            return HA::makeClimateConfig(
+                fromPstr(PSTR("Zone")) + ' ' + std::to_string(_index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::Climate::uniqueId()),
+                    _index
+                ),
                 _topicPrefix,
                 [this](auto& config) {
-                    HomeAssistant::addDeviceConfig(
+                    HA::addDeviceConfig(
                         config,
                         _app.config().firmwareVersion.toString()
                     );
@@ -164,15 +209,31 @@ void HeatingZone::setupMqttComponentConfigs()
     // "Boost" activate button config
     _app.mqttClient().publish(
         [this] {
-            return makeTopic(PSTR("homeassistant/button/"), PSTR("_boost_activate/config"));
+            return HA::makeConfigTopic(
+                fromPstr("button"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::BoostActivateButton::uniqueId()),
+                    _index
+                )
+            );
         },
         [this] {
-            return makeButtonConfig(
-                PSTR("mdi:radiator"),
-                PSTR("Activate Boost"),
-                PSTR("boost_activate"),
-                PSTR("/boost/active/set"),
-                PSTR("1")
+            return HA::makeButtonConfig(
+                fromPstr(PSTR("mdi:radiator")),
+                zoneDependentName(fromPstr(PSTR("Activate Boost")), _index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::BoostActivateButton::uniqueId()),
+                    _index
+                ),
+                _topicPrefix,
+                fromPstr(Topics::BoostActive::command()),
+                "1",
+                [this](auto& config) {
+                    HA::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
             );
         }
     );
@@ -180,15 +241,31 @@ void HeatingZone::setupMqttComponentConfigs()
     // "Boost" deactivate button config
     _app.mqttClient().publish(
         [this] {
-            return makeTopic(PSTR("homeassistant/button/"), PSTR("_boost_deactivate/config"));
+            return HA::makeConfigTopic(
+                fromPstr("button"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::BoostDeactivateButton::uniqueId()),
+                    _index
+                )
+            );
         },
         [this] {
-            return makeButtonConfig(
-                PSTR("mdi:radiator-off"),
-                PSTR("Deactivate Boost"),
-                PSTR("boost_deactivate"),
-                PSTR("/boost/active/set"),
-                PSTR("0")
+            return HA::makeButtonConfig(
+                fromPstr(PSTR("mdi:radiator-off")),
+                zoneDependentName(fromPstr(PSTR("Deactivate Boost")), _index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::BoostDeactivateButton::uniqueId()),
+                    _index
+                ),
+                _topicPrefix,
+                fromPstr(Topics::BoostActive::command()),
+                "0",
+                [this](auto& config) {
+                    HA::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
             );
         }
     );
@@ -196,8 +273,7 @@ void HeatingZone::setupMqttComponentConfigs()
     // "Boost" remaining seconds sensor config
     _app.mqttClient().publish(
         [this] {
-            // return makeTopic(PSTR("homeassistant/sensor/"), PSTR("_boost_remaining/config"));
-            return HomeAssistant::makeConfigTopic(
+            return HA::makeConfigTopic(
                 fromPstr("sensor"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::BoostRemainingSensor::uniqueId()),
@@ -206,7 +282,7 @@ void HeatingZone::setupMqttComponentConfigs()
             );
         },
         [this] {
-            return HomeAssistant::makeSensorConfig(
+            return HA::makeSensorConfig(
                 fromPstr(PSTR("mdi:timer")),
                 zoneDependentName(fromPstr("Boost Remaining"), _index),
                 zoneDependentUniqueId(
@@ -217,7 +293,7 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(Devices::BoostRemainingSensor::stateTopic()),
                 "s",
                 [this](auto& config) {
-                    HomeAssistant::addDeviceConfig(
+                    HA::addDeviceConfig(
                         config,
                         _app.config().firmwareVersion.toString()
                     );
@@ -229,14 +305,32 @@ void HeatingZone::setupMqttComponentConfigs()
     // Remote temperature sensor config
     _app.mqttClient().publish(
         [this] {
-            return makeTopic(PSTR("homeassistant/number/"), PSTR("_remote_temp/config"));
+            return HA::makeConfigTopic(
+                fromPstr("number"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::RemoteTemperatureNumber::uniqueId()),
+                    _index
+                )
+            );
         },
         [this] {
-            return makeRemoteTemperatureSensorConfig(
-                PSTR("Remote Temperature Input"),
-                PSTR("remote_temperature"),
-                PSTR("/temp/remote/set"),
-                PSTR("/temp/remote")
+            return HA::makeNumberConfig(
+                fromPstr(PSTR("mdi:thermometer")),
+                zoneDependentName(fromPstr("Remote Temperature"), _index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::RemoteTemperatureNumber::uniqueId()),
+                    _index
+                ),
+                _topicPrefix,
+                fromPstr(HA::Topics::Temperature::Remote::command()),
+                fromPstr(HA::Topics::Temperature::Remote::state()),
+                "C",
+                [this](auto& config) {
+                    HA::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
             );
         }
     );
@@ -390,68 +484,4 @@ void HeatingZone::onBoostActiveChanged(const int value)
     } else if (value == 1) {
         _controller.startOrExtendBoost();
     }
-}
-
-std::string HeatingZone::makeTopic(PGM_P prependToPrefix, PGM_P appendToPrefix) const
-{
-    return Extras::fromPstr(prependToPrefix)
-        + _topicPrefix
-        + Extras::fromPstr(appendToPrefix);
-}
-
-std::string HeatingZone::makeButtonConfig(
-    PGM_P icon,
-    PGM_P name,
-    PGM_P id,
-    PGM_P commandTopic,
-    PGM_P pressPayload
-) const
-{
-    using namespace Extras;
-
-    std::stringstream config;
-
-    config << '{';
-
-    config << fromPstr(PSTR(R"("icon":")")) << fromPstr(icon);
-    config << fromPstr(PSTR(R"(","name":")")) << fromPstr(name);
-    config << fromPstr(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << fromPstr(id);
-    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
-    config << fromPstr(PSTR(R"(","command_topic":")")) << _topicPrefix << fromPstr(commandTopic);
-    config << fromPstr(PSTR(R"(","payload_press":")")) << fromPstr(pressPayload);
-    config << '"';
-
-    config << '}';
-
-    return config.str();
-}
-
-std::string HeatingZone::makeRemoteTemperatureSensorConfig(
-    PGM_P name,
-    PGM_P id,
-    PGM_P commandTopic,
-    PGM_P stateTopic
-) const
-{
-    using namespace Extras;
-
-    std::stringstream config;
-
-    config << '{';
-
-    config << fromPstr(PSTR(R"("icon":"mdi:thermometer")"));
-    config << fromPstr(PSTR(R"(,"name":")")) << fromPstr(name);
-    config << fromPstr(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << fromPstr(id);
-    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
-    config << fromPstr(PSTR(R"(","command_topic":")")) << _topicPrefix << fromPstr(commandTopic);
-    config << fromPstr(PSTR(R"(","state_topic":")")) << _topicPrefix << fromPstr(stateTopic);
-    config << fromPstr(PSTR(R"(","unit_of_measurement":"C")"));
-    config << fromPstr(PSTR(R"(,"mode":"slider")"));
-    config << fromPstr(PSTR(R"(,"max":30)"));
-    config << fromPstr(PSTR(R"(,"min":10)"));
-    config << fromPstr(PSTR(R"(,"step":0.1)"));
-
-    config << '}';
-
-    return config.str();
 }
