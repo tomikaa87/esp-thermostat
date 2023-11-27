@@ -38,6 +38,7 @@ private:
     uint32_t _lastTaskMillis{};
     bool _relayOutputActive{ false };
 
+    std::string _topicPrefix;
     MqttVariable<int> _masterSwitch;
 
     void setupRelayOutput() const;

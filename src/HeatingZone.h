@@ -23,6 +23,7 @@ public:
     void loadDefaultSettings();
 
 private:
+    unsigned _index{};
     CoreApplication& _app;
     Logger _log;
     HeatingZoneController::Configuration _controllerConfig;
@@ -56,20 +57,12 @@ private:
     void onBoostActiveChanged(int value);
 
     std::string makeTopic(PGM_P prependToPrefix, PGM_P appendToPrefix) const;
-    std::string makeClimateConfig() const;
     std::string makeButtonConfig(
         PGM_P icon,
         PGM_P name,
         PGM_P id,
         PGM_P commandTopic,
         PGM_P pressPayload
-    ) const;
-    std::string makeSensorConfig(
-        PGM_P icon,
-        PGM_P name,
-        PGM_P id,
-        PGM_P stateTopic,
-        PGM_P unit
     ) const;
     std::string makeRemoteTemperatureSensorConfig(
         PGM_P name,

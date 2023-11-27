@@ -1,6 +1,7 @@
 #include "HeatingZone.h"
 
 #include "Extras.h"
+#include "HomeAssistant.h"
 #include "PrivateConfig.h"
 
 #include <CoreApplication.h>
@@ -10,32 +11,57 @@
 
 namespace
 {
-    void addTopicField(
-        std::stringstream& ss,
-        PGM_P name,
-        const std::string_view& prefix,
-        PGM_P topic
+    std::string zoneDependentName(
+        const std::string_view& name,
+        const unsigned index
     )
     {
-        ss
-            << ",\""
-            << Extras::fromPstr(name)
-            << "\":\""
-            << prefix
-            << Extras::fromPstr(topic)
-            << "\"";
+        return
+            std::string{ name }
+            + Extras::fromPstr(PSTR(" (Zone "))
+            + std::to_string(index)
+            + ")";
     }
+
+    std::string zoneDependentUniqueId(
+        const std::string_view& uniqueId,
+        const unsigned index
+    )
+    {
+        return
+            std::string{ uniqueId }
+            + Extras::fromPstr(PSTR("_zone_"))
+            + std::to_string(index);
+    }
+
+    std::string appendIndex(
+        const std::string_view& s,
+        const unsigned index
+    )
+    {
+        return std::string{ s } + '_' + std::to_string(index);
+    }
+}
+
+namespace Devices::BoostRemainingSensor
+{
+    auto uniqueId() { return PSTR("boost_remaining"); }
+    auto stateTopic() { return PSTR("/boost/remaining"); }
 }
 
 HeatingZone::HeatingZone(
     const unsigned index,
     CoreApplication& app
 )
-    : _app{ app }
-    , _log{ std::string{ "HeatingZone_" } + std::to_string(index) }
+    : _index{ index }
+    , _app{ app }
+    , _log{ appendIndex(Extras::fromPstr(PSTR("HeatingZone")), _index) }
     , _stateSetting{ _app.settings().registerSetting<HeatingZoneController::State>() }
     , _controller{ _controllerConfig, _controllerSchedule }
-    , _topicPrefix{ std::string{ Config::Mqtt::HeatingZoneTopicPrefix } + std::to_string(index) }
+    , _topicPrefix{
+        HomeAssistant::makeUniqueId()
+            + appendIndex(Extras::fromPstr(PSTR("/zone")), _index)
+    }
     , _mode{ _topicPrefix, PSTR("/mode"), PSTR("/mode/set"), app.mqttClient() }
     , _targetTemperature{ _topicPrefix, PSTR("/temp/active"), PSTR("/temp/active/set"), app.mqttClient() }
     , _lowTargetTemperature{ _topicPrefix, PSTR("/temp/low"), PSTR("/temp/low/set"), app.mqttClient() }
@@ -43,7 +69,10 @@ HeatingZone::HeatingZone(
     , _remoteTemperature{ _topicPrefix, PSTR("/temp/remote"), PSTR("/temp/remote/set"), app.mqttClient() }
     , _action{ _topicPrefix, PSTR("/action"), app.mqttClient() }
     , _presetMode{ _topicPrefix, PSTR("/preset"), PSTR("/preset/set"), app.mqttClient() }
-    , _boostRemainingSeconds{ _topicPrefix, PSTR("/boost/remaining"), app.mqttClient() }
+    , _boostRemainingSeconds{
+        _topicPrefix, Devices::BoostRemainingSensor::stateTopic(),
+        app.mqttClient()
+    }
     , _boostActive{ _topicPrefix, PSTR("/boost/active"), PSTR("/boost/active/set"), app.mqttClient() }
 {
     setupMqttComponentConfigs();
@@ -120,7 +149,15 @@ void HeatingZone::setupMqttComponentConfigs()
             return makeTopic(PSTR("homeassistant/climate/"), PSTR("/config"));
         },
         [this] {
-            return makeClimateConfig();
+            return HomeAssistant::makeClimateConfig(
+                _topicPrefix,
+                [this](auto& config) {
+                    HomeAssistant::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
+            );
         }
     );
 
@@ -159,15 +196,32 @@ void HeatingZone::setupMqttComponentConfigs()
     // "Boost" remaining seconds sensor config
     _app.mqttClient().publish(
         [this] {
-            return makeTopic(PSTR("homeassistant/sensor/"), PSTR("_boost_remaining/config"));
+            // return makeTopic(PSTR("homeassistant/sensor/"), PSTR("_boost_remaining/config"));
+            return HomeAssistant::makeConfigTopic(
+                fromPstr("sensor"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::BoostRemainingSensor::uniqueId()),
+                    _index
+                )
+            );
         },
         [this] {
-            return makeSensorConfig(
-                PSTR("mdi:timer"),
-                PSTR("Boost Remaining"),
-                PSTR("boost_remaining"),
-                PSTR("/boost/remaining"),
-                PSTR("s")
+            return HomeAssistant::makeSensorConfig(
+                fromPstr(PSTR("mdi:timer")),
+                zoneDependentName(fromPstr("Boost Remaining"), _index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::BoostRemainingSensor::uniqueId()),
+                    _index
+                ),
+                _topicPrefix,
+                fromPstr(Devices::BoostRemainingSensor::stateTopic()),
+                "s",
+                [this](auto& config) {
+                    HomeAssistant::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
             );
         }
     );
@@ -274,7 +328,7 @@ void HeatingZone::updateMqtt()
 
     _boostActive = _controller.boostActive() ? 1 : 0;
 
-#ifdef TEST_BUILD
+#if defined TEST_BUILD && 0
     _log.debug_P(
         PSTR("%s: m=%s, pm=%s, tt=%s, lt=%0.1f, ht=%0.1f, a=%s, ba=%d, br=%d"),
         __func__,
@@ -345,63 +399,6 @@ std::string HeatingZone::makeTopic(PGM_P prependToPrefix, PGM_P appendToPrefix) 
         + Extras::fromPstr(appendToPrefix);
 }
 
-std::string HeatingZone::makeClimateConfig() const
-{
-    using namespace Extras;
-
-    std::stringstream config;
-
-    config << '{';
-
-    config
-        << fromPstr(PSTR(R"("device":{"sw_version":)"))
-        << '"'
-        << _app.config().firmwareVersion.toString() << '/'
-        << _app.config().applicationVersion.toString()
-        << '"';
-    config
-        << fromPstr(PSTR(R"(,"name":"Furnace Zone [)"))
-        << _topicPrefix
-        << "]\"";
-    config << fromPstr(PSTR(R"(,"model":"ESP Furnace Controller")"));
-    config << fromPstr(PSTR(R"(,"manufacturer":"ToMikaa")"));
-    config
-        << fromPstr(PSTR(R"(,"identifiers":"esp_furnace_controller_)"))
-        << _topicPrefix
-        << '"';
-    config << "},";
-
-    config << fromPstr(PSTR(R"("icon":"mdi:sun-thermometer")"));
-    config << fromPstr(PSTR(R"(,"name":"Furnace Zone")"));
-    config << fromPstr(PSTR(R"(,"object_id":")")) << _topicPrefix;
-    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix;
-    config << fromPstr(PSTR(R"(","max_temp":30)"));
-    config << fromPstr(PSTR(R"(,"min_temp":10)"));
-    config << fromPstr(PSTR(R"(,"modes":["heat","off"])"));
-    config << fromPstr(PSTR(R"(,"preset_modes":["away"])"));
-    config << fromPstr(PSTR(R"(,"precision":0.1)"));
-    config << fromPstr(PSTR(R"(,"temperature_unit":"C")"));
-    config << fromPstr(PSTR(R"(,"temp_step":0.5)"));
-
-    addTopicField(config, PSTR("mode_command_topic"), _topicPrefix, PSTR("/mode/set"));
-    addTopicField(config, PSTR("mode_state_topic"), _topicPrefix, PSTR("/mode"));
-    // Since we don't have a local sensor, we use the remote temperature for the current value
-    addTopicField(config, PSTR("current_temperature_topic"), _topicPrefix, PSTR("/temp/remote"));
-    addTopicField(config, PSTR("temperature_command_topic"), _topicPrefix, PSTR("/temp/active/set"));
-    addTopicField(config, PSTR("temperature_state_topic"), _topicPrefix, PSTR("/temp/active"));
-    addTopicField(config, PSTR("temperature_high_command_topic"), _topicPrefix, PSTR("/temp/high/set"));
-    addTopicField(config, PSTR("temperature_high_state_topic"), _topicPrefix, PSTR("/temp/high"));
-    addTopicField(config, PSTR("temperature_low_command_topic"), _topicPrefix, PSTR("/temp/low/set"));
-    addTopicField(config, PSTR("temperature_low_state_topic"), _topicPrefix, PSTR("/temp/low"));
-    addTopicField(config, PSTR("action_topic"), _topicPrefix, PSTR("/action"));
-    addTopicField(config, PSTR("preset_mode_command_topic"), _topicPrefix, PSTR("/preset/set"));
-    addTopicField(config, PSTR("preset_mode_state_topic"), _topicPrefix, PSTR("/preset"));
-
-    config << '}';
-
-    return config.str();
-}
-
 std::string HeatingZone::makeButtonConfig(
     PGM_P icon,
     PGM_P name,
@@ -422,33 +419,6 @@ std::string HeatingZone::makeButtonConfig(
     config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
     config << fromPstr(PSTR(R"(","command_topic":")")) << _topicPrefix << fromPstr(commandTopic);
     config << fromPstr(PSTR(R"(","payload_press":")")) << fromPstr(pressPayload);
-    config << '"';
-
-    config << '}';
-
-    return config.str();
-}
-
-std::string HeatingZone::makeSensorConfig(
-    PGM_P icon,
-    PGM_P name,
-    PGM_P id,
-    PGM_P stateTopic,
-    PGM_P unit
-) const
-{
-    using namespace Extras;
-
-    std::stringstream config;
-
-    config << '{';
-
-    config << fromPstr(PSTR(R"("icon":")")) << fromPstr(icon);
-    config << fromPstr(PSTR(R"(","name":")")) << fromPstr(name);
-    config << fromPstr(PSTR(R"(","object_id":")")) << _topicPrefix << '_' << fromPstr(id);
-    config << fromPstr(PSTR(R"(","unique_id":")")) << _topicPrefix << '_' << fromPstr(id);
-    config << fromPstr(PSTR(R"(","state_topic":")")) << _topicPrefix << fromPstr(stateTopic);
-    config << fromPstr(PSTR(R"(","unit_of_measurement":")")) << fromPstr(unit);
     config << '"';
 
     config << '}';

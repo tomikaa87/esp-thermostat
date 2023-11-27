@@ -10,6 +10,13 @@ namespace
     constexpr auto RelayOutputPin{ D8 };
 }
 
+namespace Devices::MasterSwitch
+{
+    auto uniqueId() { return PSTR("master_switch"); }
+    auto commandTopic() { return PSTR("/master_switch/set"); }
+    auto stateTopic() { return PSTR("/master_switch"); }
+}
+
 FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
     : _appConfig{ appConfig }
     , _app{ _appConfig }
@@ -20,10 +27,14 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
         HeatingZone{ 2, _app },
         HeatingZone{ 10, _app },
         HeatingZone{ 11, _app }
-    },
-    _masterSwitch{
-        PSTR("furnace_controller/master_switch"),
-        PSTR("furnace_controller/master_switch/set"),
+    }
+    , _topicPrefix{
+        HomeAssistant::makeUniqueId()
+    }
+    , _masterSwitch{
+        _topicPrefix,
+        Devices::MasterSwitch::stateTopic(),
+        Devices::MasterSwitch::commandTopic(),
         _app.mqttClient()
     }
 {
@@ -84,16 +95,17 @@ void FurnaceController::setupMqttComponentConfigs()
         [] {
             return HomeAssistant::makeConfigTopic(
                 fromPstr("switch"),
-                fromPstr("master_switch")
+                fromPstr(Devices::MasterSwitch::uniqueId())
             );
         },
         [&] {
             return HomeAssistant::makeSwitchConfig(
                 fromPstr(PSTR("mdi:power")),
                 fromPstr(PSTR("Master Enable")),
-                fromPstr(PSTR("furnace_controller_test_master_switch")),
-                fromPstr(PSTR("furnace_controller/master_switch/set")),
-                fromPstr(PSTR("furnace_controller/master_switch")),
+                fromPstr(Devices::MasterSwitch::uniqueId()),
+                _topicPrefix,
+                fromPstr(Devices::MasterSwitch::commandTopic()),
+                fromPstr(Devices::MasterSwitch::stateTopic()),
                 [&](auto& config) {
                     HomeAssistant::addDeviceConfig(
                         config,
@@ -103,55 +115,15 @@ void FurnaceController::setupMqttComponentConfigs()
             );
         }
     );
-
-    _app.mqttClient().publish(
-        [] {
-            return HomeAssistant::makeConfigTopic(
-                fromPstr("switch"),
-                fromPstr("test_switch")
-            );
-        },
-        [&] {
-            return HomeAssistant::makeSwitchConfig(
-                fromPstr(PSTR("mdi:power")),
-                fromPstr(PSTR("Test Switch")),
-                fromPstr(PSTR("test_switch")),
-                fromPstr(PSTR("furnace_controller/master_switch/set")),
-                fromPstr(PSTR("furnace_controller/master_switch")),
-                [&](auto& config) {
-                    HomeAssistant::addDeviceConfig(
-                        config,
-                        _app.config().firmwareVersion.toString()
-                    );
-                }
-            );
-        }
-    );
-
-    // _app.mqttClient().publish(
-    //     [] {
-    //         return fromPstr(PSTR("homeassistant/switch/furnace_controller_test_master_switch_2/config"));
-    //     },
-    //     [&] {
-    //         return HomeAssistant::makeSwitchConfig(
-    //             fromPstr(PSTR("mdi:power")),
-    //             fromPstr(PSTR("Master Enable")),
-    //             fromPstr(PSTR("furnace_controller_test_master_switch_2")),
-    //             fromPstr(PSTR("furnace_controller/master_switch/set")),
-    //             fromPstr(PSTR("furnace_controller/master_switch")),
-    //             [&](auto& config) {
-    //                 HomeAssistant::addDeviceConfig(
-    //                     config,
-    //                     _app.config().firmwareVersion.toString()
-    //                 );
-    //             }
-    //         );
-    //     }
-    // );
 }
 
 void FurnaceController::setupMqttChangeHandlers()
 {
+    _masterSwitch.setChangedHandler(
+        [this](const auto value) {
+            _log.debug_P(PSTR("setupMqttChangeHandlers: masterSwitch=%d"), value);
+        }
+    );
 }
 
 void FurnaceController::updateMqtt()
