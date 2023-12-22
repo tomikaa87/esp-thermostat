@@ -114,6 +114,8 @@ public:
     [[nodiscard]] State saveState();
     [[nodiscard]] bool stateChanged() const;
 
+    void handleFurnaceHeatingChanged(bool heating);
+
 private:
     Configuration& _config;
     Schedule& _schedule;
@@ -136,6 +138,8 @@ private:
     bool _callForHeatingByTemperature{};
 
     uint32_t _requestedBoostTimeMs{};
+
+    bool _furnaceHeating{};
 
     DeciDegrees targetTemperatureBySchedule() const;
 };

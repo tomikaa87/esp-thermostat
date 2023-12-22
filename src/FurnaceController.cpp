@@ -17,6 +17,13 @@ namespace Devices::MasterSwitch
     auto stateTopic() { return PSTR("/master_switch"); }
 }
 
+namespace Devices::EnergyOptimizerSwitch
+{
+    auto uniqueId() { return PSTR("energy_optimizer_switch"); }
+    auto commandTopic() { return PSTR("/energy_optimizer_switch/set"); }
+    auto stateTopic() { return PSTR("/energy_optimizer_switch"); }
+}
+
 namespace Devices::CallingForHeatingSensor
 {
     auto uniqueId() { return PSTR("calling_for_heating_sensor"); }
@@ -41,6 +48,12 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
         _topicPrefix,
         Devices::MasterSwitch::stateTopic(),
         Devices::MasterSwitch::commandTopic(),
+        _app.mqttClient()
+    }
+    , _energyOptimizerSwitch{
+        _topicPrefix,
+        Devices::EnergyOptimizerSwitch::stateTopic(),
+        Devices::EnergyOptimizerSwitch::commandTopic(),
         _app.mqttClient()
     }
     , _callingForHeatingState{
@@ -86,6 +99,12 @@ void FurnaceController::task()
     }
 
     _callingForHeatingState = callingForHeating ? 1 : 0;
+
+    if (_settings.value().energyOptimizerEnabled) {
+        for (auto& zone : _zones) {
+            zone.handleFurnaceHeatingChanged(callingForHeating);
+        }
+    }
 
     setRelayOutputActive(callingForHeating);
 }
@@ -141,6 +160,31 @@ void FurnaceController::setupMqttComponentConfigs()
     _app.mqttClient().publish(
         [] {
             return HomeAssistant::makeConfigTopic(
+                fromPstr("switch"),
+                fromPstr(Devices::EnergyOptimizerSwitch::uniqueId())
+            );
+        },
+        [&] {
+            return HomeAssistant::makeSwitchConfig(
+                fromPstr(PSTR("mdi:leaf")),
+                fromPstr(PSTR("Energy Optimizer")),
+                fromPstr(Devices::EnergyOptimizerSwitch::uniqueId()),
+                _topicPrefix,
+                fromPstr(Devices::EnergyOptimizerSwitch::commandTopic()),
+                fromPstr(Devices::EnergyOptimizerSwitch::stateTopic()),
+                [&](auto& config) {
+                    HomeAssistant::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
+            );
+        }
+    );
+
+    _app.mqttClient().publish(
+        [] {
+            return HomeAssistant::makeConfigTopic(
                 fromPstr("sensor"),
                 fromPstr(Devices::CallingForHeatingSensor::uniqueId())
             );
@@ -173,9 +217,18 @@ void FurnaceController::setupMqttChangeHandlers()
             _settings.save();
         }
     );
+
+    _energyOptimizerSwitch.setChangedHandler(
+        [this](const auto value) {
+            _log.debug_P(PSTR("energyOptimizerEnabled=%d"), value);
+            _settings.value().energyOptimizerEnabled = value != 0;
+            _settings.save();
+        }
+    );
 }
 
 void FurnaceController::updateMqtt()
 {
     _masterSwitch = _settings.value().masterEnable;
+    _energyOptimizerSwitch = _settings.value().energyOptimizerEnabled;
 }

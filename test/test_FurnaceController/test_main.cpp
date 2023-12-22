@@ -994,6 +994,22 @@ TEST_P(ActiveModeTest, KeepHeatingOnAfterBoostStoppedManually)
     EXPECT_TRUE(controller.callingForHeating());
 }
 
+TEST_P(ActiveModeTest, HeatingStartsAboveUndershootThresholdWhenFurnaceIsAlreadyRunning)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+    EXPECT_FALSE(controller.callingForHeating());
+
+    // Assuming undershoot is 5
+    controller.inputTemperature(controller.targetTemperature().value() - 1);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.handleFurnaceHeatingChanged(true);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     HeatingZoneController,
     ActiveModeTest,

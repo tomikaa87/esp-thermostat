@@ -173,6 +173,11 @@ void HeatingZone::loadDefaultSettings()
     // _controller.loadState(_controllerState);
 }
 
+void HeatingZone::handleFurnaceHeatingChanged(const bool heating)
+{
+    _controller.handleFurnaceHeatingChanged(heating);
+}
+
 void HeatingZone::setupMqttComponentConfigs()
 {
     using namespace Extras;

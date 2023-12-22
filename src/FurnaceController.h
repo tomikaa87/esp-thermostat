@@ -29,6 +29,7 @@ private:
     struct Settings
     {
         bool masterEnable{ false };
+        bool energyOptimizerEnabled{ true };
     };
 
     Setting<Settings> _settings;
@@ -41,6 +42,7 @@ private:
 
     std::string _topicPrefix;
     MqttVariable<int> _masterSwitch;
+    MqttVariable<int> _energyOptimizerSwitch;
     MqttVariable<int> _callingForHeatingState;
 
     void setupRelayOutput() const;

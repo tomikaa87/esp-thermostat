@@ -22,6 +22,8 @@ public:
 
     void loadDefaultSettings();
 
+    void handleFurnaceHeatingChanged(bool heating);
+
 private:
     unsigned _index{};
     CoreApplication& _app;

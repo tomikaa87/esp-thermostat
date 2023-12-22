@@ -168,7 +168,14 @@ bool HeatingZoneController::callingForHeating()
             _callForHeatingByTemperature = false;
         }
     } else {
-        const auto target = calculatedTargetTemperature - _config.heatingUndershoot;
+        // If the furnace for this zone is already heating, don't wait
+        // for the temperature to fall below the undershoot threshold.
+        // This should optimize the energy consumption because the system
+        // is already warm.
+        const auto target =
+            _furnaceHeating
+                ? calculatedTargetTemperature
+                : calculatedTargetTemperature - _config.heatingUndershoot;
 
         if (
             _lastInputTemperature <= target
@@ -239,6 +246,11 @@ HeatingZoneController::State HeatingZoneController::saveState()
 bool HeatingZoneController::stateChanged() const
 {
     return _stateChanged;
+}
+
+void HeatingZoneController::handleFurnaceHeatingChanged(const bool heating)
+{
+    _furnaceHeating = heating;
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::targetTemperatureBySchedule() const
