@@ -102,6 +102,8 @@ public:
      */
     void setWindowOpened(bool open);
 
+    [[nodiscard]] bool windowOpened() const;
+
     /**
      * @brief Checks if heating is requested for the current zone.
      *

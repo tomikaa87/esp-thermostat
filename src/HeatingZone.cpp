@@ -71,16 +71,15 @@ namespace Devices::RemoteTemperatureNumber
     auto uniqueId() { return PSTR("remote_temperature"); }
 }
 
+namespace Devices::RemoteWindowSensor
+{
+    auto uniqueId() { return PSTR("remote_window_sensor"); }
+}
+
 namespace Topics::BoostActive
 {
     auto state() { return PSTR("/boost/active"); }
     auto command() { return PSTR("/boost/active/set"); }
-}
-
-namespace Topics::WindowState
-{
-    auto state() { return PSTR("/window_state"); }
-    auto command() { return PSTR("/window_state/set"); }
 }
 
 HeatingZone::HeatingZone(
@@ -116,8 +115,8 @@ HeatingZone::HeatingZone(
     }
     , _windowState{
         _topicPrefix,
-        Topics::WindowState::state(),
-        Topics::WindowState::command(),
+        HA::Topics::RemoteWindowSensor::state(),
+        HA::Topics::RemoteWindowSensor::command(),
         app.mqttClient()
     }
 {
@@ -351,6 +350,38 @@ void HeatingZone::setupMqttComponentConfigs()
             );
         }
     );
+
+    // Remote window state sensor config
+    _app.mqttClient().publish(
+        [this] {
+            return HA::makeConfigTopic(
+                fromPstr("switch"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::RemoteWindowSensor::uniqueId()),
+                    _index
+                )
+            );
+        },
+        [this] {
+            return HA::makeSwitchConfig(
+                fromPstr(PSTR("mdi:window-closed")),
+                zoneDependentName(fromPstr("Remote Window Open"), _index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::RemoteWindowSensor::uniqueId()),
+                    _index
+                ),
+                _topicPrefix,
+                fromPstr(HA::Topics::RemoteWindowSensor::command()),
+                fromPstr(HA::Topics::RemoteWindowSensor::state()),
+                [this](auto& config) {
+                    HA::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
+            );
+        }
+    );
 }
 
 void HeatingZone::setupMqttChangeHandlers()
@@ -398,8 +429,8 @@ void HeatingZone::setupMqttChangeHandlers()
     );
 
     _windowState.setChangedHandler(
-        [this](const std::string& value) {
-            onWindowStateChanged(value == "on" || value == "ON");
+        [this](const int value) {
+            onWindowStateChanged(value > 0);
         }
     );
 }
@@ -444,6 +475,8 @@ void HeatingZone::updateMqtt()
     _boostRemainingSeconds = _controller.boostRemainingSeconds();
 
     _boostActive = _controller.boostActive() ? 1 : 0;
+
+    _windowState = _controller.windowOpened() ? 1 : 0;
 
 #if defined TEST_BUILD && 0
     _log.debug_P(

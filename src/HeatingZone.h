@@ -43,7 +43,7 @@ private:
     MqttVariable<std::string> _presetMode;
     MqttVariable<int> _boostRemainingSeconds;
     MqttVariable<int> _boostActive;
-    MqttVariable<std::string> _windowState;
+    MqttVariable<int> _windowState;
 
     uint32_t _mqttUpdateTimer{};
 

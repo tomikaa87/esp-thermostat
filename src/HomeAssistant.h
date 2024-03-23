@@ -56,6 +56,12 @@ namespace HomeAssistant
         {
             PGM_P state();
         }
+
+        namespace RemoteWindowSensor
+        {
+            PGM_P command();
+            PGM_P state();
+        }
     }
 
     using ConfigAppender = std::function<void (std::stringstream&)>;

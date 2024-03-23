@@ -148,6 +148,11 @@ void HeatingZoneController::setWindowOpened(const bool open)
     _windowOpen = open;
 }
 
+bool HeatingZoneController::windowOpened() const
+{
+    return _windowOpen;
+}
+
 bool HeatingZoneController::callingForHeating()
 {
     if (_windowOpen) {

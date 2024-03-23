@@ -384,3 +384,13 @@ PGM_P HomeAssistant::Topics::Action::state()
 {
     return PSTR("/action");
 }
+
+PGM_P HomeAssistant::Topics::RemoteWindowSensor::command()
+{
+    return PSTR("/window_state/set");
+}
+
+PGM_P HomeAssistant::Topics::RemoteWindowSensor::state()
+{
+    return PSTR("/window_state");
+}
