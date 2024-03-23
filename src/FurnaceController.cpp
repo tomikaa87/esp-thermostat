@@ -38,6 +38,7 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
         HeatingZone{ 0, _app },
         HeatingZone{ 1, _app },
         HeatingZone{ 2, _app },
+        HeatingZone{ 3, _app },
         HeatingZone{ 10, _app },
         HeatingZone{ 11, _app }
     }

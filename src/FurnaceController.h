@@ -16,7 +16,7 @@ class ApplicationConfig;
 class FurnaceController
 {
 public:
-    static constexpr auto ZoneCount = 5;
+    static constexpr auto ZoneCount = 6;
 
     explicit FurnaceController(const ApplicationConfig& appConfig);
 
