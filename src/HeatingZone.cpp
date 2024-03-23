@@ -399,7 +399,7 @@ void HeatingZone::setupMqttChangeHandlers()
 
     _windowState.setChangedHandler(
         [this](const std::string& value) {
-            onWindowStateChanged(value == "off" || value == "OFF");
+            onWindowStateChanged(value == "on" || value == "ON");
         }
     );
 }
