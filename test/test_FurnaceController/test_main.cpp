@@ -1010,6 +1010,91 @@ TEST_P(ActiveModeTest, HeatingStartsAboveUndershootThresholdWhenFurnaceIsAlready
     EXPECT_TRUE(controller.callingForHeating());
 }
 
+TEST_P(ActiveModeTest, HeatingDoesntStartWhenTheWindowIsOpen)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(ActiveModeTest, HeatingStartsAfterClosingWindowAndTemperatureIsLow)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(false);
+    controller.inputTemperature(100);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST_P(ActiveModeTest, HeatingStopsAfterOpeningWindowAndTemperatureIsLow)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.setWindowOpened(false);
+    controller.inputTemperature(100);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(ActiveModeTest, HeatingDoesntStartDuringBoostWhenTheWindowIsOpen)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setWindowOpened(true);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(false);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST_P(ActiveModeTest, HeatingStartsAfterClosingWindowDuringBoost)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+
+    controller.setWindowOpened(true);
+    controller.startOrExtendBoost();
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(false);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST_P(ActiveModeTest, HeatingStopsAfterOpeningWindowDuringBoost)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+
+    controller.setWindowOpened(false);
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.setWindowOpened(true);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     HeatingZoneController,
     ActiveModeTest,

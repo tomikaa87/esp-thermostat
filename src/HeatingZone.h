@@ -43,6 +43,7 @@ private:
     MqttVariable<std::string> _presetMode;
     MqttVariable<int> _boostRemainingSeconds;
     MqttVariable<int> _boostActive;
+    MqttVariable<std::string> _windowState;
 
     uint32_t _mqttUpdateTimer{};
 
@@ -57,4 +58,5 @@ private:
     void onRemoteTemperatureChanged(float value);
     void onPresetModeChanged(const std::string& value);
     void onBoostActiveChanged(int value);
+    void onWindowStateChanged(bool open);
 };

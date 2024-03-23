@@ -96,6 +96,13 @@ public:
     [[nodiscard]] std::optional<DeciDegrees> targetTemperature() const;
 
     /**
+     * @brief Tells the library if the window in the current zone is open.
+     *
+     * @param open True if the window is open which suspends heating
+     */
+    void setWindowOpened(bool open);
+
+    /**
      * @brief Checks if heating is requested for the current zone.
      *
      * @return true
@@ -140,6 +147,8 @@ private:
     uint32_t _requestedBoostTimeMs{};
 
     bool _furnaceHeating{};
+
+    bool _windowOpen{};
 
     DeciDegrees targetTemperatureBySchedule() const;
 };

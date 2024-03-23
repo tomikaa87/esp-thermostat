@@ -143,8 +143,17 @@ std::optional<HeatingZoneController::DeciDegrees> HeatingZoneController::targetT
     return {};
 }
 
+void HeatingZoneController::setWindowOpened(const bool open)
+{
+    _windowOpen = open;
+}
+
 bool HeatingZoneController::callingForHeating()
 {
+    if (_windowOpen) {
+        return false;
+    }
+
     if (boostActive()) {
         return true;
     }

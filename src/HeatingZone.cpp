@@ -77,6 +77,12 @@ namespace Topics::BoostActive
     auto command() { return PSTR("/boost/active/set"); }
 }
 
+namespace Topics::WindowState
+{
+    auto state() { return PSTR("/window_state"); }
+    auto command() { return PSTR("/window_state/set"); }
+}
+
 HeatingZone::HeatingZone(
     const unsigned index,
     CoreApplication& app
@@ -106,6 +112,12 @@ HeatingZone::HeatingZone(
         _topicPrefix,
         Topics::BoostActive::state(),
         Topics::BoostActive::command(),
+        app.mqttClient()
+    }
+    , _windowState{
+        _topicPrefix,
+        Topics::WindowState::state(),
+        Topics::WindowState::command(),
         app.mqttClient()
     }
 {
@@ -384,6 +396,12 @@ void HeatingZone::setupMqttChangeHandlers()
             onBoostActiveChanged(value);
         }
     );
+
+    _windowState.setChangedHandler(
+        [this](const std::string& value) {
+            onWindowStateChanged(value == "off" || value == "OFF");
+        }
+    );
 }
 
 void HeatingZone::updateMqtt()
@@ -489,4 +507,9 @@ void HeatingZone::onBoostActiveChanged(const int value)
     } else if (value == 1) {
         _controller.startOrExtendBoost();
     }
+}
+
+void HeatingZone::onWindowStateChanged(const bool open)
+{
+    _controller.setWindowOpened(open);
 }
