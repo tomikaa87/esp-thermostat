@@ -44,6 +44,7 @@ private:
     MqttVariable<int> _boostRemainingSeconds;
     MqttVariable<int> _boostActive;
     MqttVariable<int> _windowState;
+    MqttVariable<int> _openWindowLockoutRemaining;
 
     uint32_t _mqttUpdateTimer{};
 

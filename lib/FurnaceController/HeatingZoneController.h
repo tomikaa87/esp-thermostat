@@ -125,6 +125,21 @@ public:
 
     void handleFurnaceHeatingChanged(bool heating);
 
+    /**
+     * @brief Can be used to check if the lock-out is active after closing the window.
+     *
+     * @return true If the lock-out is active
+     * @return false If the lock-out is inactive
+     */
+    [[nodiscard]] bool openWindowLockoutActive() const;
+
+    /**
+     * @brief Returns the remaining time in milliseconds if the lock-out is active.
+     *
+     * @return uint32_t Remaining time in milliseconds
+     */
+    [[nodiscard]] uint32_t openWindowLockoutRemainingMs() const;
+
 private:
     Configuration& _config;
     Schedule& _schedule;
@@ -151,6 +166,7 @@ private:
     bool _furnaceHeating{};
 
     bool _windowOpen{};
+    uint32_t _openWindowLockoutRemainingMs{};
 
     DeciDegrees targetTemperatureBySchedule() const;
 };

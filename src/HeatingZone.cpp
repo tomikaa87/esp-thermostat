@@ -76,6 +76,12 @@ namespace Devices::RemoteWindowSensor
     auto uniqueId() { return PSTR("remote_window_sensor"); }
 }
 
+namespace Devices::OpenWindowLockoutRemainingSensor
+{
+    auto uniqueId() { return PSTR("open_window_lockout_remaining"); }
+    auto stateTopic() { return PSTR("/open_window_lockout_remaining"); }
+}
+
 namespace Topics::BoostActive
 {
     auto state() { return PSTR("/boost/active"); }
@@ -117,6 +123,11 @@ HeatingZone::HeatingZone(
         _topicPrefix,
         HA::Topics::RemoteWindowSensor::state(),
         HA::Topics::RemoteWindowSensor::command(),
+        app.mqttClient()
+    }
+    , _openWindowLockoutRemaining{
+        _topicPrefix,
+        Devices::OpenWindowLockoutRemainingSensor::stateTopic(),
         app.mqttClient()
     }
 {
@@ -382,6 +393,38 @@ void HeatingZone::setupMqttComponentConfigs()
             );
         }
     );
+
+    // Open window lockout remaining
+    _app.mqttClient().publish(
+        [this] {
+            return HA::makeConfigTopic(
+                fromPstr("sensor"),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::OpenWindowLockoutRemainingSensor::uniqueId()),
+                    _index
+                )
+            );
+        },
+        [this] {
+            return HA::makeSensorConfig(
+                fromPstr(PSTR("mdi:timer")),
+                zoneDependentName(fromPstr("Open Window Lockout Remaining"), _index),
+                zoneDependentUniqueId(
+                    fromPstr(Devices::OpenWindowLockoutRemainingSensor::uniqueId()),
+                    _index
+                ),
+                _topicPrefix,
+                fromPstr(Devices::OpenWindowLockoutRemainingSensor::stateTopic()),
+                "s",
+                [this](auto& config) {
+                    HA::addDeviceConfig(
+                        config,
+                        _app.config().firmwareVersion.toString()
+                    );
+                }
+            );
+        }
+    );
 }
 
 void HeatingZone::setupMqttChangeHandlers()
@@ -477,6 +520,8 @@ void HeatingZone::updateMqtt()
     _boostActive = _controller.boostActive() ? 1 : 0;
 
     _windowState = _controller.windowOpened() ? 1 : 0;
+
+    _openWindowLockoutRemaining = _controller.openWindowLockoutRemainingMs() / 1000;
 
 #if defined TEST_BUILD && 0
     _log.debug_P(

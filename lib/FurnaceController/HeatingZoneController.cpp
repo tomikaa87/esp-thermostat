@@ -4,6 +4,7 @@ namespace
 {
     constexpr HeatingZoneController::DeciDegrees FailSafeLowTarget{ 100 };
     constexpr HeatingZoneController::DeciDegrees FailSafeHighTarget{ 300 };
+    constexpr uint32_t OpenWindowLockoutDurationMs{ 10 * 60 * 1000 };
 }
 
 HeatingZoneController::HeatingZoneController(
@@ -145,6 +146,12 @@ std::optional<HeatingZoneController::DeciDegrees> HeatingZoneController::targetT
 
 void HeatingZoneController::setWindowOpened(const bool open)
 {
+    if (!open && _windowOpen) {
+        _openWindowLockoutRemainingMs = OpenWindowLockoutDurationMs;
+    } else if (open) {
+        _openWindowLockoutRemainingMs = 0;
+    }
+
     _windowOpen = open;
 }
 
@@ -161,6 +168,10 @@ bool HeatingZoneController::callingForHeating()
 
     if (boostActive()) {
         return true;
+    }
+
+    if (openWindowLockoutActive()) {
+        return false;
     }
 
     if (_mode != Mode::Auto && _mode != Mode::Holiday) {
@@ -219,6 +230,14 @@ void HeatingZoneController::task(const uint32_t systemClockDeltaMs)
             _overrideRemainingMs = 0;
         }
     }
+
+    if (openWindowLockoutActive()) {
+        if (systemClockDeltaMs <= _openWindowLockoutRemainingMs) {
+            _openWindowLockoutRemainingMs -= systemClockDeltaMs;
+        } else {
+            _openWindowLockoutRemainingMs = 0;
+        }
+    }
 }
 
 void HeatingZoneController::loadState(const State& state)
@@ -265,6 +284,16 @@ bool HeatingZoneController::stateChanged() const
 void HeatingZoneController::handleFurnaceHeatingChanged(const bool heating)
 {
     _furnaceHeating = heating;
+}
+
+bool HeatingZoneController::openWindowLockoutActive() const
+{
+    return _openWindowLockoutRemainingMs > 0;
+}
+
+uint32_t HeatingZoneController::openWindowLockoutRemainingMs() const
+{
+    return _openWindowLockoutRemainingMs;
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::targetTemperatureBySchedule() const
