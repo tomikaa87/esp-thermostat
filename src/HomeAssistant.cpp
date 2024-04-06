@@ -64,7 +64,7 @@ namespace HomeAssistant
         quoteValuesConcat(config, std::forward<ValueTypes>(values)...);
     }
 
-    void addDeviceConfig(
+    void addCommonDeviceConfig(
         std::stringstream& config,
         const std::string_view& firmwareVersion
     )
@@ -78,16 +78,46 @@ namespace HomeAssistant
         config << fromPstr(PSTR(R"("device":{"sw_version":)"));
         quoteValue(config, firmwareVersion);
 
-        config << fromPstr(PSTR(R"(,"name":"Furnace")"));
         config << fromPstr(PSTR(R"(,"model":"ESP Furnace Controller")"));
         config << fromPstr(PSTR(R"(,"manufacturer":"ToMikaa")"));
+    }
 
-        config << fromPstr(PSTR(R"(,"identifiers":)"));
-        quotedValueList(
-            config,
-            fromPstr(PSTR("ESP_Furnace_Controller")),
-            WiFi.macAddress().c_str()
-        );
+    void addDeviceConfig(
+        std::stringstream& config,
+        const std::string_view& firmwareVersion
+    )
+    {
+        using namespace Extras;
+
+        addCommonDeviceConfig(config, firmwareVersion);
+
+        config << fromPstr(PSTR(R"(,"name":"Furnace")"));
+
+        config << fromPstr(PSTR(R"(,"identifiers":[")"));
+        config << fromPstr(PSTR("ESP_Furnace_Controller_"));
+        config << WiFi.macAddress().c_str();
+        config << "\"]";
+
+        config << "}";
+    }
+
+    void addHeatingZoneDeviceConfig(
+        std::stringstream& config,
+        const std::string_view& firmwareVersion,
+        const std::size_t zoneIndex
+    )
+    {
+        using namespace Extras;
+
+        addCommonDeviceConfig(config, firmwareVersion);
+
+        config << fromPstr(PSTR(R"(,"name":"Furnace Zone )")) << zoneIndex << '"';
+
+        config << fromPstr(PSTR(R"(,"identifiers":[")"));
+        config << fromPstr(PSTR("ESP_Furnace_Controller_"));
+        config << WiFi.macAddress().c_str();
+        config << "_Zone_" << zoneIndex;
+        config << "\"]";
 
         config << "}";
     }

@@ -71,6 +71,12 @@ namespace HomeAssistant
         const std::string_view& firmwareVersion
     );
 
+    void addHeatingZoneDeviceConfig(
+        std::stringstream& config,
+        const std::string_view& firmwareVersion,
+        std::size_t zoneIndex
+    );
+
     /**
      * @brief Makes a unique ID: furnace_controller_<WiFi MAC>_<ID>
      *

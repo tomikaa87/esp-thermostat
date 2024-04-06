@@ -224,9 +224,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 ),
                 _topicPrefix,
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
@@ -256,9 +257,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(Topics::BoostActive::command()),
                 "1",
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
@@ -288,9 +290,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(Topics::BoostActive::command()),
                 "0",
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
@@ -320,9 +323,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(Devices::BoostRemainingSensor::stateTopic()),
                 "s",
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
@@ -353,9 +357,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(HA::Topics::Temperature::Remote::state()),
                 "C",
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
@@ -385,9 +390,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(HA::Topics::RemoteWindowSensor::command()),
                 fromPstr(HA::Topics::RemoteWindowSensor::state()),
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
@@ -417,9 +423,10 @@ void HeatingZone::setupMqttComponentConfigs()
                 fromPstr(Devices::OpenWindowLockoutRemainingSensor::stateTopic()),
                 "s",
                 [this](auto& config) {
-                    HA::addDeviceConfig(
+                    HA::addHeatingZoneDeviceConfig(
                         config,
-                        _app.config().firmwareVersion.toString()
+                        _app.config().firmwareVersion.toString(),
+                        _index
                     );
                 }
             );
