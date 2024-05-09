@@ -174,6 +174,10 @@ bool HeatingZoneController::callingForHeating()
         return false;
     }
 
+    if (startDelayActive() && _callForHeatingByTemperature) {
+        return false;
+    }
+
     if (_mode != Mode::Auto && _mode != Mode::Holiday) {
         return false;
     }
@@ -207,6 +211,12 @@ bool HeatingZoneController::callingForHeating()
             || _lastInputTemperature <= FailSafeLowTarget
         ) {
             _callForHeatingByTemperature = true;
+
+            // Start the delay timer
+            if (_config.heatingStartDelaySeconds > 0) {
+                _heatingStartDelayRemainingMs = _config.heatingStartDelaySeconds * 1000;
+                return false;
+            }
         }
     }
 
@@ -236,6 +246,14 @@ void HeatingZoneController::task(const uint32_t systemClockDeltaMs)
             _openWindowLockoutRemainingMs -= systemClockDeltaMs;
         } else {
             _openWindowLockoutRemainingMs = 0;
+        }
+    }
+
+    if (startDelayActive()) {
+        if (systemClockDeltaMs <= _heatingStartDelayRemainingMs) {
+            _heatingStartDelayRemainingMs -= systemClockDeltaMs;
+        } else {
+            _heatingStartDelayRemainingMs = 0;
         }
     }
 }
@@ -294,6 +312,11 @@ bool HeatingZoneController::openWindowLockoutActive() const
 uint32_t HeatingZoneController::openWindowLockoutRemainingMs() const
 {
     return _openWindowLockoutRemainingMs;
+}
+
+bool HeatingZoneController::startDelayActive() const
+{
+    return _heatingStartDelayRemainingMs > 0;
 }
 
 HeatingZoneController::DeciDegrees HeatingZoneController::targetTemperatureBySchedule() const

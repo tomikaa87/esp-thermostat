@@ -1122,6 +1122,42 @@ TEST_P(ActiveModeTest, HeatingStopsAfterOpeningWindowDuringBoost)
     EXPECT_FALSE(controller.callingForHeating());
 }
 
+TEST_P(ActiveModeTest, HeatingStartsAfterSetDelay)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    config.heatingStartDelaySeconds = 600;
+
+    controller.inputTemperature(170);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_TRUE(controller.startDelayActive());
+
+    controller.task(config.heatingStartDelaySeconds * 1000 - 1);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_TRUE(controller.startDelayActive());
+
+    controller.task(1);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+}
+
+TEST_P(ActiveModeTest, HeatingStopsImmediatelyRegardlessDelay)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(170);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+
+    config.heatingStartDelaySeconds = 600;
+
+    controller.inputTemperature(250);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     HeatingZoneController,
     ActiveModeTest,
@@ -1214,6 +1250,21 @@ TEST_P(AllModesTest, BoostCausesCallingForHeating)
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
     controller.inputTemperature(300);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(AllModesTest, BoostCausesCallingForHeatingRegardlessStartDelay)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(300);
+    config.heatingStartDelaySeconds = 600;
     EXPECT_FALSE(controller.callingForHeating());
 
     controller.startOrExtendBoost();

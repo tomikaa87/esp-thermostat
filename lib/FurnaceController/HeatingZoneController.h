@@ -22,6 +22,7 @@ public:
         uint32_t overrideTimeoutSeconds{ 120 * 60 };
         uint32_t boostInitialDurationSeconds{ 30 * 60 };
         uint32_t boostExtensionDurationSeconds{ 15 * 60 };
+        uint32_t heatingStartDelaySeconds{ 0 };
         DeciDegrees heatingOvershoot{ 5 };
         DeciDegrees heatingUndershoot{ 5 };
         DeciDegrees holidayModeTemperature{ 180 };
@@ -140,6 +141,8 @@ public:
      */
     [[nodiscard]] uint32_t openWindowLockoutRemainingMs() const;
 
+    [[nodiscard]] bool startDelayActive() const;
+
 private:
     Configuration& _config;
     Schedule& _schedule;
@@ -167,6 +170,8 @@ private:
 
     bool _windowOpen{};
     uint32_t _openWindowLockoutRemainingMs{};
+
+    uint32_t _heatingStartDelayRemainingMs{};
 
     DeciDegrees targetTemperatureBySchedule() const;
 };
