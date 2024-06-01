@@ -19,7 +19,116 @@
 */
 
 #include "Graphics.h"
+#include "Resources.h"
+
 #include "display/Display.h"
+
+using namespace UI;
+
+OLEDGraphics::OLEDGraphics()
+{
+    Display::init();
+    Display::powerOn();
+    Display::setContrast(0);
+}
+
+void OLEDGraphics::drawBitmap(
+    const int x,
+    const int line,
+    const std::span<const uint8_t> bitmap
+)
+{
+    if (line > Display::Lines || bitmap.size() == 0 || x + bitmap.size() >= Display::Width)
+        return;
+
+    Display::setLine(line);
+    Display::setColumn(x);
+    Display::sendData(bitmap.data(), bitmap.size(), 0, false);
+}
+
+void OLEDGraphics::drawBitmap(
+    const int x,
+    const int startLine,
+    const std::span<const uint8_t> bitmap,
+    const int width,
+    const int pageCount
+)
+{
+    if (startLine + pageCount > Display::Lines)
+        return;
+
+    auto offset{ 0 };
+    for (uint8_t line = startLine; line < startLine + pageCount; ++line) {
+        drawBitmap(x, line, bitmap.subspan(offset, width));
+        offset += width;
+    }
+}
+
+void OLEDGraphics::drawChar(const char c, const int yOffset, const bool inverted)
+{
+    const uint8_t* charData;
+
+    namespace Font = Resources::Fonts::Default;
+
+    // If character is not supported, draw placeholder
+    if ((c - 32) >= Font::CharacterCount) {
+        charData = Font::PlaceholderData;
+    }
+    else {
+        // Get data for the next character
+        charData = Font::Data[c - 32];
+    }
+
+    Display::sendData(charData, Font::CharacterWidth, yOffset, inverted);
+}
+
+int OLEDGraphics::drawText(
+    int x,
+    const int line,
+    const std::string_view& text,
+    const int yOffset,
+    const bool inverted
+)
+{
+    namespace Font = Resources::Fonts::Default;
+
+    Display::setLine(line);
+
+    for (uint8_t i = 0; i < text.length(); ++i) {
+        Display::setColumn(x);
+
+        x += Font::CharacterWidth + 1;
+
+        drawChar(text[i], yOffset, inverted);
+
+        // Stop if the next character won't fit
+        if (x > Display::Driver::Width - 1)
+            return x;
+
+        // Fill the background between letters
+        if (i < text.length() - 1) {
+            const uint8_t pattern[Font::CharacterWidth] = { 0 };
+            for (uint8_t j = 0; j < Font::CharacterWidth; ++j) {
+                Display::sendData(pattern, Font::CharacterWidth, yOffset, inverted);
+            }
+        }
+    }
+
+    return x;
+}
+
+void OLEDGraphics::fillArea(
+    const int x,
+    const int line,
+    const int width,
+    const int pages,
+    const Color color
+)
+{
+    const auto pattern{ static_cast<uint8_t>(color == Color::White ? 0xFFu : 0u) };
+    Display::fillArea(x, line, width, pages, pattern);
+}
+
 
 void graphics_draw_bitmap(
     const uint8_t* bitmap,

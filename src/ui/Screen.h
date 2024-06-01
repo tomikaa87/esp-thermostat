@@ -1,46 +1,44 @@
 #pragma once
 
-#include <cstdint>
-
 #include "Keypad.h"
+#include "ScreenID.h"
 
-class Screen
+#include <cstdint>
+#include <concepts>
+#include <variant>
+
+namespace UI
 {
-public:
-    explicit Screen(const char* name)
-        : _name(name)
-    {}
-
-    const char* name() const
+    class Screen
     {
-        return _name;
-    }
+    public:
+        explicit Screen(const int id)
+            : _id{ id }
+        {}
 
-    const char* nextScreen() const
-    {
-        return _nextScreen;
-    }
+        [[nodiscard]] int id() const
+        {
+            return _id;
+        }
 
-    enum class Action
-    {
-        NoAction,
-        NavigateBack,
-        NavigateForward
+        struct NoAction {};
+        
+        struct Navigate {
+            int id{ ScreenID::Invalid };
+        };
+
+        using Result = std::variant<NoAction, Navigate>;
+
+    private:
+        int _id{ ScreenID::Invalid };
     };
 
-    Action navigateForward(const char* name)
-    {
-        _nextScreen = name;
-        return Action::NavigateForward;
-    }
-
-    virtual ~Screen() = default;
-
-    virtual void activate() = 0;
-    virtual void update() = 0;
-    virtual Action keyPress(Keypad::Keys keys) = 0;
-
-private:
-    const char* const _name;
-    const char* _nextScreen = nullptr;
-};
+    template <typename T>
+    concept IsScreen = requires(T s, int id, Keypad::Keys keys) {
+        std::derived_from<T, Screen>;
+        { s.id() } -> std::same_as<int>;
+        { s.handleKeyPress(keys) } -> std::same_as<Screen::Result>;
+        { s.activate() } -> std::same_as<void>;
+        { s.update() } -> std::same_as<void>;
+    };
+}

@@ -22,54 +22,81 @@
 
 #include "Keypad.h"
 #include "Logger.h"
-
 #include "Screen.h"
-#include "MainScreen.h"
-#include "MenuScreen.h"
-#include "SchedulingScreen.h"
+
+#include "Screens/MainScreen.h"
+#include "Screens/MainMenuScreen.h"
+#include "Screens/ZoneSettingsMenuScreen.h"
 
 #include <ctime>
 #include <memory>
-#include <stack>
+#include <variant>
 
+class HeatingController;
 class ISystemClock;
 class Settings;
 class TemperatureSensor;
 
-class Ui
+namespace UI
 {
-public:
-    Ui(
-        Settings& settings,
-        const ISystemClock& systemClock,
-        Keypad& keypad,
-        HeatingController& heatingController,
-        const TemperatureSensor& temperatureSensor
-    );
+    namespace Detail
+    {
+        template <typename... ScreenTypes>
+        struct ScreenHelper
+        {
+            static constexpr auto TypeCount = sizeof...(ScreenTypes);
+            using Screen = std::variant<ScreenTypes...>;
+            using Container = std::array<Screen, TypeCount>;
 
-    void task();
+            static Container constructScreens()
+            {
+                return Container{
+                    {
+                        ScreenTypes{}...
+                    }
+                };
+            }
+        };
+    }
 
-    void update();
-    void handleKeyPress(Keypad::Keys keys);
+    // Register screens here
+    using RegisteredScreens = Detail::ScreenHelper<
+        MainScreen
+        // MainMenuScreen,
+        // ZoneSettingsMenuScreen
+    >;
 
-private:
-    Settings& _settings;
-    const ISystemClock& _systemClock;
-    Keypad& _keypad;
-    // HeatingController& _heatingController;
-    const TemperatureSensor& _temperatureSensor;
-    Logger _log{ "Ui" };
-    std::time_t _lastKeyPressTime = 0;
+    class UIController
+    {
+    public:
+        UIController(
+        );
 
-    std::stack<Screen*> _screenStack;
-    std::vector<std::unique_ptr<Screen>> _screens;
+        void task();
 
-    Screen* _currentScreen = nullptr;
-    Screen* _mainScreen = nullptr;
+        void update();
+        void handleKeyPress(Keypad::Keys keys);
 
-    void updateActiveState();
-    bool isActive() const;
+    private:
+        Keypad _keypad;
+        Logger _log{ "Ui" };
+        // std::time_t _lastKeyPressTime = 0;
 
-    void navigateForward(const char* name);
-    void navigateBackward();
-};
+        RegisteredScreens::Container _screens;
+        RegisteredScreens::Screen* _currentScreen{};
+
+        void updateActiveState();
+        bool isActive() const;
+
+        [[nodiscard]] bool loadScreen(int id);
+
+        [[nodiscard]] static int getId(RegisteredScreens::Screen& screen);
+        static void invokeActivate(RegisteredScreens::Screen& screen);
+        static void invokeUpdate(RegisteredScreens::Screen& screen);
+        [[nodiscard]] static Screen::Result invokeHandleKeyPress(
+            RegisteredScreens::Screen& screen,
+            Keypad::Keys keys
+        );
+    };
+}
+

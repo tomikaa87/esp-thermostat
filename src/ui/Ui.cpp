@@ -26,57 +26,42 @@
 
 #include "display/Display.h"
 
-#include "MainScreen.h"
-#include "MenuScreen.h"
-#include "SchedulingScreen.h"
-
 #include <algorithm>
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
+#include <type_traits>
 
 // #define ENABLE_DEBUG
 
-// TODO rename settings_
-Ui::Ui(
-    Settings& settings,
-    const ISystemClock& systemClock,
-    Keypad& keypad,
-    HeatingController& heatingController,
-    const TemperatureSensor& temperatureSensor
+using namespace UI;
+
+UIController::UIController(
 )
-    : _settings(settings)
-    , _systemClock(systemClock)
-    , _keypad(keypad)
-    // , _heatingController(heatingController)
-    , _temperatureSensor(temperatureSensor)
+    : _screens{ RegisteredScreens::constructScreens() }
 {
-    _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.Brightness);
+    // _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.Brightness);
     Display::init();
-    Display::setContrast(_settings.data.display.Brightness);
+    Display::setContrast(0);
+    // Display::setContrast(_settings.data.display.Brightness);
 
-    auto mainScreen = std::unique_ptr<MainScreen>(new MainScreen(_settings, _systemClock, _temperatureSensor));
-    _mainScreen = mainScreen.get();
-    _currentScreen = _mainScreen;
-    mainScreen->activate();
-    _screens.push_back(std::move(mainScreen));
+    // _lastKeyPressTime = _systemClock.utcTime();
 
-    _screens.emplace_back(new MenuScreen(_settings));
-    _screens.emplace_back(new SchedulingScreen(_settings, _systemClock));
-
-    _lastKeyPressTime = _systemClock.utcTime();
+    if (loadScreen(ScreenID::Main)) {
+        invokeActivate(*_currentScreen);
+    }
 }
 
-void Ui::task()
+void UIController::task()
 {
     const auto pressedKeys = _keypad.scan();
     handleKeyPress(pressedKeys);
 }
 
-void Ui::update()
+void UIController::update()
 {
     if (_currentScreen) {
-        _currentScreen->update();
+        invokeUpdate(*_currentScreen);
     } else {
         _log.warning_P(PSTR("update: current screen is null"));
     }
@@ -84,14 +69,15 @@ void Ui::update()
     updateActiveState();
 }
 
-void Ui::handleKeyPress(const Keypad::Keys keys)
+void UIController::handleKeyPress(const Keypad::Keys keys)
 {
-    if (keys == Keypad::Keys::None)
+    if (keys == Keypad::Keys::None) {
         return;
+    }
 
-    _lastKeyPressTime = _systemClock.utcTime();
+    // _lastKeyPressTime = _systemClock.utcTime();
 
-    _log.info_P(PSTR("keys=%xh, _lastKeyPressTime=%ld"), keys, _lastKeyPressTime);
+    // _log.info_P(PSTR("keys=%xh, _lastKeyPressTime=%ld"), keys, _lastKeyPressTime);
 
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
@@ -100,36 +86,30 @@ void Ui::handleKeyPress(const Keypad::Keys keys)
         return;
     }
 
-    const auto action = _currentScreen->keyPress(keys);
-    bool screenChanged = true;
+    const auto screenChanged = std::visit(
+        [this]<typename Result>(const Result& result) -> bool {
+            if constexpr (std::is_same_v<Result, Screen::Navigate>) {
+                return loadScreen(result.id);
+            }
 
-    switch (action) {
-        case Screen::Action::NoAction:
-            screenChanged = false;
-            break;
-
-        case Screen::Action::NavigateBack:
-            navigateBackward();
-            break;
-
-        case Screen::Action::NavigateForward:
-            navigateForward(_currentScreen->nextScreen());
-            break;
-    }
+            return false;
+        },
+        invokeHandleKeyPress(*_currentScreen, keys)
+    );
 
     if (screenChanged) {
         Display::clear();
-        _currentScreen->activate();
+        invokeActivate(*_currentScreen);
     }
 }
 
-void Ui::updateActiveState()
+void UIController::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
-            _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.data.display.Brightness);
+            // _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.data.display.Brightness);
             Display::powerOn();
-            Display::setContrast(_settings.data.display.Brightness);
+            // Display::setContrast(_settings.data.display.Brightness);
         }
     } else {
         if (Display::isPoweredOn()) {
@@ -139,50 +119,87 @@ void Ui::updateActiveState()
     }
 }
 
-bool Ui::isActive() const
+bool UIController::isActive() const
 {
-    if (_settings.data.display.TimeoutSecs == 0) {
-        return true;
-    }
+    return true;
+    // if (_settings.data.display.TimeoutSecs == 0) {
+    //     return true;
+    // }
 
-    return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.data.display.TimeoutSecs);
+    // return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.data.display.TimeoutSecs);
 }
 
-void Ui::navigateForward(const char* name)
+bool UIController::loadScreen(const int id)
 {
-    if (!name) {
-        _log.warning_P(PSTR("navigating forward, screen name is null, going to main screen"));
-        _currentScreen = _mainScreen;
-        return;
+    if (_currentScreen) {
+        const auto currentScreenId{
+            std::visit(
+                []<typename ScreenType>(const ScreenType& s) {
+                    static_assert(IsScreen<ScreenType>);
+                    return s.id();
+                },
+                *_currentScreen
+            )
+        };
+
+        if (currentScreenId == id) {
+            return false;
+        }
     }
 
-    _log.debug_P(PSTR("navigating forward, next screen: %s"), name);
-
-    const auto it = std::find_if(std::begin(_screens), std::end(_screens), [name](const std::unique_ptr<Screen>& scr) {
-        return strcmp(scr->name(), name) == 0;
-    });
-
-    if (it == std::end(_screens)) {
-        _log.warning_P(PSTR("screen not found: %s, going to main screen"));
-        _currentScreen = _mainScreen;
-        return;
+    for (auto& screen : _screens) {
+        if (id == getId(screen)) {
+            _currentScreen = &screen;
+            return true;
+        }
     }
 
-    _currentScreen = it->get();
+    return false;
 }
 
-void Ui::navigateBackward()
+int UIController::getId(RegisteredScreens::Screen& screen)
 {
-    _log.debug_P(PSTR("navigating back"));
+    return std::visit(
+        []<typename ScreenType>(const ScreenType& s) {
+            static_assert(IsScreen<ScreenType>);
+            return s.id();
+        },
+        screen
+    );
+}
 
-    if (_screenStack.empty()) {
-        _log.debug_P(PSTR("screen stack is empty, navigating to main screen"));
-        _currentScreen = _mainScreen;
-        return;
-    }
+void UIController::invokeActivate(RegisteredScreens::Screen& screen)
+{
+    std::visit(
+        []<typename ScreenType>(ScreenType& s) {
+            static_assert(IsScreen<ScreenType>);
+            s.activate();
+        },
+        screen
+    );
+}
 
-    _currentScreen = _screenStack.top();
-    _screenStack.pop();
+void UIController::invokeUpdate(RegisteredScreens::Screen& screen)
+{
+    std::visit(
+        []<typename ScreenType>(ScreenType& s) {
+            static_assert(IsScreen<ScreenType>);
+            s.update();
+        },
+        screen
+    );
+}
 
-    _log.debug_P(PSTR("current screen: %s"), _currentScreen->name());
+Screen::Result UIController::invokeHandleKeyPress(
+    RegisteredScreens::Screen& screen,
+    const Keypad::Keys keys
+)
+{
+    return std::visit(
+        [&]<typename ScreenType>(ScreenType& s) {
+            static_assert(IsScreen<ScreenType>);
+            return s.handleKeyPress(keys);
+        },
+        screen
+    );
 }

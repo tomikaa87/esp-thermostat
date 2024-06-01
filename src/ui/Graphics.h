@@ -18,8 +18,43 @@
     Created on 2017-01-02
 */
 
-#ifndef GRAPHICS_H
-#define	GRAPHICS_H
+#pragma once
+
+#include <span>
+#include <string_view>
+
+namespace UI
+{
+
+class Graphics
+{
+public:
+    enum class Color
+    {
+        Black,
+        White
+    };
+};
+
+class OLEDGraphics : public Graphics
+{
+public:
+    static constexpr auto Width{ 128 };
+    static constexpr auto Height{ 64 };
+    static constexpr auto Lines{ 8 };
+
+    OLEDGraphics();
+
+    void drawBitmap(int x, int line, std::span<const uint8_t> bitmap);
+    void drawBitmap(int x, int line, std::span<const uint8_t> bitmap, int width, int pageCount);
+    int drawText(int x, int line, const std::string_view& text, int yOffset, bool inverted);
+    void drawChar(char c, int yOffset, bool inverted);
+    void fillArea(int x, int line, int width, int pages, Color color);
+};
+
+using DefaultGraphics = OLEDGraphics;
+
+}
 
 #include <stdint.h>
 
@@ -39,6 +74,4 @@ void graphics_draw_multipage_bitmap(
     uint8_t page_count,
     uint8_t x,
     uint8_t start_page);
-
-#endif	/* GRAPHICS_H */
 

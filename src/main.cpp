@@ -3,6 +3,8 @@
 #include "Peripherals.h"
 #include "PrivateConfig.h"
 
+#include "ui/Ui.h"
+
 #include <Arduino.h>
 
 #include <memory>
@@ -10,7 +12,8 @@
 namespace
 {
     ApplicationConfig appConfig;
-    std::unique_ptr<FurnaceController> controller;
+    FurnaceController* furnaceController{};
+    UI::UIController* uiController{};
 }
 
 void initializeTempSensor()
@@ -54,10 +57,19 @@ void setup()
 
     appConfig.hostName = Config::HostName;
 
-    controller = std::make_unique<FurnaceController>(appConfig);
+    // furnaceController = [] {
+    //     static FurnaceController controller{ appConfig };
+    //     return &controller;
+    // }();
+
+    uiController = [] {
+        static UI::UIController controller;
+        return &controller;
+    }();
 }
 
 void loop()
 {
-    controller->task();
+    // furnaceController->task();
+    uiController->task();
 }
