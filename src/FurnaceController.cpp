@@ -30,9 +30,12 @@ namespace Devices::CallingForHeatingSensor
     auto stateTopic() { return PSTR("/calling_for_heating"); }
 }
 
-FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
+FurnaceController::FurnaceController(
+    CoreApplication& application,
+    const ApplicationConfig& appConfig
+)
     : _appConfig{ appConfig }
-    , _app{ _appConfig }
+    , _app{ application }
     , _settings{ _app.settings().registerSetting<Settings>(32) }
     , _zones{
         HeatingZone{ 0, _app },
@@ -73,12 +76,8 @@ FurnaceController::FurnaceController(const ApplicationConfig& appConfig)
     updateMqtt();
 }
 
-void FurnaceController::task()
+void FurnaceController::task(const uint32_t deltaMillis)
 {
-    const uint32_t currentMillis = millis();
-    const uint32_t deltaMillis = currentMillis - _lastTaskMillis;
-    _lastTaskMillis = currentMillis;
-
     _app.task();
 
     _mqttUpdateTimer += deltaMillis;

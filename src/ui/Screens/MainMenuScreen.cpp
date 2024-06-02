@@ -2,8 +2,8 @@
 
 using namespace UI;
 
-MainMenuScreen::MainMenuScreen()
-    : Screen{ ScreenID::MainMenu }
+MainMenuScreen::MainMenuScreen(const Model* model)
+    : Screen{ ScreenID::MainMenu, model }
 {}
 
 void MainMenuScreen::activate()

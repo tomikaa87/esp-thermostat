@@ -92,25 +92,24 @@ int OLEDGraphics::drawText(
 {
     namespace Font = Resources::Fonts::Default;
 
+    static constexpr auto CharacterSpacing{ 1 };
+
     Display::setLine(line);
 
     for (uint8_t i = 0; i < text.length(); ++i) {
         Display::setColumn(x);
 
-        x += Font::CharacterWidth + 1;
+        x += Font::CharacterWidth + CharacterSpacing;
 
         drawChar(text[i], yOffset, inverted);
 
-        // Stop if the next character won't fit
-        if (x > Display::Driver::Width - 1)
-            return x;
-
         // Fill the background between letters
-        if (i < text.length() - 1) {
-            const uint8_t pattern[Font::CharacterWidth] = { 0 };
-            for (uint8_t j = 0; j < Font::CharacterWidth; ++j) {
-                Display::sendData(pattern, Font::CharacterWidth, yOffset, inverted);
-            }
+        static const uint8_t BackgroundPattern[CharacterSpacing] = { 0 };
+        Display::sendData(BackgroundPattern, CharacterSpacing, yOffset, inverted);
+
+        // Stop if the next character won't fit
+        if (x > Display::Driver::Width - 1) {
+            return x;
         }
     }
 

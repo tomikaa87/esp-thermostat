@@ -22,7 +22,10 @@
 
 #include "Keypad.h"
 #include "Logger.h"
+#include "Model.h"
 #include "Screen.h"
+
+#include "Controllers/ClockController.h"
 
 #include "Screens/MainScreen.h"
 #include "Screens/MainMenuScreen.h"
@@ -32,6 +35,7 @@
 #include <memory>
 #include <variant>
 
+class CoreApplication;
 class HeatingController;
 class ISystemClock;
 class Settings;
@@ -48,11 +52,11 @@ namespace UI
             using Screen = std::variant<ScreenTypes...>;
             using Container = std::array<Screen, TypeCount>;
 
-            static Container constructScreens()
+            static Container constructScreens(const Model* model)
             {
                 return Container{
                     {
-                        ScreenTypes{}...
+                        ScreenTypes{ model }...
                     }
                 };
             }
@@ -70,20 +74,28 @@ namespace UI
     {
     public:
         UIController(
+            CoreApplication& application
         );
 
-        void task();
+        void task(uint32_t deltaMillis);
 
         void update();
         void handleKeyPress(Keypad::Keys keys);
 
     private:
+        CoreApplication& _app;
         Keypad _keypad;
-        Logger _log{ "Ui" };
+        Logger _log{ "UIController" };
         // std::time_t _lastKeyPressTime = 0;
+
+        uint32_t _lastUpdateMillis{};
+
+        Model _model;
 
         RegisteredScreens::Container _screens;
         RegisteredScreens::Screen* _currentScreen{};
+
+        Controllers::ClockController _clockController;
 
         void updateActiveState();
         bool isActive() const;

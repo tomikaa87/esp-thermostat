@@ -9,11 +9,14 @@
 
 namespace UI
 {
+    struct Model;
+
     class Screen
     {
     public:
-        explicit Screen(const int id)
+        explicit Screen(const int id, const Model* model)
             : _id{ id }
+            , _model{ model }
         {}
 
         [[nodiscard]] int id() const
@@ -29,8 +32,15 @@ namespace UI
 
         using Result = std::variant<NoAction, Navigate>;
 
+    protected:
+        const Model* model() const
+        {
+            return _model;
+        }
+
     private:
         int _id{ ScreenID::Invalid };
+        const Model* _model{};
     };
 
     template <typename T>

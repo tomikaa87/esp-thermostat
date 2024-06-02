@@ -8,7 +8,7 @@ namespace UI
     class MainMenuScreen : public Screen
     {
     public:
-        MainMenuScreen();
+        MainMenuScreen(const Model* model);
 
         void activate();
         void update();

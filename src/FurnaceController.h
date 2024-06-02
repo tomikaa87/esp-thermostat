@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HeatingZone.h"
+#include "PrivateConfig.h"
 
 #include <CoreApplication.h>
 #include <Logger.h>
@@ -16,15 +17,16 @@ class ApplicationConfig;
 class FurnaceController
 {
 public:
-    static constexpr auto ZoneCount = 6;
+    explicit FurnaceController(
+        CoreApplication& application,
+        const ApplicationConfig& appConfig
+    );
 
-    explicit FurnaceController(const ApplicationConfig& appConfig);
-
-    void task();
+    void task(uint32_t deltaMillis);
 
 private:
     const ApplicationConfig& _appConfig;
-    CoreApplication _app;
+    CoreApplication& _app;
     
     struct Settings
     {
@@ -35,8 +37,7 @@ private:
     Setting<Settings> _settings;
 
     Logger _log{ "FurnaceController" };
-    std::array<HeatingZone, ZoneCount> _zones;
-    uint32_t _lastTaskMillis{};
+    std::array<HeatingZone, Config::ZoneCount> _zones;
     uint32_t _mqttUpdateTimer{};
     bool _relayOutputActive{ false };
 

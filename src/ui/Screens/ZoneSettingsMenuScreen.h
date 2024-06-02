@@ -8,7 +8,7 @@ namespace UI
     class ZoneSettingsMenuScreen : public Screen
     {
     public:
-        ZoneSettingsMenuScreen();
+        ZoneSettingsMenuScreen(const Model* model);
 
         void activate();
         void update();

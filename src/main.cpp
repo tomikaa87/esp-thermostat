@@ -3,15 +3,17 @@
 #include "Peripherals.h"
 #include "PrivateConfig.h"
 
-#include "ui/Ui.h"
+#include "ui/UIController.h"
 
 #include <Arduino.h>
+#include <CoreApplication.h>
 
 #include <memory>
 
 namespace
 {
     ApplicationConfig appConfig;
+    CoreApplication* coreApplication{};
     FurnaceController* furnaceController{};
     UI::UIController* uiController{};
 }
@@ -57,19 +59,31 @@ void setup()
 
     appConfig.hostName = Config::HostName;
 
+    coreApplication = [] {
+        static CoreApplication application{ appConfig };
+        return &application;
+    }();
+
     // furnaceController = [] {
-    //     static FurnaceController controller{ appConfig };
+    //     static FurnaceController controller{ *coreApplication, appConfig };
     //     return &controller;
     // }();
 
     uiController = [] {
-        static UI::UIController controller;
+        static UI::UIController controller{ *coreApplication };
         return &controller;
     }();
 }
 
 void loop()
 {
-    // furnaceController->task();
-    uiController->task();
+    static uint32_t lastTaskMillis{};
+
+    const uint32_t currentMillis{ millis() };
+    const uint32_t deltaMillis{ currentMillis - lastTaskMillis };
+    lastTaskMillis = currentMillis;
+
+    coreApplication->task();
+    // furnaceController->task(deltaMillis);
+    uiController->task(deltaMillis);
 }

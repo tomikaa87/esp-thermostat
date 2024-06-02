@@ -2,8 +2,8 @@
 
 using namespace UI;
 
-ZoneSettingsMenuScreen::ZoneSettingsMenuScreen()
-    : Screen{ ScreenID::ZoneSettingsMenu }
+ZoneSettingsMenuScreen::ZoneSettingsMenuScreen(const Model* model)
+    : Screen{ ScreenID::ZoneSettingsMenu, model }
 {}
 
 void ZoneSettingsMenuScreen::activate()

@@ -18,13 +18,15 @@
     Created on 2017-01-07
 */
 
-#include "Ui.h"
+#include "UIController.h"
 #include "Settings.h"
 #include "SystemClock.h"
 #include "TemperatureSensor.h"
 #include "main.h"
 
 #include "display/Display.h"
+
+#include <CoreApplication.h>
 
 #include <algorithm>
 #include <iostream>
@@ -37,8 +39,11 @@
 using namespace UI;
 
 UIController::UIController(
+    CoreApplication& application
 )
-    : _screens{ RegisteredScreens::constructScreens() }
+    : _app{ application }
+    , _screens{ RegisteredScreens::constructScreens(&_model) }
+    , _clockController{ _model.clock, _app.systemClock() }
 {
     // _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.Brightness);
     Display::init();
@@ -52,14 +57,25 @@ UIController::UIController(
     }
 }
 
-void UIController::task()
+void UIController::task(const uint32_t deltaMillis)
 {
+    _clockController.task(deltaMillis);
+
     const auto pressedKeys = _keypad.scan();
     handleKeyPress(pressedKeys);
+
+    _lastUpdateMillis += deltaMillis;
+
+    if (_lastUpdateMillis >= 500) {
+        _lastUpdateMillis = 0;
+        update();
+    }
 }
 
 void UIController::update()
 {
+    _log.debug("update");
+
     if (_currentScreen) {
         invokeUpdate(*_currentScreen);
     } else {
@@ -98,6 +114,7 @@ void UIController::handleKeyPress(const Keypad::Keys keys)
     );
 
     if (screenChanged) {
+        _log.debug("handleKeyPress::screenChanged");
         Display::clear();
         invokeActivate(*_currentScreen);
     }
