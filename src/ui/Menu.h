@@ -43,6 +43,18 @@ public:
     {
         switch (direction) {
             case StepDirection::Up:
+                if (_selectionIndex == 0) {
+                    _selectionIndex = _items.size() - 1;
+                    if (_items.size() > _height) {
+                        _viewPosition = std::max(_items.size() - _height, 0u);
+                    }
+                } else {
+                    --_selectionIndex;
+                    if (_selectionIndex < _viewPosition) {
+                        _viewPosition = _selectionIndex;
+                    }
+                }
+
                 break;
 
             case StepDirection::Down:
