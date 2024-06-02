@@ -6,7 +6,21 @@ using namespace UI;
 
 namespace {
     DefaultGraphics graphics;
-    Menu testMenu{ graphics, 0, 5, MenuItem{ "Item 1" }, MenuItem{ "Item 2" }, MenuItem{ "Item 3" } };
+    Menu testMenu{
+        graphics,
+        0,
+        5,
+        MenuItem{ "Item 1" },
+        MenuItem{ "Item 2" },
+        MenuItem{ "Item 3" },
+        MenuItem{ "Item 4" },
+        MenuItem{ "Item 5" },
+        MenuItem{ "Item 6" },
+        MenuItem{ "Item 7" },
+        MenuItem{ "Item 8" },
+        MenuItem{ "Item 9" },
+        MenuItem{ "Item 10" },
+    };
 }
 
 MainScreen::MainScreen()

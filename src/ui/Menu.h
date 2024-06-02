@@ -76,7 +76,11 @@ private:
         auto itemIndex{ _viewPosition };
         auto line{ _startLine };
 
-        while (itemIndex < _items.size() && line <= (GraphicsType::Lines - 1)) {
+        while (
+            itemIndex < _items.size()
+            && line < (_startLine + _height)
+            && line <= (GraphicsType::Lines - 1)
+        ) {
             if (itemIndex == _selectionIndex) {
                 _graphics.drawBitmap(0, line, Resources::Assets::ArrowRightIcon);
             } else {
