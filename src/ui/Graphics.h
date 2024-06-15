@@ -20,13 +20,17 @@
 
 #pragma once
 
+#include "Resources.h"
+
+#include "display/Display.h"
+
 #include <span>
 #include <string_view>
 
 namespace UI
 {
 
-class Graphics
+class GraphicsBase
 {
 public:
     enum class Color
@@ -36,9 +40,11 @@ public:
     };
 };
 
-class OLEDGraphics : public Graphics
+class OLEDGraphics : public GraphicsBase
 {
 public:
+    using DisplayImpl = Display;
+
     static constexpr auto Width{ 128 };
     static constexpr auto Height{ 64 };
     static constexpr auto Lines{ 8 };
@@ -47,31 +53,72 @@ public:
 
     void drawBitmap(int x, int line, std::span<const uint8_t> bitmap);
     void drawBitmap(int x, int line, std::span<const uint8_t> bitmap, int width, int pageCount);
-    int drawText(int x, int line, const std::string_view& text, int yOffset, bool inverted);
-    void drawChar(char c, int yOffset, bool inverted);
     void fillArea(int x, int line, int width, int pages, Color color);
+
+    void drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits);
+    void drawScheduleBarPositionIndicator(uint8_t scheduleBitIndex);
+    
+    void drawShortWeekday(int x, int line, int weekday);
+
+    template <std::size_t Width, std::size_t Pages>
+    void drawBitmap(int x, int line, const Resources::Assets::MultiPageBitmap<Width, Pages>& bitmap)
+    {
+        drawBitmap(x, line, bitmap.bitmap, bitmap.width, bitmap.pages);
+    }
+
+    template <typename Font>
+    void drawChar(
+        const char c,
+        const Font& font,
+        const int yOffset = 0,
+        const bool inverted = false
+    )
+    {
+        const auto glyphIndex{ static_cast<std::size_t>(c - 31) };
+        const auto* charData{ font.placeholder };
+
+        if (glyphIndex < font.charCount) {
+            charData = font.glyphs[glyphIndex];
+        }
+
+        DisplayImpl::sendData(charData, font.charWidth, yOffset, inverted);
+    }
+
+    template <typename Font>
+    int drawText(
+        int x,
+        const int line,
+        const std::string_view& text,
+        const Font& font,
+        const int yOffset = 0,
+        const bool inverted = false
+    )
+    {
+        static constexpr auto CharacterSpacing{ 1 };
+
+        DisplayImpl::setLine(line);
+
+        for (uint8_t i = 0; i < text.length(); ++i) {
+            DisplayImpl::setColumn(x);
+
+            x += font.charWidth + CharacterSpacing;
+
+            drawChar(text[i], font, yOffset, inverted);
+
+            // Fill the background between letters
+            static const uint8_t BackgroundPattern[CharacterSpacing] = { 0 };
+            DisplayImpl::sendData(BackgroundPattern, CharacterSpacing, yOffset, inverted);
+
+            // Stop if the next character won't fit
+            if (x > DisplayImpl::Driver::Width - 1) {
+                return x;
+            }
+        }
+
+        return x;
+    }
 };
 
-using DefaultGraphics = OLEDGraphics;
+using Graphics = OLEDGraphics;
 
 }
-
-#include <stdint.h>
-
-extern const uint8_t graphics_flame_icon_20x3p[];
-extern const uint8_t graphics_off_icon_20x3p[];
-extern const uint8_t graphics_calendar_icon_20x3p[];
-
-void graphics_draw_bitmap(
-    const uint8_t* bitmap,
-    uint8_t width,
-    uint8_t x,
-    uint8_t line);
-
-void graphics_draw_multipage_bitmap(
-    const uint8_t* mp_bitmap,
-    uint8_t width,
-    uint8_t page_count,
-    uint8_t x,
-    uint8_t start_page);
-

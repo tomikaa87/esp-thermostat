@@ -103,8 +103,7 @@ private:
                 sizeof(Resources::Assets::ArrowRightIcon) + 2,
                 line,
                 _items[itemIndex].text,
-                0,
-                false
+                Resources::Fonts::Oled
             );
 
             if (x < (GraphicsType::Width - 1 - sizeof(Resources::Assets::EmptyPositionIndicator))) {
@@ -209,7 +208,7 @@ private:
     };
 
     using MenuVariant = Detail::GenerateVariantForMaxItemCount<
-        DefaultGraphics,
+        Graphics,
         MaxMenuItemCount
     >::Type;
 

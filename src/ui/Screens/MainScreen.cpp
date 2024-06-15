@@ -9,7 +9,7 @@
 using namespace UI;
 
 namespace {
-    DefaultGraphics graphics;
+    Graphics graphics;
     Menu testMenu{
         graphics,
         0,
@@ -70,5 +70,8 @@ void MainScreen::drawClock()
 {
     char s[10] = { 0 };
     sprintf(s, "%02d:%02d", model()->clock.hours, model()->clock.minutes);
-    graphics.drawText(0, 0, s, 0, false);
+    // graphics.drawText(0, 0, s, 0, false);
+    graphics.drawText(0, 0, s, Resources::Fonts::Oled);
+
+    graphics.drawBitmap(0, 1, Resources::Assets::FlameIcon);
 }
