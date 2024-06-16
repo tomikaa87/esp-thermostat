@@ -28,8 +28,6 @@
 #include <span>
 #include <string_view>
 
-#include <Arduino.h>
-
 namespace UI
 {
 
@@ -135,10 +133,6 @@ public:
 
         const bool negative{ number < 0 };
 
-        Serial.printf("number=%d, x=%u, line=%u, font.charWidth=%u, font.charPages=%u\r\n",
-            number, x, line, font.charWidth, font.charPages
-        );
-
         // By storing the individual digits, calculating character positions
         // is much easier for left-aligned drawing
         std::array<uint8_t, 10> digits{{}};
@@ -146,7 +140,6 @@ public:
         for (int i = static_cast<int>(digits.size()) - 1; i >= 0; --i) {
             digits[i] = std::abs(number % 10);
             number /= 10;
-            Serial.printf("digits[%u]=%u, number=%d\r\n", i, digits[i], number);
         }
 
         if (negative) {
@@ -162,7 +155,6 @@ public:
 
         bool skipZeros{ true };
         for (const auto digit : digits) {
-            Serial.printf("digit=%u\r\n", digit);
 
             if (digit == 0 && skipZeros) {
                 continue;
@@ -171,8 +163,6 @@ public:
             skipZeros = false;
 
             for (auto page = 0u; page < font.charPages; ++page) {
-                Serial.printf("page=%u\r\n", page);
-
                 DisplayImpl::setColumn(x);
                 DisplayImpl::setLine(page + line);
                 DisplayImpl::sendData(font.glyphs[digit][page], font.charWidth, inverted);
