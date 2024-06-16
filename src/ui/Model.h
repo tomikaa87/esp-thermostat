@@ -15,8 +15,9 @@ namespace UI
         } clock;
 
         struct Zone {
-            int currentTemperature{};
-            int targetTemperature{};
+            int zoneNumber{ 1 };
+            int currentTemperature{ 220 };
+            int targetTemperature{ 230 };
 
             enum class Status {
                 Idle,
@@ -29,7 +30,9 @@ namespace UI
 
         std::array<Zone, Config::ZoneCount> zones;
 
-        bool heating{};
-        bool energySaverEnabled{};
+        bool heating{ true };
+        bool energySaverEnabled{ true };
+
+        int16_t internalTemperature{ 258 };
     };
 }

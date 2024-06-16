@@ -2,6 +2,7 @@
 
 #include "PrivateConfig.h"
 
+#include "../Model.h"
 #include "../Screen.h"
 #include "../ScreenID.h"
 
@@ -19,6 +20,14 @@ namespace UI
         [[nodiscard]] Result handleKeyPress(Keypad::Keys keys);
 
     private:
-        void drawClock();
+        void drawClock() const;
+        void drawInternalTemperature() const;
+        void drawHeatingState() const;
+        void drawZoneStatus(
+            unsigned line,
+            unsigned column,
+            const Model::Zone& zoneModel
+        ) const;
+        void drawZoneStatuses();
     };
 }

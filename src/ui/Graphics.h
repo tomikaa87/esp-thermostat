@@ -61,6 +61,8 @@ public:
 
     void drawShortWeekday(unsigned x, unsigned line, unsigned weekday);
 
+    void drawVerticalSeparator(unsigned x, unsigned line);
+
     template <std::size_t Width, std::size_t Pages>
     void drawBitmap(unsigned x, unsigned line, const Resources::Assets::MultiPageBitmap<Width, Pages>& bitmap)
     {

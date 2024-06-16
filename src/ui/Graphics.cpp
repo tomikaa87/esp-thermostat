@@ -21,8 +21,6 @@
 #include "Graphics.h"
 #include "Resources.h"
 
-#include "display/Display.h"
-
 #include <array>
 #include <string_view>
 #include <tuple>
@@ -47,7 +45,7 @@ void OLEDGraphics::drawBitmap(
 
     DisplayImpl::setLine(line);
     DisplayImpl::setColumn(x);
-    DisplayImpl::sendData(bitmap.data(), bitmap.size(), 0, false);
+    DisplayImpl::sendData(bitmap.data(), bitmap.size());
 }
 
 void OLEDGraphics::drawBitmap(
@@ -114,7 +112,7 @@ void OLEDGraphics::drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits)
                 bitmap = clearedIndicator;
         }
 
-        Display::sendData(bitmap);
+        DisplayImpl::sendData(bitmap);
 
         if (++tickCounter == 5) {
             tickCounter = 0;
@@ -206,6 +204,13 @@ void Graphics::drawShortWeekday(const unsigned x, const unsigned line, const uns
     };
 
     drawText(x, line, days[weekday], Resources::Fonts::Oled);
+}
+
+void Graphics::drawVerticalSeparator(const unsigned x, const unsigned line)
+{
+    DisplayImpl::setColumn(x);
+    DisplayImpl::setLine(line);
+    DisplayImpl::sendData(0x55);
 }
 
 /*
