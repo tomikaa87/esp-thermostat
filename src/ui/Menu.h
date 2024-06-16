@@ -26,7 +26,7 @@ class MenuImpl
 {
 public:
     template <typename... Items>
-    explicit MenuImpl(GraphicsType& display, const int startLine, const int height, Items&&... items)
+    explicit MenuImpl(GraphicsType& display, const unsigned startLine, const unsigned height, Items&&... items)
         : _graphics{ display }
         , _items{ std::forward<Items>(items)... }
         , _startLine{ startLine }
@@ -78,10 +78,10 @@ public:
 private:
     GraphicsType& _graphics;
     std::array<MenuItem, ItemCount> _items;
-    const int _startLine;
-    const int _height;
-    int _selectionIndex{};
-    int _viewPosition{};
+    const unsigned _startLine;
+    const unsigned _height;
+    unsigned _selectionIndex{};
+    unsigned _viewPosition{};
 
     void drawItems()
     {
@@ -144,7 +144,7 @@ class Menu
 {
 public:
     template <typename GraphicsType, typename... Item>
-    Menu(GraphicsType& graphics, const int startLine, const int height, Item&&... items)
+    Menu(GraphicsType& graphics, const unsigned startLine, const unsigned height, Item&&... items)
         : _menu{
             MenuImpl<GraphicsType, sizeof...(Item)>{
                 graphics,

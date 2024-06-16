@@ -16,7 +16,19 @@ namespace UI::Resources::Fonts
         const uint8_t placeholder[CharWidth]{};
     };
 
+    template <std::size_t CharWidth, std::size_t CharPages>
+    struct LargeNumberFont
+    {
+        static_assert(CharWidth > 0 && CharWidth < 129);
+        static_assert(CharPages > 0 && CharPages < 9);
+        static constexpr auto charWidth{ CharWidth };
+        static constexpr auto charPages{ CharPages };
+        const uint8_t glyphs[10][CharPages][CharWidth];
+        const uint8_t negativeSignGlyph[CharPages][CharWidth];
+    };
+
     extern const Font<95, 5> Oled;
+    extern const LargeNumberFont<12, 3> SevenSegment;
 }
 
 namespace UI::Resources::Assets
@@ -39,4 +51,5 @@ namespace UI::Resources::Assets
     extern const MultiPageBitmap<20, 3> FlameIcon;
     extern const MultiPageBitmap<20, 3> StandbyIcon;
     extern const MultiPageBitmap<20, 3> CalendarIcon;
+    extern const MultiPageBitmap<12, 3> SevenSegmentLargeC;
 }

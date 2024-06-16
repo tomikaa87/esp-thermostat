@@ -37,8 +37,8 @@ OLEDGraphics::OLEDGraphics()
 }
 
 void OLEDGraphics::drawBitmap(
-    const int x,
-    const int line,
+    const unsigned x,
+    const unsigned line,
     const std::span<const uint8_t> bitmap
 )
 {
@@ -51,11 +51,11 @@ void OLEDGraphics::drawBitmap(
 }
 
 void OLEDGraphics::drawBitmap(
-    const int x,
-    const int startLine,
+    const unsigned x,
+    const unsigned startLine,
     const std::span<const uint8_t> bitmap,
-    const int width,
-    const int pageCount
+    const unsigned width,
+    const unsigned pageCount
 )
 {
     if (startLine + pageCount > DisplayImpl::Lines)
@@ -69,10 +69,10 @@ void OLEDGraphics::drawBitmap(
 }
 
 void OLEDGraphics::fillArea(
-    const int x,
-    const int line,
-    const int width,
-    const int pages,
+    const unsigned x,
+    const unsigned line,
+    const unsigned width,
+    const unsigned pages,
     const Color color
 )
 {
@@ -187,7 +187,7 @@ void OLEDGraphics::drawScheduleBarPositionIndicator(const uint8_t scheduleBitInd
     drawBitmap(x, 5, indicatorBitmap);
 }
 
-void Graphics::drawShortWeekday(const int x, const int line, const int weekday)
+void Graphics::drawShortWeekday(const unsigned x, const unsigned line, const unsigned weekday)
 {
     if (weekday > 6) {
         return;
@@ -207,207 +207,3 @@ void Graphics::drawShortWeekday(const int x, const int line, const int weekday)
 
     drawText(x, line, days[weekday], Resources::Fonts::Oled);
 }
-
-const uint8_t graphics_flame_icon_20x3p[20 * 3] = {
-    // page 0
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b11100000,
-    0b11111000,
-    0b00011100,
-    0b00001110,
-    0b11111111,
-    0b11110000,
-    0b00000000,
-    0b00000000,
-    0b10000000,
-    0b11000000,
-    0b11100000,
-    0b11100000,
-    0b00000000,
-    0b00000000,
-
-    // page 1
-    0b11110000,
-    0b11111100,
-    0b00001110,
-    0b00111100,
-    0b01110000,
-    0b01101110,
-    0b11111111,
-    0b00000001,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000011,
-    0b00000110,
-    0b00001100,
-    0b00011111,
-    0b00000011,
-    0b00000000,
-    0b00001111,
-    0b11111111,
-    0b11110000,
-
-    // page 2
-    0b00000000,
-    0b00000111,
-    0b00001111,
-    0b00011100,
-    0b00111000,
-    0b01110000,
-    0b01100000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b01100000,
-    0b01110000,
-    0b00111000,
-    0b00011100,
-    0b00001111,
-    0b00000111,
-    0b00000000
-};
-
-const uint8_t graphics_off_icon_20x3p[20 * 3] = {
-    // page 0
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b10000000,
-    0b11000000,
-    0b11100000,
-    0b01100000,
-    0b00000000,
-    0b00000000,
-    0b11111110,
-    0b11111110,
-    0b00000000,
-    0b00000000,
-    0b01100000,
-    0b11100000,
-    0b11000000,
-    0b10000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-
-    // page 1
-    0b11111000,
-    0b11111110,
-    0b00000111,
-    0b00000011,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000111,
-    0b00000111,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000011,
-    0b00000111,
-    0b11111110,
-    0b11111000,
-
-    // page 2
-    0b00000001,
-    0b00000111,
-    0b00001110,
-    0b00011100,
-    0b00110000,
-    0b01110000,
-    0b01100000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b11000000,
-    0b01100000,
-    0b01110000,
-    0b00110000,
-    0b00011100,
-    0b00001110,
-    0b00000111,
-    0b00000001
-};
-
-const uint8_t graphics_calendar_icon_20x3p[20 * 3] = {
-    // page 0
-    0b11000000,
-    0b11100000,
-    0b01100000,
-    0b01100000,
-    0b11111000,
-    0b11111100,
-    0b11111000,
-    0b01100000,
-    0b01100000,
-    0b01100000,
-    0b01100000,
-    0b01100000,
-    0b01100000,
-    0b11111000,
-    0b11111100,
-    0b11111000,
-    0b01100000,
-    0b01100000,
-    0b11100000,
-    0b11000000,
-
-    // page 1
-    0b11111111,
-    0b11111111,
-    0b00000000,
-    0b01100000,
-    0b01100000,
-    0b00000001,
-    0b00000000,
-    0b01101100,
-    0b01101100,
-    0b00000000,
-    0b00000000,
-    0b01101100,
-    0b01101100,
-    0b00000000,
-    0b00000001,
-    0b01101100,
-    0b01101100,
-    0b00000000,
-    0b11111111,
-    0b11111111,
-
-    // page 2
-    0b00001111,
-    0b00011111,
-    0b00011000,
-    0b00011011,
-    0b00011011,
-    0b00011000,
-    0b00011000,
-    0b00011011,
-    0b00011011,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011000,
-    0b00011111,
-    0b00001111
-};

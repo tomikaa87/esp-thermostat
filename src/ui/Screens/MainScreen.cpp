@@ -45,7 +45,7 @@ void MainScreen::update()
 
 Screen::Result MainScreen::handleKeyPress(const Keypad::Keys keys)
 {
-    using Keys = Keypad::Keys;
+    // using Keys = Keypad::Keys;
 
     // if (keys & Keys::Plus) {
     //     testMenu.step(UI::StepDirection::Up);
@@ -74,4 +74,6 @@ void MainScreen::drawClock()
     graphics.drawText(0, 0, s, Resources::Fonts::Oled);
 
     graphics.drawBitmap(0, 1, Resources::Assets::FlameIcon);
+
+    graphics.drawLargeNumber(0, 4, -987654, Resources::Fonts::SevenSegment);
 }
