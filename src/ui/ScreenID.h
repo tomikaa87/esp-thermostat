@@ -13,5 +13,5 @@ namespace UI::ScreenID {
 
     constexpr int ZoneSettings{ 300 };
     constexpr int ZoneGeneralSettings{ 310 };
-    constexpr int ZoneScheduleSettings{ 320 };
+    constexpr int ZoneSchedule{ 320 };
 }

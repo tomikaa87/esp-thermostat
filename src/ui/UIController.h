@@ -32,6 +32,8 @@
 #include "Screens/GeneralSettingsScreen.h"
 #include "Screens/MainScreen.h"
 #include "Screens/MainMenuScreen.h"
+#include "Screens/ZoneGeneralSettingsScreen.h"
+#include "Screens/ZoneScheduleScreen.h"
 #include "Screens/ZoneSettingsScreen.h"
 #include "Screens/ZoneSettingsMenuScreen.h"
 
@@ -75,7 +77,9 @@ namespace UI
         GeneralSettingsScreen,
         DisplaySettingsScreen,
         DateTimeSettingsScreen,
-        ZoneSettingsScreen
+        ZoneSettingsScreen,
+        ZoneGeneralSettingsScreen,
+        ZoneScheduleScreen
     >;
 
     class UIController

@@ -1,4 +1,4 @@
-#include "ZoneSettingsScreen.h"
+#include "ZoneGeneralSettingsScreen.h"
 
 #include "../Model.h"
 
@@ -7,31 +7,30 @@
 using namespace UI;
 using namespace std::string_view_literals;
 
-ZoneSettingsScreen::ZoneSettingsScreen(Model& model, Graphics& graphics)
-    : Screen{ ScreenID::ZoneSettings, model, graphics }
+ZoneGeneralSettingsScreen::ZoneGeneralSettingsScreen(Model& model, Graphics& graphics)
+    : Screen{ ScreenID::ZoneGeneralSettings, model, graphics }
     , _menu{
         graphics,
         1,
         7,
-        MenuItem{ "General Settings" },
-        MenuItem{ "Schedule" },
+        MenuItem{ "" }
     }
 {}
 
-void ZoneSettingsScreen::activate()
+void ZoneGeneralSettingsScreen::activate()
 {
-    auto x = graphics().drawText(0, 0, "Zone Settings: "sv, Resources::Fonts::Oled);
+    auto x = graphics().drawText(0, 0, "General Settings: "sv, Resources::Fonts::Oled);
     graphics().drawText(x, 0, std::to_string(model().navigation.selectedZoneIndex), Resources::Fonts::Oled);
 
     _menu.reset();
     _menu.update();
 }
 
-void ZoneSettingsScreen::update()
+void ZoneGeneralSettingsScreen::update()
 {
 }
 
-Screen::Result ZoneSettingsScreen::handleKeyPress(const Keypad::Keys keys)
+Screen::Result ZoneGeneralSettingsScreen::handleKeyPress(const Keypad::Keys keys)
 {
     using Keys = Keypad::Keys;
 
@@ -43,7 +42,7 @@ Screen::Result ZoneSettingsScreen::handleKeyPress(const Keypad::Keys keys)
         _menu.update();
     } else if (keys & Keys::Menu) {
         if (!(keys & Keys::LongPress)) {
-            return Navigate{ .id = ScreenID::ZoneSettingsMenu };
+            return Navigate{ .id = ScreenID::ZoneSettings };
         }
     } else if (keys & Keys::Boost) {
         return selectMenuItem();
@@ -52,13 +51,9 @@ Screen::Result ZoneSettingsScreen::handleKeyPress(const Keypad::Keys keys)
     return Result{};
 }
 
-Screen::Result ZoneSettingsScreen::selectMenuItem() const
+Screen::Result ZoneGeneralSettingsScreen::selectMenuItem() const
 {
     switch (_menu.currentIndex()) {
-        case 0:
-            return Navigate{ .id = ScreenID::ZoneGeneralSettings };
-        case 1:
-            return Navigate{ .id = ScreenID::ZoneSchedule };
         default:
             break;
     }
