@@ -1,7 +1,7 @@
 #include "main.h"
+#include "Config.h"
 #include "FurnaceController.h"
 #include "Peripherals.h"
-#include "PrivateConfig.h"
 
 #include "ui/UIController.h"
 

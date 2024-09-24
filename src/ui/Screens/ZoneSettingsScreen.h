@@ -6,10 +6,10 @@
 
 namespace UI
 {
-    class ZoneSettingsMenuScreen : public Screen
+    class ZoneSettingsScreen : public Screen
     {
     public:
-        ZoneSettingsMenuScreen(Model& model, Graphics& graphics);
+        explicit ZoneSettingsScreen(Model& model, Graphics& graphics);
 
         void activate();
         void update();
@@ -17,5 +17,7 @@ namespace UI
 
     private:
         Menu _menu;
+
+        [[nodiscard]] Result selectMenuItem() const;
     };
 }

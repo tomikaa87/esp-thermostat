@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Config.h"
 #include "HeatingZone.h"
-#include "PrivateConfig.h"
 
 #include <CoreApplication.h>
 #include <Logger.h>

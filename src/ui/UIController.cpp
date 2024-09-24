@@ -42,7 +42,7 @@ UIController::UIController(
     CoreApplication& application
 )
     : _app{ application }
-    , _screens{ RegisteredScreens::constructScreens(&_model) }
+    , _screens{ RegisteredScreens::constructScreens(_model, _graphics) }
     , _clockController{ _model.clock, _app.systemClock() }
 {
     // _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.Brightness);

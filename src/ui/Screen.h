@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Graphics.h"
 #include "Keypad.h"
 #include "ScreenID.h"
 
@@ -14,9 +15,10 @@ namespace UI
     class Screen
     {
     public:
-        explicit Screen(const int id, const Model* model)
+        explicit Screen(const int id, Model& model, Graphics& graphics)
             : _id{ id }
             , _model{ model }
+            , _graphics{ graphics }
         {}
 
         [[nodiscard]] int id() const
@@ -33,14 +35,20 @@ namespace UI
         using Result = std::variant<NoAction, Navigate>;
 
     protected:
-        const Model* model() const
+        Model& model() const
         {
             return _model;
         }
 
+        Graphics& graphics() const
+        {
+            return _graphics;
+        }
+
     private:
         int _id{ ScreenID::Invalid };
-        const Model* _model{};
+        Model& _model;
+        Graphics& _graphics;
     };
 
     template <typename T>

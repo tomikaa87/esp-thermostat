@@ -34,6 +34,12 @@ public:
     {
     }
 
+    void reset()
+    {
+        _selectionIndex = 0;
+        _viewPosition = 0;
+    }
+
     void update()
     {
         drawItems();
@@ -155,6 +161,16 @@ public:
         }
     {
         static_assert((std::same_as<Item, MenuItem> && ...));
+    }
+
+    void reset()
+    {
+        std::visit(
+            []<typename MenuType>(MenuType& m) {
+                m.reset();
+            },
+            _menu
+        );
     }
 
     void update()

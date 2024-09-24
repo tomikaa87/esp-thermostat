@@ -1,8 +1,8 @@
 #include "HeatingZone.h"
 
+#include "Config.h"
 #include "Extras.h"
 #include "HomeAssistant.h"
-#include "PrivateConfig.h"
 
 #include <CoreApplication.h>
 

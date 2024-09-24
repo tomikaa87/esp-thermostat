@@ -18,13 +18,12 @@
     Created on 2017-01-04
 */
 
-#ifndef CONFIG_H
-#define	CONFIG_H
+#include <IPAddress.h>
+
+#include "PrivateConfig.h"
 
 #define CONFIG_HEATCTL_SETTINGS_BASE_ADDR	0x00
 #define CONFIG_SCHEDULER_SETTINGS_BASE_ADDR	0x10
 
 #define CONFIG_USE_OLED_SH1106
-
-#endif	/* CONFIG_H */
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PrivateConfig.h"
+#include "Config.h"
 
 #include "../Model.h"
 #include "../Screen.h"
@@ -13,7 +13,7 @@ namespace UI
     class MainScreen : public Screen
     {
     public:
-        MainScreen(const Model* model);
+        MainScreen(Model& model, Graphics& graphics);
 
         void activate();
         void update();

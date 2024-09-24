@@ -27,8 +27,12 @@
 
 #include "Controllers/ClockController.h"
 
+#include "Screens/DateTimeSettingsScreen.h"
+#include "Screens/DisplaySettingsScreen.h"
+#include "Screens/GeneralSettingsScreen.h"
 #include "Screens/MainScreen.h"
 #include "Screens/MainMenuScreen.h"
+#include "Screens/ZoneSettingsScreen.h"
 #include "Screens/ZoneSettingsMenuScreen.h"
 
 #include <ctime>
@@ -52,11 +56,11 @@ namespace UI
             using Screen = std::variant<ScreenTypes...>;
             using Container = std::array<Screen, TypeCount>;
 
-            static Container constructScreens(const Model* model)
+            static Container constructScreens(Model& model, Graphics& graphics)
             {
                 return Container{
                     {
-                        ScreenTypes{ model }...
+                        ScreenTypes{ model, graphics }...
                     }
                 };
             }
@@ -65,9 +69,13 @@ namespace UI
 
     // Register screens here
     using RegisteredScreens = Detail::ScreenHelper<
-        MainScreen
-        // MainMenuScreen,
-        // ZoneSettingsMenuScreen
+        MainScreen,
+        MainMenuScreen,
+        ZoneSettingsMenuScreen,
+        GeneralSettingsScreen,
+        DisplaySettingsScreen,
+        DateTimeSettingsScreen,
+        ZoneSettingsScreen
     >;
 
     class UIController
@@ -91,6 +99,8 @@ namespace UI
         uint32_t _lastUpdateMillis{};
 
         Model _model;
+
+        Graphics _graphics;
 
         RegisteredScreens::Container _screens;
         RegisteredScreens::Screen* _currentScreen{};

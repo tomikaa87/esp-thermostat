@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PrivateConfig.h"
+#include "Config.h"
 
 #include <array>
 #include <cstdint>
@@ -8,6 +8,10 @@
 namespace UI
 {
     struct Model {
+        struct Navigation {
+            int selectedZoneIndex{};
+        } navigation;
+
         struct Clock {
             uint8_t hours{};
             uint8_t minutes{};

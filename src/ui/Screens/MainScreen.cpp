@@ -9,25 +9,6 @@ using namespace std::string_view_literals;
 
 using namespace UI;
 
-namespace {
-    Graphics graphics;
-    Menu testMenu{
-        graphics,
-        0,
-        5,
-        MenuItem{ "Item 1" }
-        , MenuItem{ "Item 2" }
-        , MenuItem{ "Item 3" }
-        , MenuItem{ "Item 4" }
-        , MenuItem{ "Item 5" }
-        , MenuItem{ "Item 6" }
-        , MenuItem{ "Item 7" }
-        , MenuItem{ "Item 8" }
-        , MenuItem{ "Item 9" }
-        , MenuItem{ "Item 10" }
-    };
-}
-
 namespace Positions
 {
     struct Position
@@ -53,8 +34,8 @@ namespace Positions
     }
 }
 
-MainScreen::MainScreen(const Model* model)
-    : Screen{ ScreenID::Main, model }
+MainScreen::MainScreen(Model& model, Graphics& graphics)
+    : Screen{ ScreenID::Main, model, graphics }
 {}
 
 void MainScreen::activate()
@@ -74,7 +55,7 @@ void MainScreen::update()
 
 Screen::Result MainScreen::handleKeyPress(const Keypad::Keys keys)
 {
-    // using Keys = Keypad::Keys;
+    using Keys = Keypad::Keys;
 
     // if (keys & Keys::Plus) {
     //     testMenu.step(UI::StepDirection::Up);
@@ -84,13 +65,13 @@ Screen::Result MainScreen::handleKeyPress(const Keypad::Keys keys)
     //     testMenu.update();
     // }
 
-    // if (keys & Keys::Menu) {
-    //     // Avoid entering the menu while exiting
-    //     // from another screen with long press
-    //     if (!(keys & Keys::LongPress)) {
-    //         return Navigate{ .id = ScreenID::MainMenu };
-    //     }
-    // }
+    if (keys & Keys::Menu) {
+        // Avoid entering the menu while exiting
+        // from another screen with long press
+        if (!(keys & Keys::LongPress)) {
+            return Navigate{ .id = ScreenID::MainMenu };
+        }
+    }
 
     return NoAction{};
 }
@@ -98,21 +79,21 @@ Screen::Result MainScreen::handleKeyPress(const Keypad::Keys keys)
 void MainScreen::drawClock() const
 {
     char clock[10]{};
-    snprintf(clock, sizeof(clock), "%02d:%02d", model()->clock.hours, model()->clock.minutes);
+    snprintf(clock, sizeof(clock), "%02d:%02d", model().clock.hours, model().clock.minutes);
 
-    graphics.drawText(
+    graphics().drawText(
         Positions::Clock.x,
         Positions::Clock.line,
         clock,
         Resources::Fonts::Oled
     );
 
-    graphics.drawVerticalSeparator(Positions::ClockDayOfWeek.x, Positions::ClockDayOfWeek.line);
+    graphics().drawVerticalSeparator(Positions::ClockDayOfWeek.x, Positions::ClockDayOfWeek.line);
 
-    graphics.drawShortWeekday(
+    graphics().drawShortWeekday(
         Positions::ClockDayOfWeek.x + 3,
         Positions::ClockDayOfWeek.line,
-        model()->clock.dayOfWeek
+        model().clock.dayOfWeek
     );
 }
 
@@ -123,13 +104,13 @@ void MainScreen::drawInternalTemperature() const
         text,
         sizeof(text),
         "%2d.%d",
-        model()->internalTemperature / 10,
-        model()->internalTemperature % 10
+        model().internalTemperature / 10,
+        model().internalTemperature % 10
     );
 
-    graphics.drawVerticalSeparator(Positions::InternalTemperature.x, Positions::InternalTemperature.line);
+    graphics().drawVerticalSeparator(Positions::InternalTemperature.x, Positions::InternalTemperature.line);
 
-    graphics.drawText(
+    graphics().drawText(
         Positions::InternalTemperature.x + 3,
         Positions::InternalTemperature.line,
         text,
@@ -140,12 +121,12 @@ void MainScreen::drawInternalTemperature() const
 void MainScreen::drawHeatingState() const
 {
     const auto text{
-        model()->heating ? "Heating"sv : "Idle"sv
+        model().heating ? "Heating"sv : "Idle"sv
     };
 
-    graphics.drawVerticalSeparator(Positions::HeatingState.x, Positions::HeatingState.line);
+    graphics().drawVerticalSeparator(Positions::HeatingState.x, Positions::HeatingState.line);
 
-    graphics.drawText(
+    graphics().drawText(
         Positions::HeatingState.x + 3,
         Positions::HeatingState.line,
         text,
@@ -178,7 +159,7 @@ void MainScreen::drawZoneStatus(
     };
 
     snprintf(buf, sizeof(buf), "%02d", zoneModel.zoneNumber);
-    graphics.drawText(
+    graphics().drawText(
         left + Positions::Zone::Name,
         line,
         buf,
@@ -186,14 +167,14 @@ void MainScreen::drawZoneStatus(
     );
 
     formatTemperatureIntoBuf(zoneModel.currentTemperature);
-    graphics.drawText(
+    graphics().drawText(
         left + Positions::Zone::Temperature,
         line,
         buf,
         Resources::Fonts::Oled
     );
 
-    graphics.drawText(
+    graphics().drawText(
         left + Positions::Zone::SLabel,
         line + 1,
         "S:",
@@ -201,7 +182,7 @@ void MainScreen::drawZoneStatus(
     );
 
     formatTemperatureIntoBuf(zoneModel.targetTemperature);
-    graphics.drawText(
+    graphics().drawText(
         left + Positions::Zone::Temperature,
         line + 1,
         buf,
@@ -216,11 +197,11 @@ void MainScreen::drawZoneStatuses()
     unsigned column{};
     unsigned line{ Positions::Zone::BaseLine };
 
-    for (const auto& zone : model()->zones) {
+    for (const auto& zone : model().zones) {
         drawZoneStatus(line, column, zone);
-        
+
         line += 2;
-        if (line >= graphics.Lines) {
+        if (line >= graphics().Lines) {
             ++column;
             line = Positions::Zone::BaseLine;
         }
