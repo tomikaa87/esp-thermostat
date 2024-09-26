@@ -31,7 +31,7 @@ void HeatingZoneController::updateDateTime(
 
     _scheduleDataDay = dayOfWeek;
     _scheduleDataByte = intervalIndex >> 3;
-    _scheduleDataMask = 1 << (intervalIndex & 0b111);
+    _scheduleDataMask = 1 << (7 - (intervalIndex & 0b111));
 }
 
 void HeatingZoneController::setMode(const Mode mode)

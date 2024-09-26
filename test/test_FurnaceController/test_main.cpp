@@ -21,7 +21,7 @@ namespace TestUtils
     {
         HeatingZoneController::Schedule schedule{{}};
         for (auto& byte : schedule) {
-            byte = 0b01010101;
+            byte = 0b10101010; // MSB-firts
         }
         return schedule;
     }
@@ -30,7 +30,7 @@ namespace TestUtils
     {
         HeatingZoneController::Schedule schedule{{}};
         for (auto& byte : schedule) {
-            byte = 0b10101010;
+            byte = 0b01010101; // MSB-first
         }
         return schedule;
     }
