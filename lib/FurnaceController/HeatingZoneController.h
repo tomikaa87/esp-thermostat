@@ -43,8 +43,8 @@ public:
     };
 
     explicit HeatingZoneController(
-        Configuration& config,
-        Schedule& schedule
+        const Configuration& config,
+        const Schedule& schedule
     );
 
     void updateDateTime(int dayOfWeek, int hour, int minute);
@@ -144,8 +144,8 @@ public:
     [[nodiscard]] bool startDelayActive() const;
 
 private:
-    Configuration& _config;
-    Schedule& _schedule;
+    const Configuration& _config;
+    const Schedule& _schedule;
 
     bool _stateChanged{ false };
 

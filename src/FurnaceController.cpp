@@ -30,21 +30,56 @@ namespace Devices::CallingForHeatingSensor
     auto stateTopic() { return PSTR("/calling_for_heating"); }
 }
 
+namespace
+{
+    namespace Detail
+    {
+        template <std::size_t... Indices>
+        [[nodiscard]] constexpr std::array<HeatingZone, sizeof...(Indices)> createZones(
+            const auto zoneIds,
+            CoreApplication& app,
+            std::array<Settings::Heating::ZoneControllerSettings, sizeof...(Indices)>& settings,
+            std::index_sequence<Indices...>
+        )
+        {
+            return std::array{
+                HeatingZone{
+                    std::get<Indices>(zoneIds),
+                    app,
+                    HeatingZone::SettingDependencies{
+                        .state = settings[Indices].state,
+                        .configuration = settings[Indices].config,
+                        .schedule = settings[Indices].schedule
+                    }
+                }...
+            };
+        }
+    }
+
+    template <unsigned... ZoneIds>
+    [[nodiscard]] constexpr auto createZones(CoreApplication& app, Settings& settings)
+    {
+        static_assert(sizeof...(ZoneIds) == Config::ZoneCount, "Zone count mismatch");
+
+        return Detail::createZones(
+            std::make_tuple(ZoneIds...),
+            app,
+            settings.heating.zones,
+            std::make_index_sequence<sizeof...(ZoneIds)>()
+        );
+    }
+}
+
 FurnaceController::FurnaceController(
     CoreApplication& application,
-    const ApplicationConfig& appConfig
+    const ApplicationConfig& appConfig,
+    Settings& settings
 )
     : _appConfig{ appConfig }
     , _app{ application }
-    , _settings{ _app.settings().registerSetting<Settings>(32) }
-    , _zones{
-        HeatingZone{ 0, _app },
-        HeatingZone{ 1, _app },
-        HeatingZone{ 2, _app },
-        HeatingZone{ 3, _app },
-        HeatingZone{ 10, _app },
-        HeatingZone{ 11, _app }
-    }
+    , _settings{ settings }
+    // , _settings{ _app.settings().registerSetting<Settings>(32) }
+    , _zones{ createZones<0, 1, 2, 3, 10, 11>(_app, _settings) }
     , _topicPrefix{
         HomeAssistant::makeUniqueId()
     }
@@ -66,6 +101,8 @@ FurnaceController::FurnaceController(
         _app.mqttClient()
     }
 {
+    _log.debug_P(PSTR("FurnaceController memory usage: %u B"), sizeof(FurnaceController));
+
     if (!_settings.load()) {
         _log.warning_P("failed to load settings, restoring defaults");
     }
@@ -91,7 +128,7 @@ void FurnaceController::task(const uint32_t deltaMillis)
     for (auto& zone : _zones) {
         zone.task(deltaMillis);
 
-        if (_settings.value().masterEnable) {
+        if (_settings.system.masterEnable) {
             if (zone.callingForHeating()) {
                 callingForHeating = true;
             }
@@ -100,7 +137,7 @@ void FurnaceController::task(const uint32_t deltaMillis)
 
     _callingForHeatingState = callingForHeating ? 1 : 0;
 
-    if (_settings.value().energyOptimizerEnabled) {
+    if (_settings.system.energyOptimizerEnabled) {
         for (auto& zone : _zones) {
             zone.handleFurnaceHeatingChanged(callingForHeating);
         }
@@ -213,7 +250,7 @@ void FurnaceController::setupMqttChangeHandlers()
     _masterSwitch.setChangedHandler(
         [this](const auto value) {
             _log.debug_P(PSTR("masterSwitch=%d"), value);
-            _settings.value().masterEnable = value != 0;
+            _settings.system.masterEnable = value != 0;
             _settings.save();
         }
     );
@@ -221,7 +258,7 @@ void FurnaceController::setupMqttChangeHandlers()
     _energyOptimizerSwitch.setChangedHandler(
         [this](const auto value) {
             _log.debug_P(PSTR("energyOptimizerEnabled=%d"), value);
-            _settings.value().energyOptimizerEnabled = value != 0;
+            _settings.system.energyOptimizerEnabled = value != 0;
             _settings.save();
         }
     );
@@ -229,6 +266,6 @@ void FurnaceController::setupMqttChangeHandlers()
 
 void FurnaceController::updateMqtt()
 {
-    _masterSwitch = _settings.value().masterEnable;
-    _energyOptimizerSwitch = _settings.value().energyOptimizerEnabled;
+    _masterSwitch = _settings.system.masterEnable;
+    _energyOptimizerSwitch = _settings.system.energyOptimizerEnabled;
 }

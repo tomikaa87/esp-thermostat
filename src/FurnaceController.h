@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "HeatingZone.h"
+#include "Settings.h"
 
 #include <CoreApplication.h>
 #include <Logger.h>
@@ -19,7 +20,8 @@ class FurnaceController
 public:
     explicit FurnaceController(
         CoreApplication& application,
-        const ApplicationConfig& appConfig
+        const ApplicationConfig& appConfig,
+        Settings& settings
     );
 
     void task(uint32_t deltaMillis);
@@ -28,13 +30,14 @@ private:
     const ApplicationConfig& _appConfig;
     CoreApplication& _app;
     
-    struct Settings
-    {
-        bool masterEnable{ false };
-        bool energyOptimizerEnabled{ true };
-    };
+    // struct Settings
+    // {
+    //     bool masterEnable{ false };
+    //     bool energyOptimizerEnabled{ true };
+    // };
 
-    Setting<Settings> _settings;
+    // Setting<Settings> _settings;
+    Settings& _settings;
 
     Logger _log{ "FurnaceController" };
     std::array<HeatingZone, Config::ZoneCount> _zones;

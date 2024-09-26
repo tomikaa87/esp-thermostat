@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Config.h"
+
 #include <HeatingZoneController.h>
 #include <ISettingsHandler.h>
 #include <Logger.h>
@@ -73,32 +75,33 @@ public:
 
     explicit Settings(ISettingsHandler& handler);
 
-    DECLARE_SETTINGS_STRUCT(DisplaySettings)
+    struct Heating
     {
-        uint8_t Brightness = DefaultSettings::Display::Brightness;
-        uint8_t TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
-    };
+        struct ZoneControllerSettings
+        {
+            HeatingZoneController::Configuration config{};
+            HeatingZoneController::Schedule schedule{};
+            HeatingZoneController::State state{};
+        };
 
-    DECLARE_SETTINGS_STRUCT(HeatingZoneSettings)
-    {
-        HeatingZoneController::Configuration config{};
-        HeatingZoneController::Schedule schedule{};
-        HeatingZoneController::State state{};
-    };
+        std::array<ZoneControllerSettings, Config::ZoneCount> zones{{}};
+    } heating;
 
-    DECLARE_SETTINGS_STRUCT(SystemSettings)
+    DECLARE_SETTINGS_STRUCT(System)
     {
+        DECLARE_SETTINGS_STRUCT(Display)
+        {
+            uint8_t brightness = DefaultSettings::Display::Brightness;
+            uint8_t timeoutSecs = DefaultSettings::Display::TimeoutSecs;
+        };
+
+        bool masterEnable{ false };
+        bool energyOptimizerEnabled{ true };
+
         HeatingZoneController::DeciDegrees internalSensorOffset{ 0 };
-    };
 
-    DECLARE_SETTINGS_STRUCT(Data)
-    {
-        DisplaySettings display;
-        SystemSettings system;
-        std::array<HeatingZoneSettings, 5> heatingZones;
-    };
-
-    Data data;
+        Display display;
+    } system;
 
     bool load();
     bool save();
@@ -112,4 +115,6 @@ private:
     bool check();
 
     void dumpData() const;
+
+    void registerHeatingSettings();
 };

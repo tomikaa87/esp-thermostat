@@ -23,6 +23,74 @@
 #include <iomanip>
 #include <sstream>
 
+namespace Layout
+{
+    constexpr auto BaseAddress{ ISettingsHandler::ReservedAreaSize };
+
+    namespace System
+    {
+        constexpr auto BaseAddress{ Layout::BaseAddress };
+        constexpr auto AddressStep{ 32u };
+
+        static_assert(BaseAddress >= Layout::BaseAddress);
+        static_assert(AddressStep > sizeof(Settings::System));
+    }
+
+    namespace Heating
+    {
+        constexpr auto BaseAddress{ System::BaseAddress + System::AddressStep };
+        constexpr auto AddressStep{ 128u };
+        constexpr auto NextBaseAddress{ BaseAddress + AddressStep * Config::ZoneCount };
+
+        static_assert(BaseAddress >= System::BaseAddress + System::AddressStep);
+        static_assert(AddressStep > sizeof(Settings::Heating::ZoneControllerSettings));
+
+        namespace Configuration
+        {
+            constexpr auto AddressStep{ 32u };
+            static_assert(AddressStep > sizeof(HeatingZoneController::Configuration));
+        }
+
+        namespace Schedule
+        {
+            constexpr auto AddressStep{ 64u };
+            static_assert(AddressStep > sizeof(HeatingZoneController::Schedule));
+        }
+
+        namespace State
+        {
+            constexpr auto AddressStep{ 32u };
+            static_assert(AddressStep > sizeof(HeatingZoneController::State));
+        }
+    }
+}
+
+namespace
+{
+    template <typename T>
+    [[nodiscard]] bool registerSetting(
+        ISettingsHandler& handler,
+        T& setting,
+        const std::size_t address,
+        Logger& log,
+        const char* name
+    )
+    {
+        auto ok = handler.registerSetting(setting, address);
+
+        log.debug_P(
+            PSTR("setting registration '%s': %s ref=%p, address=%u, size=%u"),
+            name,
+            ok ? "succeeded" : "FAILED",
+            &setting,
+            address,
+            sizeof(T)
+        );
+
+        return ok;
+    }
+}
+
 Settings::Settings(ISettingsHandler& handler)
     : _handler(handler)
 {
@@ -31,7 +99,11 @@ Settings::Settings(ISettingsHandler& handler)
         loadDefaults();
     });
 
-    _handler.registerSetting(data);
+    if (!registerSetting(_handler, system, Layout::System::BaseAddress, _log, "System")) {
+        abort();
+    }
+
+    registerHeatingSettings();
 
     load();
 }
@@ -54,14 +126,13 @@ bool Settings::load()
 
 bool Settings::save()
 {
-    if (!check()) {
-        _log.warning_P(PSTR("settings corrected before saving"));
-    }
+    // if (!check()) {
+    //     _log.warning_P(PSTR("settings corrected before saving"));
+    // }
 
     dumpData();
 
     const auto ok = _handler.save() != ISettingsHandler::SaveResult::Error;
-
     _log.info_P(PSTR("saving settings: ok=%d"), ok);
 
     return ok;
@@ -71,11 +142,12 @@ void Settings::loadDefaults()
 {
     _log.info_P(PSTR("loading defaults"));
 
-    data = {};
+    const auto ok = _handler.save(true) != ISettingsHandler::SaveResult::Error;
+    _log.info_P(PSTR("saving default settings: ok=%d"), ok);
 
-    if (!check()) {
-        _log.warning_P(PSTR("loaded defaults corrected"));
-    }
+    // if (!check()) {
+    //     _log.warning_P(PSTR("loaded defaults corrected"));
+    // }
 }
 
 bool Settings::check()
@@ -136,8 +208,8 @@ bool Settings::check()
     // // for backlight level thus we cannot decide if it's corrupted or not.
     // // At last, save the corrected values.
     // if (modified) {
-    //     data.Display.Brightness = DefaultSettings::Display::Brightness;
-    //     data.Display.TimeoutSecs = DefaultSettings::Display::TimeoutSecs;
+    //     data.Display.brightness = DefaultSettings::Display::Brightness;
+    //     data.Display.timeoutSecs = DefaultSettings::Display::timeoutSecs;
     // }
 
     return !modified;
@@ -145,10 +217,64 @@ bool Settings::check()
 
 void Settings::dumpData() const
 {
-    // _log.debug("Display{ Brightness=%u, TimeoutSecs=%u }",
-    //     data.Display.Brightness,
-    //     data.Display.TimeoutSecs
-    // );
+    _log.debug_P(
+        PSTR("System{ masterEnable=%u, energyOptimizerEnabled=%u }"),
+        system.masterEnable,
+        system.energyOptimizerEnabled
+    );
+
+    _log.debug_P(
+        PSTR("System.Display{ brightness=%u, timeoutSecs=%u }"),
+        system.display.brightness,
+        system.display.timeoutSecs
+    );
+
+    auto i = 0u;
+    for (const auto& zone : heating.zones) {
+        _log.debug(
+            "System.Heating.Zones[%u].Configuration{ overrideTimeoutSeconds=%u, boostInitialDurationSeconds=%u, boostExtensionDurationSeconds=%u, heatingStartDelaySeconds=%u, heatingOvershoot=%u, heatingUndershoot=%u, holidayModeTemperature=%u }",
+            i,
+            zone.config.overrideTimeoutSeconds,
+            zone.config.boostInitialDurationSeconds,
+            zone.config.boostExtensionDurationSeconds,
+            zone.config.heatingStartDelaySeconds,
+            zone.config.heatingOvershoot,
+            zone.config.heatingUndershoot,
+            zone.config.holidayModeTemperature
+        );
+
+        _log.debug(
+            "System.Heating.Zones[%u].State{ mode=%u, highTargetTemperature=%u, lowTargetTemperature=%u }",
+            i,
+            zone.state.mode,
+            zone.state.highTargetTemperature,
+            zone.state.lowTargetTemperature
+        );
+
+        static_assert(
+            std::is_same_v<HeatingZoneController::Schedule, std::array<uint8_t, 6 * 7>>,
+            "Dumping code must be adjusted to the Schedule type"
+        );
+
+        for (auto day = 0u; day < 7; ++day) {
+            char bits[49]{}; // 48 + \0
+
+            const auto dayOffset = day * 6u;
+            for (auto byteIdx = 0; byteIdx < 6u; ++byteIdx) {
+                const auto b = zone.schedule[dayOffset + byteIdx];
+                for (auto bitIdx = 0; bitIdx < 8; ++bitIdx) {
+                    bits[byteIdx * 8 + bitIdx] = (b & (1 << (7 - bitIdx)) ? '1' : '0');
+                }
+            }
+
+            _log.debug(
+                "System.Heating.Zones[%u].Schedule[%u]{ %s }",
+                i,
+                day,
+                bits
+            );
+        }
+    }
 
     // _log.debug("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }",
     //     data.HeatingController.Mode,
@@ -180,4 +306,57 @@ void Settings::dumpData() const
     //     data.Scheduler.Enabled,
     //     schDays.str().c_str()
     // );
+}
+
+void Settings::registerHeatingSettings()
+{
+    auto nextBaseAddress{ Layout::Heating::BaseAddress };
+
+    auto i = 0;
+    for (auto& s : heating.zones) {
+        _log.debug_P(
+            PSTR("registering heating settings, index=%d, baseAddress=%u"),
+            i++,
+            nextBaseAddress
+        );
+
+        if (
+            !registerSetting(
+                _handler,
+                s.config,
+                nextBaseAddress,
+                _log,
+                "ZoneControllerSettings::Configuration"
+            )
+        ) {
+            abort();
+        }
+        if (
+            !registerSetting(
+                _handler,
+                s.schedule,
+                nextBaseAddress + Layout::Heating::Configuration::AddressStep,
+                _log,
+                "ZoneControllerSettings::Schedule"
+            )
+        ) {
+            abort();
+        }
+
+        if (
+            !registerSetting(
+                _handler,
+                s.state,
+                nextBaseAddress
+                    + Layout::Heating::Configuration::AddressStep
+                    + Layout::Heating::Schedule::AddressStep,
+                _log,
+                "ZoneControllerSettings::State"
+            )
+        ) {
+            abort();
+        }
+
+        nextBaseAddress += Layout::Heating::AddressStep;
+    }
 }

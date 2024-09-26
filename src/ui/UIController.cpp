@@ -45,10 +45,10 @@ UIController::UIController(
     , _screens{ RegisteredScreens::constructScreens(_model, _graphics) }
     , _clockController{ _model.clock, _app.systemClock() }
 {
-    // _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.Brightness);
+    // _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.brightness);
     Display::init();
     Display::setContrast(0);
-    // Display::setContrast(_settings.data.display.Brightness);
+    // Display::setContrast(_settings.data.display.brightness);
 
     // _lastKeyPressTime = _systemClock.utcTime();
 
@@ -74,7 +74,7 @@ void UIController::task(const uint32_t deltaMillis)
 
 void UIController::update()
 {
-    _log.debug("update");
+    // _log.debug("update");
 
     if (_currentScreen) {
         invokeUpdate(*_currentScreen);
@@ -124,9 +124,9 @@ void UIController::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
-            // _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.data.display.Brightness);
+            // _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.data.display.brightness);
             Display::powerOn();
-            // Display::setContrast(_settings.data.display.Brightness);
+            // Display::setContrast(_settings.data.display.brightness);
         }
     } else {
         if (Display::isPoweredOn()) {
@@ -139,11 +139,11 @@ void UIController::updateActiveState()
 bool UIController::isActive() const
 {
     return true;
-    // if (_settings.data.display.TimeoutSecs == 0) {
+    // if (_settings.data.display.timeoutSecs == 0) {
     //     return true;
     // }
 
-    // return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.data.display.TimeoutSecs);
+    // return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.data.display.timeoutSecs);
 }
 
 bool UIController::loadScreen(const int id)

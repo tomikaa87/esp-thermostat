@@ -8,8 +8,8 @@ namespace
 }
 
 HeatingZoneController::HeatingZoneController(
-    Configuration& config,
-    Schedule& schedule
+    const Configuration& config,
+    const Schedule& schedule
 )
     : _config{ config }
     , _schedule{ schedule }

@@ -11,9 +11,16 @@ class CoreApplication;
 class HeatingZone
 {
 public:
+    struct SettingDependencies {
+        HeatingZoneController::State& state;
+        const HeatingZoneController::Configuration& configuration;
+        const HeatingZoneController::Schedule& schedule;
+    };
+
     explicit HeatingZone(
         unsigned index,
-        CoreApplication& app
+        CoreApplication& app,
+        SettingDependencies settingDependencies
     );
 
     void task(uint32_t systemClockDeltaMs);
@@ -28,9 +35,9 @@ private:
     unsigned _index{};
     CoreApplication& _app;
     Logger _log;
-    HeatingZoneController::Configuration _controllerConfig;
-    HeatingZoneController::Schedule _controllerSchedule;
-    Setting<HeatingZoneController::State> _stateSetting;
+    const HeatingZoneController::Configuration& _controllerConfig;
+    const HeatingZoneController::Schedule& _controllerSchedule;
+    HeatingZoneController::State& _stateSetting;
     HeatingZoneController _controller;
     const std::string _topicPrefix;
 

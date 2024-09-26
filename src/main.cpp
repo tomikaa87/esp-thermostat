@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "FurnaceController.h"
 #include "Peripherals.h"
+#include "Settings.h"
 
 #include "ui/UIController.h"
 
@@ -14,6 +15,7 @@ namespace
 {
     ApplicationConfig appConfig;
     CoreApplication* coreApplication{};
+    Settings* settings{};
     FurnaceController* furnaceController{};
     UI::UIController* uiController{};
 }
@@ -62,6 +64,11 @@ void setup()
     coreApplication = [] {
         static CoreApplication application{ appConfig };
         return &application;
+    }();
+
+    settings = [] {
+        static Settings s{ coreApplication->settings() };
+        return &s;
     }();
 
     // furnaceController = [] {

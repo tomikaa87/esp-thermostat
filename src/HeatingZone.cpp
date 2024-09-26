@@ -90,12 +90,15 @@ namespace Topics::BoostActive
 
 HeatingZone::HeatingZone(
     const unsigned index,
-    CoreApplication& app
+    CoreApplication& app,
+    SettingDependencies settingDependencies
 )
     : _index{ index }
     , _app{ app }
     , _log{ appendIndex(Extras::fromPstr(PSTR("HeatingZone")), _index) }
-    , _stateSetting{ _app.settings().registerSetting<HeatingZoneController::State>() }
+    , _controllerConfig{ settingDependencies.configuration }
+    , _controllerSchedule{ settingDependencies.schedule }
+    , _stateSetting{ settingDependencies.state }
     , _controller{ _controllerConfig, _controllerSchedule }
     , _topicPrefix{
         HA::makeUniqueId()
@@ -134,26 +137,26 @@ HeatingZone::HeatingZone(
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
 
-    if (_stateSetting.load()) {
-        _log.info_P(PSTR("controller state loaded"));
+    // if (_stateSetting.load()) {
+    //     _log.info_P(PSTR("controller state loaded"));
 
-        _log.debug_P(
-            PSTR("mode=%u, high=%d, low=%d"),
-            _stateSetting.value().mode,
-            _stateSetting.value().highTargetTemperature,
-            _stateSetting.value().lowTargetTemperature
-        );
+    //     _log.debug_P(
+    //         PSTR("mode=%u, high=%d, low=%d"),
+    //         _stateSetting.value().mode,
+    //         _stateSetting.value().highTargetTemperature,
+    //         _stateSetting.value().lowTargetTemperature
+    //     );
 
-        _controller.loadState(_stateSetting.value());
-    } else {
-        _log.warning_P(PSTR("failed to load controller state, resetting to default"));
+    //     _controller.loadState(_stateSetting.value());
+    // } else {
+    //     _log.warning_P(PSTR("failed to load controller state, resetting to default"));
 
-        _controller.loadState(HeatingZoneController::State{});
+    //     _controller.loadState(HeatingZoneController::State{});
 
-        if (!_stateSetting.save()) {
-            _log.warning_P(PSTR("failed to save the default state"));
-        }
-    }
+    //     if (!_stateSetting.save()) {
+    //         _log.warning_P(PSTR("failed to save the default state"));
+    //     }
+    // }
 
     updateMqtt();
 }
@@ -170,12 +173,14 @@ void HeatingZone::task(const uint32_t systemClockDeltaMs)
 
     if (_controller.stateChanged()) {
         _log.debug_P(PSTR("controller state changed, saving"));
+        
+        _stateSetting = _controller.saveState();
 
-        _stateSetting.value() = _controller.saveState();
+        // _stateSetting.value() = _controller.saveState();
 
-        if (!_stateSetting.save()) {
-            _log.warning_P(PSTR("failed to save controller state"));
-        }
+        // if (!_stateSetting.save()) {
+        //     _log.warning_P(PSTR("failed to save controller state"));
+        // }
     }
 }
 
@@ -188,8 +193,8 @@ void HeatingZone::loadDefaultSettings()
 {
     _log.debug_P(PSTR("%s"), __func__);
 
-    _controllerConfig = {};
-    _controllerSchedule = {};
+    // _controllerConfig = {};
+    // _controllerSchedule = {};
     // _controllerState = HeatingZoneController::State{};
 
     // _controller.loadState(_controllerState);
