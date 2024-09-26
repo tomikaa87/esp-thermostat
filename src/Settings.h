@@ -63,7 +63,7 @@ namespace DefaultSettings
 {
     namespace Display
     {
-        constexpr auto Brightness = 20;
+        constexpr auto Brightness = 10;
         constexpr auto TimeoutSecs = 15;
     }
 }
@@ -71,8 +71,6 @@ namespace DefaultSettings
 class Settings
 {
 public:
-    static constexpr uint8_t DataVersion = 1;
-
     explicit Settings(ISettingsHandler& handler);
 
     struct Heating
@@ -94,6 +92,8 @@ public:
             uint8_t brightness = DefaultSettings::Display::Brightness;
             uint8_t timeoutSecs = DefaultSettings::Display::TimeoutSecs;
         };
+
+        uint8_t maximumLogLevel{ static_cast<uint8_t>(Log::Severity::Info) };
 
         bool masterEnable{ false };
         bool energyOptimizerEnabled{ true };

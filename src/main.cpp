@@ -71,6 +71,8 @@ void setup()
         return &s;
     }();
 
+    appConfig.logging.maximumLevel = static_cast<Log::Severity>(settings->system.maximumLogLevel);
+
     // furnaceController = [] {
     //     static FurnaceController controller{ *coreApplication, appConfig };
     //     return &controller;

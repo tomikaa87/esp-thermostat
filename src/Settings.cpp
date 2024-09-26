@@ -143,6 +143,9 @@ void Settings::loadDefaults()
 {
     _log.info_P(PSTR("loading defaults"));
 
+    system = System{};
+    heating = Heating{};
+
     const auto ok = _handler.save(true) != ISettingsHandler::SaveResult::Error;
     _log.info_P(PSTR("saving default settings: ok=%d"), ok);
 
@@ -219,7 +222,8 @@ bool Settings::check()
 void Settings::dumpData() const
 {
     _log.info_P(
-        PSTR("System{ masterEnable=%u, energyOptimizerEnabled=%u }"),
+        PSTR("System{ maximumLogLevel=%u, masterEnable=%u, energyOptimizerEnabled=%u }"),
+        system.maximumLogLevel,
         system.masterEnable,
         system.energyOptimizerEnabled
     );
