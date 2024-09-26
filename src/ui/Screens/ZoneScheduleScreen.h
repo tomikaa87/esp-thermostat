@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Menu.h"
 #include "../Screen.h"
 #include "../ScreenID.h"
+#include "../Types.h"
 
 namespace UI
 {
@@ -16,8 +16,14 @@ namespace UI
         [[nodiscard]] Result handleKeyPress(Keypad::Keys keys);
 
     private:
-        Menu _menu;
+        unsigned _scheduleBitIndex{};
+        unsigned _scheduleDay{};
 
-        [[nodiscard]] Result selectMenuItem() const;
+        void drawScheduleBar();
+        void drawSchedulePositionIndicator();
+        void drawWeekday();
+
+        void stepSchedulePosition(StepDirection direction);
+        void setScheduleBit(bool on);
     };
 }

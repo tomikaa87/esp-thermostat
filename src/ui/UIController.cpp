@@ -44,6 +44,7 @@ UIController::UIController(
 )
     : _app{ application }
     , _settings{ settings }
+    , _model{ Model{ .settings = settings } }
     , _screens{ RegisteredScreens::constructScreens(_model, _graphics) }
     , _clockController{ _model.clock, _app.systemClock() }
 {

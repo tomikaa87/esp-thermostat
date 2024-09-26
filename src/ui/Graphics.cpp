@@ -78,7 +78,10 @@ void OLEDGraphics::fillArea(
     DisplayImpl::fillArea(x, line, width, pages, pattern);
 }
 
-void OLEDGraphics::drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits)
+void OLEDGraphics::drawScheduleBar(
+    const std::span<uint8_t, 42>& scheduleBits,
+    const unsigned byteOffset
+)
 {
     static constexpr uint8_t longTick = 0b11110000;
     static constexpr uint8_t shortTick = 0b01110000;
@@ -90,7 +93,7 @@ void OLEDGraphics::drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits)
 
     uint8_t tickCounter = 0;
     uint8_t longTickCounter = 0;
-    uint8_t scheduleByteIdx = 0;
+    uint8_t scheduleByteIdx = byteOffset;
     uint8_t scheduleBitIdx = 255; // Will overflow in the first round
     uint8_t indicatorCounter = 0;
     uint8_t scheduleBitValue = 0;
@@ -128,7 +131,7 @@ void OLEDGraphics::drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits)
                 scheduleBitIdx = 0;
             }
 
-            scheduleBitValue = (scheduleBits[scheduleByteIdx] >> scheduleBitIdx) & 1;
+            scheduleBitValue = (scheduleBits[scheduleByteIdx] >> (7 - scheduleBitIdx)) & 1; // MSB-first
         }
     }
 

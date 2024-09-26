@@ -56,7 +56,7 @@ public:
     void drawBitmap(unsigned x, unsigned line, std::span<const uint8_t> bitmap, unsigned width, unsigned pageCount);
     void fillArea(unsigned x, unsigned line, unsigned width, unsigned pages, Color color);
 
-    void drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits);
+    void drawScheduleBar(const std::span<uint8_t, 42>& scheduleBits, unsigned byteOffset);
     void drawScheduleBarPositionIndicator(uint8_t scheduleBitIndex);
 
     void drawShortWeekday(unsigned x, unsigned line, unsigned weekday);

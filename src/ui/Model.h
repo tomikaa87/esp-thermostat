@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include "Settings.h"
 
 #include <array>
 #include <cstdint>
@@ -8,6 +9,8 @@
 namespace UI
 {
     struct Model {
+        Settings& settings;
+
         struct Navigation {
             int selectedZoneIndex{};
         } navigation;
