@@ -86,7 +86,8 @@ namespace UI
     {
     public:
         UIController(
-            CoreApplication& application
+            CoreApplication& application,
+            Settings& settings
         );
 
         void task(uint32_t deltaMillis);
@@ -96,9 +97,10 @@ namespace UI
 
     private:
         CoreApplication& _app;
+        Settings& _settings;
         Keypad _keypad;
         Logger _log{ "UIController" };
-        // std::time_t _lastKeyPressTime = 0;
+        std::time_t _lastKeyPressTime = 0;
 
         uint32_t _lastUpdateMillis{};
 

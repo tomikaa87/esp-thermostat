@@ -77,7 +77,7 @@ void setup()
     // }();
 
     uiController = [] {
-        static UI::UIController controller{ *coreApplication };
+        static UI::UIController controller{ *coreApplication, *settings };
         return &controller;
     }();
 }

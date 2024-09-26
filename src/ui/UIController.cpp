@@ -39,18 +39,19 @@
 using namespace UI;
 
 UIController::UIController(
-    CoreApplication& application
+    CoreApplication& application,
+    Settings& settings
 )
     : _app{ application }
+    , _settings{ settings }
     , _screens{ RegisteredScreens::constructScreens(_model, _graphics) }
     , _clockController{ _model.clock, _app.systemClock() }
 {
-    // _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.data.display.brightness);
+    _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.system.display.brightness);
     Display::init();
-    Display::setContrast(0);
-    // Display::setContrast(_settings.data.display.brightness);
+    Display::setContrast(_settings.system.display.brightness);
 
-    // _lastKeyPressTime = _systemClock.utcTime();
+    _lastKeyPressTime = _app.systemClock().utcTime();
 
     if (loadScreen(ScreenID::Main)) {
         invokeActivate(*_currentScreen);
@@ -91,7 +92,7 @@ void UIController::handleKeyPress(const Keypad::Keys keys)
         return;
     }
 
-    // _lastKeyPressTime = _systemClock.utcTime();
+    _lastKeyPressTime = _app.systemClock().utcTime();
 
     // _log.info_P(PSTR("keys=%xh, _lastKeyPressTime=%ld"), keys, _lastKeyPressTime);
 
@@ -124,9 +125,9 @@ void UIController::updateActiveState()
 {
     if (isActive()) {
         if (!Display::isPoweredOn()) {
-            // _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.data.display.brightness);
+            _log.debug_P(PSTR("powering on the display, brightness: %d"), _settings.system.display.brightness);
             Display::powerOn();
-            // Display::setContrast(_settings.data.display.brightness);
+            Display::setContrast(_settings.system.display.brightness);
         }
     } else {
         if (Display::isPoweredOn()) {
@@ -138,12 +139,11 @@ void UIController::updateActiveState()
 
 bool UIController::isActive() const
 {
-    return true;
-    // if (_settings.data.display.timeoutSecs == 0) {
-    //     return true;
-    // }
+    if (_settings.system.display.timeoutSecs == 0) {
+        return true;
+    }
 
-    // return (_systemClock.utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.data.display.timeoutSecs);
+    return (_app.systemClock().utcTime() - _lastKeyPressTime) < static_cast<std::time_t>(_settings.system.display.timeoutSecs);
 }
 
 bool UIController::loadScreen(const int id)
