@@ -274,38 +274,9 @@ void Settings::dumpData() const
                 bits
             );
         }
+
+        ++i;
     }
-
-    // _log.debug("HeatingController{ Mode=%u, DaytimeTemp=%d, NightTimeTemp=%d, TargetTemp=%d, TargetTempSetTimestamp=%ld, Overshoot=%u, Undershoot=%u, TempCorrection=%d, BoostIntervalMins=%u, CustomTempTimeputMins=%u }",
-    //     data.HeatingController.Mode,
-    //     data.HeatingController.DaytimeTemp,
-    //     data.HeatingController.NightTimeTemp,
-    //     data.HeatingController.TargetTemp,
-    //     data.HeatingController.TargetTempSetTimestamp,
-    //     data.HeatingController.Overshoot,
-    //     data.HeatingController.Undershoot,
-    //     data.HeatingController.TempCorrection,
-    //     data.HeatingController.BoostIntervalMins,
-    //     data.HeatingController.CustomTempTimeoutMins
-    // );
-
-    // std::stringstream schDays;
-    // for (auto i = 0; i < 7; ++i) {
-    //     schDays << std::to_string(i) << "=";
-    //     schDays << std::hex << std::setw(2) << std::setfill('0');
-    //     for (auto j = 0; j < 6; ++j) {
-    //          schDays << static_cast<int>(data.Scheduler.DayData[i][j]);
-    //     }
-    //     schDays << std::resetiosflags << 'h';
-    //     if (i < 6) {
-    //         schDays << ", ";
-    //     }
-    // }
-
-    // _log.debug("Scheduler{ Enabled=%u, Days=[ %s ] }",
-    //     data.Scheduler.Enabled,
-    //     schDays.str().c_str()
-    // );
 }
 
 void Settings::registerHeatingSettings()

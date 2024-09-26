@@ -2,7 +2,6 @@
 
 #include "network/MQTT/MqttVariable.h"
 
-#include <SettingsHandler.h>
 #include <HeatingZoneController.h>
 #include <Logger.h>
 
@@ -27,8 +26,6 @@ public:
 
     [[nodiscard]] bool callingForHeating();
 
-    void loadDefaultSettings();
-
     void handleFurnaceHeatingChanged(bool heating);
 
 private:
@@ -37,7 +34,7 @@ private:
     Logger _log;
     const HeatingZoneController::Configuration& _controllerConfig;
     const HeatingZoneController::Schedule& _controllerSchedule;
-    HeatingZoneController::State& _stateSetting;
+    HeatingZoneController::State& _state;
     HeatingZoneController _controller;
     const std::string _topicPrefix;
 

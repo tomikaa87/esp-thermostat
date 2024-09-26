@@ -78,7 +78,6 @@ FurnaceController::FurnaceController(
     : _appConfig{ appConfig }
     , _app{ application }
     , _settings{ settings }
-    // , _settings{ _app.settings().registerSetting<Settings>(32) }
     , _zones{ createZones<0, 1, 2, 3, 10, 11>(_app, _settings) }
     , _topicPrefix{
         HomeAssistant::makeUniqueId()
@@ -102,10 +101,6 @@ FurnaceController::FurnaceController(
     }
 {
     _log.debug_P(PSTR("FurnaceController memory usage: %u B"), sizeof(FurnaceController));
-
-    if (!_settings.load()) {
-        _log.warning_P("failed to load settings, restoring defaults");
-    }
 
     setupRelayOutput();
     setupMqttComponentConfigs();
@@ -251,7 +246,6 @@ void FurnaceController::setupMqttChangeHandlers()
         [this](const auto value) {
             _log.debug_P(PSTR("masterSwitch=%d"), value);
             _settings.system.masterEnable = value != 0;
-            _settings.save();
         }
     );
 
@@ -259,7 +253,6 @@ void FurnaceController::setupMqttChangeHandlers()
         [this](const auto value) {
             _log.debug_P(PSTR("energyOptimizerEnabled=%d"), value);
             _settings.system.energyOptimizerEnabled = value != 0;
-            _settings.save();
         }
     );
 }

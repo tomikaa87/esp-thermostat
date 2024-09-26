@@ -6,7 +6,6 @@
 
 #include <CoreApplication.h>
 #include <Logger.h>
-#include <SettingsHandler.h>
 
 #include <network/MQTT/MqttVariable.h>
 
@@ -29,16 +28,7 @@ public:
 private:
     const ApplicationConfig& _appConfig;
     CoreApplication& _app;
-    
-    // struct Settings
-    // {
-    //     bool masterEnable{ false };
-    //     bool energyOptimizerEnabled{ true };
-    // };
-
-    // Setting<Settings> _settings;
     Settings& _settings;
-
     Logger _log{ "FurnaceController" };
     std::array<HeatingZone, Config::ZoneCount> _zones;
     uint32_t _mqttUpdateTimer{};
