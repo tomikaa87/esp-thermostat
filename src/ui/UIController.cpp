@@ -99,7 +99,7 @@ void UIController::handleKeyPress(const Keypad::Keys keys)
     // If the display is sleeping, use this keypress to wake it up,
     // but don't interact with the UI while it's invisible.
     if (!Display::isPoweredOn()) {
-        _log.info_P(PSTR("display is off, ignoring key press"));
+        _log.debug_P(PSTR("display is off, ignoring key press"));
         return;
     }
 

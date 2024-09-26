@@ -78,7 +78,8 @@ namespace
     {
         auto ok = handler.registerSetting(setting, address);
 
-        log.debug_P(
+        log.log_P(
+            ok ? Log::Severity::Debug : Log::Severity::Error,
             PSTR("setting registration '%s': %s ref=%p, address=%u, size=%u"),
             name,
             ok ? "succeeded" : "FAILED",
@@ -217,13 +218,13 @@ bool Settings::check()
 
 void Settings::dumpData() const
 {
-    _log.debug_P(
+    _log.info_P(
         PSTR("System{ masterEnable=%u, energyOptimizerEnabled=%u }"),
         system.masterEnable,
         system.energyOptimizerEnabled
     );
 
-    _log.debug_P(
+    _log.info_P(
         PSTR("System.Display{ brightness=%u, timeoutSecs=%u }"),
         system.display.brightness,
         system.display.timeoutSecs
@@ -231,7 +232,7 @@ void Settings::dumpData() const
 
     auto i = 0u;
     for (const auto& zone : heating.zones) {
-        _log.debug(
+        _log.info(
             "System.Heating.Zones[%u].Configuration{ overrideTimeoutSeconds=%u, boostInitialDurationSeconds=%u, boostExtensionDurationSeconds=%u, heatingStartDelaySeconds=%u, heatingOvershoot=%u, heatingUndershoot=%u, holidayModeTemperature=%u }",
             i,
             zone.config.overrideTimeoutSeconds,
@@ -243,7 +244,7 @@ void Settings::dumpData() const
             zone.config.holidayModeTemperature
         );
 
-        _log.debug(
+        _log.info(
             "System.Heating.Zones[%u].State{ mode=%u, highTargetTemperature=%u, lowTargetTemperature=%u }",
             i,
             zone.state.mode,
@@ -260,14 +261,14 @@ void Settings::dumpData() const
             char bits[49]{}; // 48 + \0
 
             const auto dayOffset = day * 6u;
-            for (auto byteIdx = 0; byteIdx < 6u; ++byteIdx) {
+            for (auto byteIdx = 0u; byteIdx < 6u; ++byteIdx) {
                 const auto b = zone.schedule[dayOffset + byteIdx];
                 for (auto bitIdx = 0; bitIdx < 8; ++bitIdx) {
                     bits[byteIdx * 8 + bitIdx] = (b & (1 << (7 - bitIdx)) ? '1' : '0');
                 }
             }
 
-            _log.debug(
+            _log.info(
                 "System.Heating.Zones[%u].Schedule[%u]{ %s }",
                 i,
                 day,
