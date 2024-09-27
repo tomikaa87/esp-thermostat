@@ -34,6 +34,56 @@ namespace TestUtils
         }
         return schedule;
     }
+
+    void setScheduleFor(
+        HeatingZoneController::Schedule& schedule,
+        unsigned weekday,
+        unsigned hour,
+        const unsigned minute
+    )
+    {
+        weekday = std::clamp(weekday, 0u, 6u);
+        hour = std::clamp(hour, 0u, 23u);
+        const auto segmentIndex = weekday * 48 + hour * 2 + minute / 30;
+        const auto byteIndex = segmentIndex / 8;
+        const auto bitIndex = segmentIndex - byteIndex * 8;
+
+        std::cout
+            << "hour=" << hour
+            << ", minute=" << minute
+            << ", segment=" << segmentIndex
+            << ", byte=" << byteIndex
+            << ", bit=" << bitIndex
+            << '\n';
+
+        schedule[byteIndex] |= 1 << (7 - bitIndex);
+    }
+
+    void printSchedule(const HeatingZoneController::Schedule& schedule)
+    {
+        std::cout << "Hour:            00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23\n";
+
+        for (auto day = 0u; day < 7; ++day) {
+        char bits[49]{}; // 48 + \0
+
+        const auto dayOffset = day * 6u;
+        for (auto byteIdx = 0u; byteIdx < 6u; ++byteIdx) {
+            const auto b = schedule[dayOffset + byteIdx];
+            for (auto bitIdx = 0; bitIdx < 8; ++bitIdx) {
+                bits[byteIdx * 8 + bitIdx] = (b & (1 << (7 - bitIdx)) ? '1' : '0');
+            }
+        }
+
+        std::cout << "Schedule[day=" << day << "]: ";
+        for (auto i = 0u; i < sizeof(bits); ++i) {
+            if (i > 0 && i % 2 == 0) {
+                std::cout << ' ';
+            }
+            std::cout << bits[i];
+        }
+        std::cout << '\n';
+    }
+    }
 }
 
 std::ostream& operator<<(std::ostream& str, const HeatingZoneController::Mode mode)
@@ -842,6 +892,110 @@ TEST(HeatingZoneController, TargetTemperatureForAlternatingSchedule2)
             }
         }
     }
+}
+
+TEST(HeatingZoneController, TargetTemperatureForSpecificSchedule)
+{
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    for (auto dayOfWeek = 0u; dayOfWeek < 7; ++dayOfWeek) {
+        for (auto hour = 6; hour <= 18; ++hour) {
+            TestUtils::setScheduleFor(schedule, dayOfWeek, hour, 0);
+            if (hour < 18) {
+                TestUtils::setScheduleFor(schedule, dayOfWeek, hour, 30);
+            }
+        }
+    }
+
+    TestUtils::printSchedule(schedule);
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(220);
+
+    for (auto dayOfWeek = 0; dayOfWeek < 7; ++dayOfWeek) {
+        for (auto hour = 0; hour < 24; ++hour) {
+            for (auto minute = 0; minute < 60; ++minute) {
+                controller.updateDateTime(dayOfWeek, hour, minute);
+
+                bool expectFailed{ false };
+
+                if ((hour >= 6 && hour < 18) || (hour == 18 && minute < 30)) {
+                    EXPECT_EQ(controller.targetTemperature(), 230);
+                    expectFailed = controller.targetTemperature() != 230;
+
+                    EXPECT_TRUE(controller.callingForHeating());
+                } else {
+                    EXPECT_EQ(controller.targetTemperature(), 210);
+                    expectFailed = controller.targetTemperature() != 210;
+
+                    EXPECT_FALSE(controller.callingForHeating());
+                }
+
+                if (expectFailed) {
+                    std::cout
+                        << "dayOfWeek=" << dayOfWeek
+                        << ",hour=" << hour
+                        << ",minute=" << minute
+                        << '\n';
+
+                    return;
+                }
+            }
+        }
+    }
+}
+
+TEST(HeatingZoneController, TargetTemperatureForFirstScheduleSegment)
+{
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    TestUtils::setScheduleFor(schedule, 0, 0, 0);
+    TestUtils::printSchedule(schedule);
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(220);
+
+    controller.updateDateTime(0, 0, 0);
+    EXPECT_EQ(controller.targetTemperature(), 230);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.updateDateTime(0, 0, 30);
+    EXPECT_EQ(controller.targetTemperature(), 210);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, TargetTemperatureForLastScheduleSegment)
+{
+    HeatingZoneController::Configuration config{};
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    TestUtils::setScheduleFor(schedule, 6, 23, 30);
+    TestUtils::printSchedule(schedule);
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(220);
+
+    controller.updateDateTime(6, 23, 0);
+    EXPECT_EQ(controller.targetTemperature(), 210);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.updateDateTime(6, 23, 30);
+    EXPECT_EQ(controller.targetTemperature(), 230);
+    EXPECT_TRUE(controller.callingForHeating());
 }
 
 #pragma endregion
