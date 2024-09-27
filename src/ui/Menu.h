@@ -19,6 +19,7 @@ namespace
 struct MenuItem
 {
     std::string_view text;
+    std::string_view value;
 };
 
 template <typename GraphicsType, std::size_t ItemCount>
@@ -105,6 +106,7 @@ private:
                 _graphics.fillArea(0, line, sizeof(Resources::Assets::ArrowRightIcon), 1, Graphics::Color::Black);
             }
 
+            // Title text
             auto x = _graphics.drawText(
                 sizeof(Resources::Assets::ArrowRightIcon) + 2,
                 line,
@@ -119,6 +121,17 @@ private:
                     GraphicsType::Width - 1 - x - sizeof(Resources::Assets::EmptyPositionIndicator),
                     1,
                     Graphics::Color::Black
+                );
+            }
+
+            // Value text
+            if (!_items[itemIndex].value.empty()) {
+                _graphics.drawText(
+                    GraphicsType::Width - sizeof(Resources::Assets::FullPositionIndicator) - 3,
+                    line,
+                    _items[itemIndex].value,
+                    Resources::Fonts::Oled,
+                    Graphics::Alignment::Right
                 );
             }
 

@@ -39,6 +39,12 @@ public:
         Black,
         White
     };
+
+    enum class Alignment
+    {
+        Left,
+        Right
+    };
 };
 
 class OLEDGraphics : public GraphicsBase
@@ -93,6 +99,7 @@ public:
         const unsigned line,
         const std::string_view& text,
         const Font& font,
+        const Alignment alignment = Alignment::Left,
         const unsigned yOffset = 0,
         const bool inverted = false
     )
@@ -101,6 +108,14 @@ public:
         static constexpr std::array<uint8_t, CharacterSpacing> BackgroundPattern{{}};
 
         DisplayImpl::setLine(line);
+
+        if (alignment == Alignment::Right && !text.empty()) {
+            const auto textPixelWidth = text.length() * (font.charWidth + CharacterSpacing) - CharacterSpacing;
+            if (textPixelWidth > x) {
+                return x;
+            }
+            x -= textPixelWidth;
+        }
 
         for (uint8_t i = 0; i < text.length(); ++i) {
             DisplayImpl::setColumn(x);
