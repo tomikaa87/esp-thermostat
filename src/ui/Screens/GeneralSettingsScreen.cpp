@@ -1,7 +1,15 @@
 #include "GeneralSettingsScreen.h"
 
+#include "../Model.h"
+
 using namespace UI;
 using namespace std::string_view_literals;
+
+namespace
+{
+    char _masterEnableValueLabel[4]{};
+    char _energySaverValueLabel[4]{};
+}
 
 GeneralSettingsScreen::GeneralSettingsScreen(Model& model, Graphics& graphics)
     : Screen{ ScreenID::GeneralSettings, model, graphics }
@@ -9,7 +17,8 @@ GeneralSettingsScreen::GeneralSettingsScreen(Model& model, Graphics& graphics)
         graphics,
         1,
         7,
-        MenuItem{ "" }
+        MenuItem{ "Master Enable", _masterEnableValueLabel },
+        MenuItem{ "Energy Optim.", _energySaverValueLabel }
     }
 {}
 
@@ -17,6 +26,7 @@ void GeneralSettingsScreen::activate()
 {
     graphics().drawText(0, 0, "General Settings"sv, Resources::Fonts::Oled);
 
+    updateValueLabels();
     _menu.reset();
     _menu.update();
 }
@@ -41,6 +51,10 @@ Screen::Result GeneralSettingsScreen::handleKeyPress(const Keypad::Keys keys)
         }
     } else if (keys & Keys::Boost) {
         return selectMenuItem();
+    } else if (keys & Keys::Plus) {
+        stepSelectedSetting(StepDirection::Up);
+    } else if (keys & Keys::Minus) {
+        stepSelectedSetting(StepDirection::Down);
     }
 
     return Result{};
@@ -54,4 +68,40 @@ Screen::Result GeneralSettingsScreen::selectMenuItem() const
     }
 
     return Result{};
+}
+
+void GeneralSettingsScreen::stepSelectedSetting(const StepDirection direction)
+{
+    switch (_menu.currentIndex()) {
+        case 0:
+            model().settings.system.masterEnable ^= true;
+            break;
+
+        case 1:
+            model().settings.system.energyOptimizerEnabled ^= true;
+            break;
+
+        default:
+            return;
+    }
+
+    updateValueLabels();
+    _menu.updateSelectedItem();
+}
+
+void GeneralSettingsScreen::updateValueLabels()
+{
+    snprintf(
+        _masterEnableValueLabel,
+        sizeof(_masterEnableValueLabel),
+        "%s",
+        model().settings.system.masterEnable ? "On" : "Off"
+    );
+
+    snprintf(
+        _energySaverValueLabel,
+        sizeof(_energySaverValueLabel),
+        "%s",
+        model().settings.system.energyOptimizerEnabled ? "On" : "Off"
+    );
 }
