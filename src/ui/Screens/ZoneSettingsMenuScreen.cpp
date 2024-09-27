@@ -37,10 +37,10 @@ Screen::Result ZoneSettingsMenuScreen::handleKeyPress(const Keypad::Keys keys)
 {
     using Keys = Keypad::Keys;
 
-    if (keys & Keys::Plus) {
+    if (keys & Keys::Left) {
         _menu.step(UI::StepDirection::Up);
         _menu.update();
-    } else if (keys & Keys::Minus) {
+    } else if (keys & Keys::Right) {
         _menu.step(UI::StepDirection::Down);
         _menu.update();
     } else if (keys & Keys::Menu) {

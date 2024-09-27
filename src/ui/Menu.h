@@ -19,7 +19,7 @@ namespace
 struct MenuItem
 {
     std::string_view text;
-    std::string_view value;
+    const char* value{};
 };
 
 template <typename GraphicsType, std::size_t ItemCount>
@@ -43,7 +43,12 @@ public:
 
     void update()
     {
-        drawItems();
+        drawItems(false);
+    }
+
+    void updateSelectedItem()
+    {
+        drawItems(true);
     }
 
     void step(const StepDirection direction)
@@ -90,7 +95,7 @@ private:
     unsigned _selectionIndex{};
     unsigned _viewPosition{};
 
-    void drawItems()
+    void drawItems(const bool selectedItemOnly)
     {
         auto itemIndex{ _viewPosition };
         auto line{ _startLine };
@@ -100,6 +105,12 @@ private:
             && line < (_startLine + _height)
             && line <= (GraphicsType::Lines - 1)
         ) {
+            if (selectedItemOnly && itemIndex != _selectionIndex) {
+                ++line;
+                ++itemIndex;
+                continue;
+            }
+
             if (itemIndex == _selectionIndex) {
                 _graphics.drawBitmap(0, line, Resources::Assets::ArrowRightIcon);
             } else {
@@ -125,7 +136,7 @@ private:
             }
 
             // Value text
-            if (!_items[itemIndex].value.empty()) {
+            if (_items[itemIndex].value) {
                 _graphics.drawText(
                     GraphicsType::Width - sizeof(Resources::Assets::FullPositionIndicator) - 3,
                     line,
@@ -191,6 +202,16 @@ public:
         std::visit(
             []<typename MenuType>(MenuType& m) {
                 m.update();
+            },
+            _menu
+        );
+    }
+
+    void updateSelectedItem()
+    {
+        std::visit(
+            []<typename MenuType>(MenuType& m) {
+                m.updateSelectedItem();
             },
             _menu
         );
