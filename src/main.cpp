@@ -73,10 +73,10 @@ void setup()
 
     appConfig.logging.maximumLevel = static_cast<Log::Severity>(settings->system.maximumLogLevel);
 
-    // furnaceController = [] {
-    //     static FurnaceController controller{ *coreApplication, appConfig };
-    //     return &controller;
-    // }();
+    furnaceController = [] {
+        static FurnaceController controller{ *coreApplication, appConfig, *settings };
+        return &controller;
+    }();
 
     uiController = [] {
         static UI::UIController controller{ *coreApplication, *settings };
@@ -93,6 +93,6 @@ void loop()
     lastTaskMillis = currentMillis;
 
     coreApplication->task();
-    // furnaceController->task(deltaMillis);
+    furnaceController->task(deltaMillis);
     uiController->task(deltaMillis);
 }
