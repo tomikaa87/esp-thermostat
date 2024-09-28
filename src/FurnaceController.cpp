@@ -292,7 +292,7 @@ void FurnaceController::updateUiModel()
         auto& zoneModel = _uiModel.zones[i];
 
         // TODO only for debugging
-        zone.controller().inputTemperature(_temperatureSensor.read() / 10);
+        // zone.controller().inputTemperature(_temperatureSensor.read() / 10);
 
         zoneModel.targetTemperature = zone.controller().targetTemperature();
         zoneModel.currentTemperature = zone.controller().lastInputTemperature();
