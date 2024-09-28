@@ -14,6 +14,12 @@ namespace
     char _highTargetValueLabel[16]{};
     char _lowTargetValueLabel[16]{};
     char _holidayTargetValueLabel[16]{};
+    char _boostInitialDurationValueLabel[11]{};
+    char _boostExtensionDurationValueLabel[11]{};
+    char _overrideTimeoutValueLabel[11]{};
+    char _heatingStartDelayValueLabel[11]{};
+    char _heatingOvershootValueLabel[16]{};
+    char _heatingUndershootValueLabel[16]{};
 }
 
 namespace
@@ -29,6 +35,18 @@ namespace
             value % 10
         );
     }
+
+    template <typename CharArray, typename Value>
+    void formatValueWithSuffix(CharArray& s, const Value value, const char suffix)
+    {
+        snprintf(
+            s,
+            sizeof(s),
+            "%d %c",
+            value,
+            suffix
+        );
+    }
 }
 
 namespace
@@ -38,18 +56,19 @@ namespace
         const ValueType value,
         const StepDirection direction,
         const ValueType min = std::numeric_limits<ValueType>::min(),
-        const ValueType max = std::numeric_limits<ValueType>::max()
+        const ValueType max = std::numeric_limits<ValueType>::max(),
+        const ValueType step = 1
     )
     {
         if (direction == StepDirection::Up) {
-            if (value < max) {
-                return value + 1;
+            if (value <= (max - step)) {
+                return value + step;
             } else {
                 return min;
             }
         } else {
-            if (value > min) {
-                return value - 1;
+            if (value >= (min + step)) {
+                return value - step;
             } else {
                 return max;
             }
@@ -63,11 +82,17 @@ ZoneSettingsScreen::ZoneSettingsScreen(Model& model, Graphics& graphics)
         graphics,
         1,
         7,
-        MenuItem{ "Schedule..." },
+        MenuItem{ "[Schedule]" },
         MenuItem{ "Mode", _modeValueLabel },
         MenuItem{ "High Target", _highTargetValueLabel },
         MenuItem{ "Low Target", _lowTargetValueLabel },
         MenuItem{ "Holiday Tgt.", _holidayTargetValueLabel },
+        MenuItem{ "Bst.Init.Dur.", _boostInitialDurationValueLabel },
+        MenuItem{ "Bst.Ext.Dur.", _boostExtensionDurationValueLabel },
+        MenuItem{ "Ovrrd. T.out.", _overrideTimeoutValueLabel },
+        MenuItem{ "Heat.Strt.Dly.", _heatingStartDelayValueLabel },
+        MenuItem{ "Oversht.Tmp.", _heatingOvershootValueLabel },
+        MenuItem{ "Undersht.Tmp.", _heatingUndershootValueLabel },
     }
 {}
 
@@ -129,7 +154,7 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
     switch (_menu.currentIndex()) {
         case 1:
             zone.state.mode = static_cast<HeatingZoneController::Mode>(
-                (static_cast<unsigned>(zone.state.mode) + (direction == StepDirection::Up ? 1 : -1)) & 3
+                (static_cast<unsigned>(zone.state.mode) + (direction == StepDirection::Up ? 1 : -1)) % 3
             );
             break;
 
@@ -157,6 +182,64 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
                 direction,
                 100,
                 300
+            );
+            break;
+
+        case 5:
+            zone.config.boostInitialDurationSeconds = stepValue(
+                zone.config.boostInitialDurationSeconds,
+                direction,
+                5 * 60u,
+                60 * 60u,
+                60u
+            );
+            break;
+
+        case 6:
+            zone.config.boostExtensionDurationSeconds = stepValue(
+                zone.config.boostExtensionDurationSeconds,
+                direction,
+                5 * 60u,
+                60 * 60u,
+                60u
+            );
+            break;
+
+        case 7:
+            zone.config.overrideTimeoutSeconds = stepValue(
+                zone.config.overrideTimeoutSeconds,
+                direction,
+                30 * 60u,
+                180 * 60u,
+                10 * 60u
+            );
+            break;
+
+        case 8:
+            zone.config.heatingStartDelaySeconds = stepValue(
+                zone.config.heatingStartDelaySeconds,
+                direction,
+                0 * 60u,
+                60 * 60u,
+                60u
+            );
+            break;
+
+        case 9:
+            zone.config.heatingOvershoot = stepValue(
+                zone.config.heatingOvershoot,
+                direction,
+                0,
+                100
+            );
+            break;
+
+        case 10:
+            zone.config.heatingUndershoot = stepValue(
+                zone.config.heatingUndershoot,
+                direction,
+                0,
+                100
             );
             break;
 
@@ -192,4 +275,10 @@ void ZoneSettingsScreen::updateValueLabels()
     formatTemperatureValue(_highTargetValueLabel, zone.state.highTargetTemperature);
     formatTemperatureValue(_lowTargetValueLabel, zone.state.lowTargetTemperature);
     formatTemperatureValue(_holidayTargetValueLabel, zone.config.holidayModeTemperature);
+    formatValueWithSuffix(_boostInitialDurationValueLabel, zone.config.boostInitialDurationSeconds / 60u, 'm');
+    formatValueWithSuffix(_boostExtensionDurationValueLabel, zone.config.boostExtensionDurationSeconds / 60u, 'm');
+    formatValueWithSuffix(_overrideTimeoutValueLabel, zone.config.overrideTimeoutSeconds / 60u, 'm');
+    formatValueWithSuffix(_heatingStartDelayValueLabel, zone.config.heatingStartDelaySeconds / 60u, 'm');
+    formatTemperatureValue(_heatingOvershootValueLabel, zone.config.heatingOvershoot);
+    formatTemperatureValue(_heatingUndershootValueLabel, zone.config.heatingUndershoot);
 }

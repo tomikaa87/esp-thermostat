@@ -13,7 +13,7 @@ namespace UI
 
 namespace
 {
-    constexpr auto MaxMenuItemCount{ 10 };
+    constexpr auto MaxMenuItemCount{ 11 };
 }
 
 struct MenuItem

@@ -12,12 +12,12 @@ ZoneSettingsMenuScreen::ZoneSettingsMenuScreen(Model& model, Graphics& graphics)
         1,
         7,
         // FIXME use dynamic zone names to match HeatingZone objects
-        MenuItem{ "Zone 0" },
-        MenuItem{ "Zone 1" },
-        MenuItem{ "Zone 2" },
-        MenuItem{ "Zone 3" },
-        MenuItem{ "Zone 10" },
-        MenuItem{ "Zone 11" }
+        MenuItem{ "[Zone 0]" },
+        MenuItem{ "[Zone 1]" },
+        MenuItem{ "[Zone 2]" },
+        MenuItem{ "[Zone 3]" },
+        MenuItem{ "[Zone 10]" },
+        MenuItem{ "[Zone 11]" }
     }
 {}
 

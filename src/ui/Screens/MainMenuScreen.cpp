@@ -9,10 +9,10 @@ MainMenuScreen::MainMenuScreen(Model& model, Graphics& graphics)
         graphics,
         1,
         7,
-        MenuItem{ "Zone Settings" },
-        MenuItem{ "General Settings" },
-        MenuItem{ "Display Settings" },
-        MenuItem{ "Date/Time Settings" }
+        MenuItem{ "[Zone Settings]" },
+        MenuItem{ "[General Settings]" },
+        MenuItem{ "[Display Settings]" },
+        MenuItem{ "[Date/Time Sett.]" }
     }
 {}
 
