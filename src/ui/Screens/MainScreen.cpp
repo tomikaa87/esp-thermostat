@@ -192,6 +192,30 @@ void MainScreen::drawZoneStatus(
     );
 
     // TODO create bitmaps (2-page) of status icons
+
+    // FIXME until the bitmaps are ready, show the state as text
+    graphics().drawText(
+        left + Positions::Zone::Icon + 2,
+        line,
+        [&] {
+            switch (zoneModel.status) {
+                case Model::Zone::Status::Off:
+                    return "OFF"sv;
+                case Model::Zone::Status::Idle:
+                    return "IDL"sv;
+                case Model::Zone::Status::Heating:
+                    return "HEA"sv;
+                case Model::Zone::Status::Holiday:
+                    return "HOL"sv;
+                case Model::Zone::Status::Boost:
+                    return "BST"sv;
+                case Model::Zone::Status::WindowOpen:
+                    return "WND"sv;
+            }
+            return "UNK"sv;
+        }(),
+        Resources::Fonts::Oled
+    );
 }
 
 void MainScreen::drawZoneStatuses()
