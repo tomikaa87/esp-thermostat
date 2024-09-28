@@ -152,11 +152,17 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
     auto& zone = model().settings.heating.zones[model().navigation.selectedZoneIndex];
 
     switch (_menu.currentIndex()) {
-        case 1:
+        case 1: {
             zone.state.mode = static_cast<HeatingZoneController::Mode>(
-                (static_cast<unsigned>(zone.state.mode) + (direction == StepDirection::Up ? 1 : -1)) % 3
+                stepValue(
+                    static_cast<int>(zone.state.mode),
+                    direction,
+                    static_cast<int>(HeatingZoneController::Mode::Off),
+                    static_cast<int>(HeatingZoneController::Mode::Holiday)
+                )
             );
             break;
+        }
 
         case 2:
             zone.state.highTargetTemperature = stepValue(
