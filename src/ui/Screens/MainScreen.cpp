@@ -97,15 +97,15 @@ void MainScreen::drawClock() const
     );
 }
 
-void MainScreen::drawInternalTemperature() const
+void MainScreen::drawInternalTemperature() const 
 {
     char text[9]{};
     snprintf(
         text,
         sizeof(text),
         "%2d.%d",
-        model().internalTemperature / 10,
-        model().internalTemperature % 10
+        model().internalTemperature / 100,
+        model().internalTemperature % 100 / 10
     );
 
     graphics().drawVerticalSeparator(Positions::InternalTemperature.x, Positions::InternalTemperature.line);
@@ -121,7 +121,7 @@ void MainScreen::drawInternalTemperature() const
 void MainScreen::drawHeatingState() const
 {
     const auto text{
-        model().heating ? "Heating"sv : "Idle"sv
+        model().heating ? "Heating"sv : "Idle   "sv
     };
 
     graphics().drawVerticalSeparator(Positions::HeatingState.x, Positions::HeatingState.line);
@@ -181,11 +181,13 @@ void MainScreen::drawZoneStatus(
         Resources::Fonts::Oled
     );
 
-    formatTemperatureIntoBuf(zoneModel.targetTemperature);
+    if (zoneModel.targetTemperature.has_value()) {
+        formatTemperatureIntoBuf(*zoneModel.targetTemperature);
+    }
     graphics().drawText(
         left + Positions::Zone::Temperature,
         line + 1,
-        buf,
+        zoneModel.targetTemperature.has_value() ? buf : "--.-",
         Resources::Fonts::Oled
     );
 

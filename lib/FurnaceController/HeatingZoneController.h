@@ -40,6 +40,8 @@ public:
         Mode mode{ Mode::Off };
         DeciDegrees highTargetTemperature{ 220 };
         DeciDegrees lowTargetTemperature{ 220 };
+
+        [[nodiscard]] bool operator<=>(const State&) const = default;
     };
 
     explicit HeatingZoneController(
@@ -63,6 +65,8 @@ public:
      * @param value
      */
     void inputTemperature(DeciDegrees value);
+
+    [[nodiscard]] DeciDegrees lastInputTemperature() const;
 
     void setHighTargetTemperature(DeciDegrees value);
     [[nodiscard]] DeciDegrees highTargetTemperature() const;

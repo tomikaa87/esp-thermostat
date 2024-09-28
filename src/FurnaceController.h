@@ -3,6 +3,7 @@
 #include "Config.h"
 #include "HeatingZone.h"
 #include "Settings.h"
+#include "TemperatureSensor.h"
 
 #include <CoreApplication.h>
 #include <Logger.h>
@@ -14,13 +15,19 @@
 
 class ApplicationConfig;
 
+namespace UI
+{
+    struct Model;
+}
+
 class FurnaceController
 {
 public:
     explicit FurnaceController(
         CoreApplication& application,
         const ApplicationConfig& appConfig,
-        Settings& settings
+        Settings& settings,
+        UI::Model& uiModel
     );
 
     void task(uint32_t deltaMillis);
@@ -29,8 +36,10 @@ private:
     const ApplicationConfig& _appConfig;
     CoreApplication& _app;
     Settings& _settings;
+    UI::Model& _uiModel;
     Logger _log{ "FurnaceController" };
     std::array<HeatingZone, Config::ZoneCount> _zones;
+    TemperatureSensor _temperatureSensor;
     uint32_t _mqttUpdateTimer{};
     bool _relayOutputActive{ false };
 
@@ -45,4 +54,6 @@ private:
     void setupMqttComponentConfigs();
     void setupMqttChangeHandlers();
     void updateMqtt();
+
+    void updateUiModel();
 };

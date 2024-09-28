@@ -2,6 +2,9 @@
 
 #include "Extras.h"
 #include "HomeAssistant.h"
+#include "TemperatureSensor.h"
+
+#include "ui/Model.h"
 
 #include <Arduino.h>
 
@@ -73,12 +76,15 @@ namespace
 FurnaceController::FurnaceController(
     CoreApplication& application,
     const ApplicationConfig& appConfig,
-    Settings& settings
+    Settings& settings,
+    UI::Model& uiModel
 )
     : _appConfig{ appConfig }
     , _app{ application }
     , _settings{ settings }
+    , _uiModel{ uiModel }
     , _zones{ createZones<0, 1, 2, 3, 10, 11>(_app, _settings) }
+    , _temperatureSensor{ _settings }
     , _topicPrefix{
         HomeAssistant::makeUniqueId()
     }
@@ -100,7 +106,7 @@ FurnaceController::FurnaceController(
         _app.mqttClient()
     }
 {
-    _log.debug_P(PSTR("FurnaceController memory usage: %u B"), sizeof(FurnaceController));
+    _log.debug_P(PSTR("stack memory usage: %u B"), sizeof(FurnaceController));
 
     setupRelayOutput();
     setupMqttComponentConfigs();
@@ -139,6 +145,10 @@ void FurnaceController::task(const uint32_t deltaMillis)
     }
 
     setRelayOutputActive(callingForHeating);
+
+    _temperatureSensor.task();
+
+    updateUiModel();
 }
 
 void FurnaceController::setupRelayOutput() const
@@ -261,4 +271,40 @@ void FurnaceController::updateMqtt()
 {
     _masterSwitch = _settings.system.masterEnable;
     _energyOptimizerSwitch = _settings.system.energyOptimizerEnabled;
+}
+
+void FurnaceController::updateUiModel()
+{
+    for (auto i = 0u; i < Config::ZoneCount; ++i) {
+        auto& zone = _zones[i];
+        auto& zoneModel = _uiModel.zones[i];
+
+        // TODO only for debugging
+        zone.controller().inputTemperature(_temperatureSensor.read() / 10);
+
+        zoneModel.targetTemperature = zone.controller().targetTemperature();
+        zoneModel.currentTemperature = zone.controller().lastInputTemperature();
+        zoneModel.zoneNumber = zone.index();
+        zoneModel.status = [&] {
+            using Status = UI::Model::Zone::Status;
+            if (zone.controller().boostActive()) {
+                return Status::Boost;
+            }
+            if (zone.callingForHeating()) {
+                return Status::Heating;
+            }
+            switch (zone.controller().mode()) {
+                case HeatingZoneController::Mode::Off:
+                    return Status::Off;
+                case HeatingZoneController::Mode::Auto:
+                    break;
+                case HeatingZoneController::Mode::Holiday:
+                    return Status::Holiday;
+            }
+            return Status::Idle;
+        }();
+    }
+
+    _uiModel.heating = static_cast<int>(_callingForHeatingState) == 1;
+    _uiModel.internalTemperature = _temperatureSensor.read();
 }

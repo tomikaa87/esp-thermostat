@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 
 namespace UI
 {
@@ -22,11 +23,12 @@ namespace UI
         } clock;
 
         struct Zone {
-            int zoneNumber{ 1 };
-            int currentTemperature{ 220 };
-            int targetTemperature{ 230 };
+            int zoneNumber{};
+            int currentTemperature{};
+            std::optional<int> targetTemperature{};
 
             enum class Status {
+                Off,
                 Idle,
                 Heating,
                 Holiday,
@@ -40,6 +42,6 @@ namespace UI
         bool heating{ true };
         bool energySaverEnabled{ true };
 
-        int16_t internalTemperature{ 258 };
+        int16_t internalTemperature{};
     };
 }

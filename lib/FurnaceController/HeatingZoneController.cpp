@@ -14,8 +14,7 @@ HeatingZoneController::HeatingZoneController(
     : _config{ config }
     , _schedule{ schedule }
     , _lastInputTemperature{ FailSafeHighTarget }
-{
-}
+{}
 
 void HeatingZoneController::updateDateTime(
     const int dayOfWeek,
@@ -77,6 +76,11 @@ uint32_t HeatingZoneController::boostRemainingSeconds() const
 void HeatingZoneController::inputTemperature(const DeciDegrees value)
 {
     _lastInputTemperature = value;
+}
+
+HeatingZoneController::DeciDegrees HeatingZoneController::lastInputTemperature() const
+{
+    return _lastInputTemperature;
 }
 
 void HeatingZoneController::setHighTargetTemperature(const DeciDegrees value)

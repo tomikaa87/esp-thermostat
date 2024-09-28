@@ -96,10 +96,8 @@ HeatingZone::HeatingZone(
     : _index{ index }
     , _app{ app }
     , _log{ appendIndex(Extras::fromPstr(PSTR("HeatingZone")), _index) }
-    , _controllerConfig{ settingDependencies.configuration }
-    , _controllerSchedule{ settingDependencies.schedule }
     , _state{ settingDependencies.state }
-    , _controller{ _controllerConfig, _controllerSchedule }
+    , _controller{ settingDependencies.configuration, settingDependencies.schedule }
     , _topicPrefix{
         HA::makeUniqueId()
             + appendIndex(Extras::fromPstr(PSTR("/zone")), _index)
@@ -137,6 +135,9 @@ HeatingZone::HeatingZone(
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
 
+    _controller.loadState(_state);
+    _lastState = _state;
+
     _log.debug_P(
         PSTR("mode=%u, high=%d, low=%d"),
         _state.mode,
@@ -160,6 +161,13 @@ void HeatingZone::task(const uint32_t systemClockDeltaMs)
     if (_controller.stateChanged()) {
         _log.debug_P(PSTR("controller state changed, saving"));
         _state = _controller.saveState();
+        _lastState = _state;
+    }
+
+    if (_state != _lastState) {
+        _log.debug_P(PSTR("controller state changed externally, applying"));
+        _controller.loadState(_state);
+        _lastState = _state;
     }
 }
 

@@ -4,6 +4,7 @@
 #include "Peripherals.h"
 #include "Settings.h"
 
+#include "ui/Model.h"
 #include "ui/UIController.h"
 
 #include <Arduino.h>
@@ -16,6 +17,7 @@ namespace
     ApplicationConfig appConfig;
     CoreApplication* coreApplication{};
     Settings* settings{};
+    UI::Model* uiModel{};
     FurnaceController* furnaceController{};
     UI::UIController* uiController{};
 }
@@ -73,13 +75,18 @@ void setup()
 
     appConfig.logging.maximumLevel = static_cast<Log::Severity>(settings->system.maximumLogLevel);
 
+    uiModel = [] {
+        static UI::Model model{ .settings = *settings };
+        return &model;
+    }();
+
     furnaceController = [] {
-        static FurnaceController controller{ *coreApplication, appConfig, *settings };
+        static FurnaceController controller{ *coreApplication, appConfig, *settings, *uiModel };
         return &controller;
     }();
 
     uiController = [] {
-        static UI::UIController controller{ *coreApplication, *settings };
+        static UI::UIController controller{ *coreApplication, *settings, *uiModel };
         return &controller;
     }();
 }

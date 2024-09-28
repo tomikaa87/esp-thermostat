@@ -12,8 +12,8 @@ class HeatingZone
 public:
     struct SettingDependencies {
         HeatingZoneController::State& state;
-        const HeatingZoneController::Configuration& configuration;
-        const HeatingZoneController::Schedule& schedule;
+        HeatingZoneController::Configuration& configuration;
+        HeatingZoneController::Schedule& schedule;
     };
 
     explicit HeatingZone(
@@ -28,13 +28,22 @@ public:
 
     void handleFurnaceHeatingChanged(bool heating);
 
+    [[nodiscard]] HeatingZoneController& controller()
+    {
+        return _controller;
+    }
+
+    [[nodiscard]] unsigned index() const
+    {
+        return _index;
+    }
+
 private:
     unsigned _index{};
     CoreApplication& _app;
     Logger _log;
-    const HeatingZoneController::Configuration& _controllerConfig;
-    const HeatingZoneController::Schedule& _controllerSchedule;
     HeatingZoneController::State& _state;
+    HeatingZoneController::State _lastState;
     HeatingZoneController _controller;
     const std::string _topicPrefix;
 

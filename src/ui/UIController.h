@@ -87,7 +87,8 @@ namespace UI
     public:
         UIController(
             CoreApplication& application,
-            Settings& settings
+            Settings& settings,
+            Model& model
         );
 
         void task(uint32_t deltaMillis);
@@ -103,8 +104,6 @@ namespace UI
         std::time_t _lastKeyPressTime = 0;
 
         uint32_t _lastUpdateMillis{};
-
-        Model _model;
 
         Graphics _graphics;
 

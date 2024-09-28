@@ -40,13 +40,13 @@ using namespace UI;
 
 UIController::UIController(
     CoreApplication& application,
-    Settings& settings
+    Settings& settings,
+    Model& model
 )
     : _app{ application }
     , _settings{ settings }
-    , _model{ Model{ .settings = settings } }
-    , _screens{ RegisteredScreens::constructScreens(_model, _graphics) }
-    , _clockController{ _model.clock, _app.systemClock() }
+    , _screens{ RegisteredScreens::constructScreens(model, _graphics) }
+    , _clockController{ model.clock, _app.systemClock() }
 {
     _log.info_P(PSTR("initializing Display, brightness: %d"), _settings.system.display.brightness);
     Display::init();
