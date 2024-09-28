@@ -1,4 +1,5 @@
 #include "MainMenuScreen.h"
+#include "Utilities.h"
 
 #include "../Model.h"
 
@@ -89,8 +90,12 @@ void MainMenuScreen::stepSelectedSetting(const StepDirection direction)
 {
     switch (_menu.currentIndex()) {
         case 4:
-            model().settings.system.maximumLogLevel =
-                (model().settings.system.maximumLogLevel + (direction == StepDirection::Up ? 1 : -1)) % 4;
+            model().settings.system.maximumLogLevel = stepValue(
+                model().settings.system.maximumLogLevel,
+                direction,
+                static_cast<uint8_t>(Log::Severity::Error),
+                static_cast<uint8_t>(Log::Severity::Debug)
+            );
             break;
 
         default:
