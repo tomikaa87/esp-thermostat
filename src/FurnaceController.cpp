@@ -126,6 +126,18 @@ void FurnaceController::task(const uint32_t deltaMillis)
 
     bool callingForHeating{ false };
 
+    _clockUpdateTimer += deltaMillis;
+    if (_clockUpdateTimer >= 1000) {
+        _clockUpdateTimer = 0;
+
+        const time_t localTime{ _app.systemClock().localTime() };
+        const auto* t{ gmtime(&localTime) };
+
+        for (auto& zone : _zones) {
+            zone.controller().updateDateTime(t->tm_wday, t->tm_hour, t->tm_min);
+        }
+    }
+
     for (auto& zone : _zones) {
         zone.task(deltaMillis);
 

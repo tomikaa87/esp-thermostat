@@ -41,6 +41,7 @@ private:
     std::array<HeatingZone, Config::ZoneCount> _zones;
     TemperatureSensor _temperatureSensor;
     uint32_t _mqttUpdateTimer{};
+    uint32_t _clockUpdateTimer{};
     bool _relayOutputActive{ false };
 
     std::string _topicPrefix;
