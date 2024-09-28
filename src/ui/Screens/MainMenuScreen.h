@@ -19,5 +19,8 @@ namespace UI
         Menu _menu;
 
         [[nodiscard]] Result selectMenuItem() const;
+        void stepSelectedSetting(StepDirection direction);
+
+        void updateValueLabels();
     };
 }
