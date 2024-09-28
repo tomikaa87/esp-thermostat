@@ -73,13 +73,16 @@ Screen::Result DisplaySettingsScreen::selectMenuItem() const
 
 void DisplaySettingsScreen::stepSelectedSetting(const StepDirection direction)
 {
+    auto& settings = model().settings.system.display;
+
     switch (_menu.currentIndex()) {
         case 0:
-            model().settings.system.display.brightness += direction == StepDirection::Up ? 1 : -1;
+            settings.brightness += direction == StepDirection::Up ? 1 : -1;
+            Display::setContrast(settings.brightness);
             break;
 
         case 1:
-            model().settings.system.display.timeoutSecs += direction == StepDirection::Up ? 1 : -1;
+            settings.timeoutSecs += direction == StepDirection::Up ? 1 : -1;
             break;
 
         default:
@@ -92,17 +95,19 @@ void DisplaySettingsScreen::stepSelectedSetting(const StepDirection direction)
 
 void DisplaySettingsScreen::updateValueLabels()
 {
+    auto& settings = model().settings.system.display;
+
     snprintf(
         _brightnessValueLabel,
         sizeof(_brightnessValueLabel),
         "%u",
-        model().settings.system.display.brightness
+        settings.brightness
     );
 
     snprintf(
         _timeoutValueLabel,
         sizeof(_timeoutValueLabel),
         "%u s",
-        model().settings.system.display.timeoutSecs
+        settings.timeoutSecs
     );
 }
