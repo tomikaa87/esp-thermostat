@@ -14,9 +14,26 @@ public:
 
     /**
      * @brief Bit mask of high target temperature (30-minute slots) for 7 days.
+     * This structure is directly written into the settings memory.
+     * Be cautious when modifying this structure to avoid breaking data layout
+     * in existing devices. New fields should be added to the end of this structure.
+     * When data should be copied over from an existing field into a new one,
+     * or a new field should be initialized with a specific value,
+     * be sure to do a settings data version check and do the migration with the help
+     * of that.
      */
     using Schedule = std::array<uint8_t, 6 * 7>;
 
+    /**
+     * @brief Essential controller configuration data.
+     * This structure is directly written into the settings memory.
+     * Be cautious when modifying this structure to avoid breaking data layout
+     * in existing devices. New fields should be added to the end of this structure.
+     * When data should be copied over from an existing field into a new one,
+     * or a new field should be initialized with a specific value,
+     * be sure to do a settings data version check and do the migration with the help
+     * of that.
+     */
     struct Configuration
     {
         uint32_t overrideTimeoutSeconds{ 120 * 60 };
@@ -35,6 +52,16 @@ public:
         Holiday
     };
 
+    /**
+     * @brief Controller state data.
+     * This structure is directly written into the settings memory.
+     * Be cautious when modifying this structure to avoid breaking data layout
+     * in existing devices. New fields should be added to the end of this structure.
+     * When data should be copied over from an existing field into a new one,
+     * or a new field should be initialized with a specific value,
+     * be sure to do a settings data version check and do the migration with the help
+     * of that.
+     */
     struct State
     {
         Mode mode{ Mode::Off };

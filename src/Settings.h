@@ -73,6 +73,15 @@ class Settings
 public:
     explicit Settings(ISettingsHandler& handler);
 
+    /*
+     * Be cautious when modifying these structures to avoid breaking data layout
+     * in existing devices. New fields should be added to the end of these structures.
+     * When data should be copied over from an existing field into a new one,
+     * or a new field should be initialized with a specific value,
+     * be sure to do a settings data version check and do the migration with the help
+     * of that.
+     */
+
     struct Heating
     {
         struct ZoneControllerSettings
@@ -112,6 +121,9 @@ private:
     Logger _log{ "Settings" };
     ISettingsHandler& _handler;
 
+    uint32_t _settingsDataVersion{};
+
+    void checkMagicValue();
     bool check();
 
     void dumpData() const;

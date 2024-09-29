@@ -21,15 +21,22 @@
 #include "Settings.h"
 
 #include <iomanip>
+#include <ranges>
 #include <sstream>
 
 namespace Layout
 {
     constexpr auto BaseAddress{ ISettingsHandler::ReservedAreaSize };
 
-    namespace System
+    namespace Reserved
     {
         constexpr auto BaseAddress{ Layout::BaseAddress };
+        constexpr auto AddressStep{ 16u };
+    }
+
+    namespace System
+    {
+        constexpr auto BaseAddress{ Reserved::BaseAddress + Reserved::AddressStep };
         constexpr auto AddressStep{ 32u };
 
         static_assert(BaseAddress >= Layout::BaseAddress);
@@ -39,7 +46,7 @@ namespace Layout
     namespace Heating
     {
         constexpr auto BaseAddress{ System::BaseAddress + System::AddressStep };
-        constexpr auto AddressStep{ 128u };
+        constexpr auto AddressStep{ 256u };
         constexpr auto NextBaseAddress{ BaseAddress + AddressStep * Config::ZoneCount };
 
         static_assert(BaseAddress >= System::BaseAddress + System::AddressStep);
@@ -47,7 +54,7 @@ namespace Layout
 
         namespace Configuration
         {
-            constexpr auto AddressStep{ 32u };
+            constexpr auto AddressStep{ 64u };
             static_assert(AddressStep > sizeof(HeatingZoneController::Configuration));
         }
 
@@ -59,10 +66,51 @@ namespace Layout
 
         namespace State
         {
-            constexpr auto AddressStep{ 32u };
+            constexpr auto AddressStep{ 64u };
             static_assert(AddressStep > sizeof(HeatingZoneController::State));
         }
+
+        static_assert(
+            AddressStep > (
+                Configuration::AddressStep
+                + Schedule::AddressStep
+                + State::AddressStep
+            )
+        );
     }
+}
+
+/**
+ * @brief Versions can be used determine which version of the settings data structure can be found in the EEPROM
+ * Use the provided function to create a valid version number.
+ */
+namespace Versioning
+{
+    constexpr uint32_t Magic = 0b10100011;
+
+    constexpr uint32_t makeVersion(uint8_t major, uint8_t minor, uint8_t patch)
+    {
+        return Magic
+            | (static_cast<uint32_t>(major) << 24)
+            | (static_cast<uint32_t>(minor) << 16)
+            | (static_cast<uint32_t>(patch) << 8);
+    }
+
+    [[nodiscard]] constexpr bool isValidVersion(const uint32_t version)
+    {
+        return (version & 0xFF) == Magic;
+    }
+
+    [[nodiscard]] constexpr auto getVersionParts(const uint32_t version)
+    {
+        return std::tuple<uint8_t, uint8_t, uint8_t>(
+            version >> 24,
+            version >> 16,
+            version >> 8
+        );
+    }
+
+    constexpr auto CurrentVersion = makeVersion(1, 0, 0);
 }
 
 namespace
@@ -100,6 +148,10 @@ Settings::Settings(ISettingsHandler& handler)
         loadDefaults();
     });
 
+    if (!registerSetting(_handler, _settingsDataVersion, Layout::Reserved::BaseAddress, _log, "Reserved")) {
+        abort();
+    }
+
     if (!registerSetting(_handler, system, Layout::System::BaseAddress, _log, "System")) {
         abort();
     }
@@ -107,6 +159,8 @@ Settings::Settings(ISettingsHandler& handler)
     registerHeatingSettings();
 
     load();
+
+    checkMagicValue();
 }
 
 bool Settings::load()
@@ -143,6 +197,8 @@ void Settings::loadDefaults()
 {
     _log.info_P(PSTR("loading defaults"));
 
+    _settingsDataVersion = Versioning::CurrentVersion;
+
     system = System{};
     heating = Heating{};
 
@@ -152,6 +208,39 @@ void Settings::loadDefaults()
     // if (!check()) {
     //     _log.warning_P(PSTR("loaded defaults corrected"));
     // }
+}
+
+void Settings::checkMagicValue()
+{
+    static constexpr std::array ValidMagicValues{
+        Versioning::CurrentVersion
+    };
+
+    if (!Versioning::isValidVersion(_settingsDataVersion)) {
+        _log.warning_P(PSTR("settings data version is invalid, loading defaults"));
+        loadDefaults();
+        return;
+    }
+
+    const auto [major, minor, patch] = Versioning::getVersionParts(_settingsDataVersion);
+    _log.info_P(PSTR("settings data version: %u.%u.%u"), major, minor, patch);
+    
+    if (
+        !std::ranges::any_of(
+            ValidMagicValues,
+            [&](const auto magic) {
+                return magic == _settingsDataVersion;
+            }
+        )
+    ) {
+        _log.warning_P(PSTR("settings data version is unknown, loading defaults"));
+        loadDefaults();
+        return;
+    }
+
+    _log.info_P(PSTR("settings data version OK"));
+
+    // Add more magic-dependent checks here
 }
 
 bool Settings::check()
@@ -222,6 +311,11 @@ bool Settings::check()
 void Settings::dumpData() const
 {
     _log.info_P(
+        PSTR("Reserved{ magic=0x%08lX }"),
+        _settingsDataVersion
+    );
+
+    _log.info_P(
         PSTR("System{ maximumLogLevel=%u, masterEnable=%u, energyOptimizerEnabled=%u }"),
         system.maximumLogLevel,
         system.masterEnable,
@@ -237,7 +331,7 @@ void Settings::dumpData() const
     auto i = 0u;
     for (const auto& zone : heating.zones) {
         _log.info(
-            "System.Heating.Zones[%u].Configuration{ overrideTimeoutSeconds=%u, boostInitialDurationSeconds=%u, boostExtensionDurationSeconds=%u, heatingStartDelaySeconds=%u, heatingOvershoot=%u, heatingUndershoot=%u, holidayModeTemperature=%u }",
+            "System.Heating.Zones[%u].Configuration{ overrideTimeoutSeconds=%u, boostInitialDurationSeconds=%u, boostExtensionDurationSeconds=%u, heatingStartDelaySeconds=%u, heatingOvershoot=%u, heatingUndershoot=%u, holidayModeTemperature=%u, openWindowLockoutDurationSeconds=%u }",
             i,
             zone.config.overrideTimeoutSeconds,
             zone.config.boostInitialDurationSeconds,
@@ -245,7 +339,8 @@ void Settings::dumpData() const
             zone.config.heatingStartDelaySeconds,
             zone.config.heatingOvershoot,
             zone.config.heatingUndershoot,
-            zone.config.holidayModeTemperature
+            zone.config.holidayModeTemperature,
+            zone.config.openWindowLockoutDurationSeconds
         );
 
         _log.info(
