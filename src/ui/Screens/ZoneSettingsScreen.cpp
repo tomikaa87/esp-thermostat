@@ -18,6 +18,7 @@ namespace
     char _boostExtensionDurationValueLabel[11]{};
     char _overrideTimeoutValueLabel[11]{};
     char _heatingStartDelayValueLabel[11]{};
+    char _windowLockoutDurationValueLabel[11]{};
     char _heatingOvershootValueLabel[16]{};
     char _heatingUndershootValueLabel[16]{};
 }
@@ -37,6 +38,7 @@ ZoneSettingsScreen::ZoneSettingsScreen(Model& model, Graphics& graphics)
         MenuItem{ "Bst.Ext.Dur.", _boostExtensionDurationValueLabel },
         MenuItem{ "Ovrrd. T.out.", _overrideTimeoutValueLabel },
         MenuItem{ "Heat.Strt.Dly.", _heatingStartDelayValueLabel },
+        MenuItem{ "Wnd.Lckout.Dur.", _windowLockoutDurationValueLabel },
         MenuItem{ "Oversht.Tmp.", _heatingOvershootValueLabel },
         MenuItem{ "Undersht.Tmp.", _heatingUndershootValueLabel },
     }
@@ -178,6 +180,16 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
             break;
 
         case 9:
+            zone.config.openWindowLockoutDurationSeconds = stepValue(
+                zone.config.openWindowLockoutDurationSeconds,
+                direction,
+                0 * 60u,
+                60 * 60u,
+                60u
+            );
+            break;
+
+        case 10:
             zone.config.heatingOvershoot = stepValue(
                 zone.config.heatingOvershoot,
                 direction,
@@ -186,7 +198,7 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
             );
             break;
 
-        case 10:
+        case 11:
             zone.config.heatingUndershoot = stepValue(
                 zone.config.heatingUndershoot,
                 direction,
@@ -231,6 +243,7 @@ void ZoneSettingsScreen::updateValueLabels()
     formatValueWithSuffix(_boostExtensionDurationValueLabel, zone.config.boostExtensionDurationSeconds / 60u, 'm');
     formatValueWithSuffix(_overrideTimeoutValueLabel, zone.config.overrideTimeoutSeconds / 60u, 'm');
     formatValueWithSuffix(_heatingStartDelayValueLabel, zone.config.heatingStartDelaySeconds / 60u, 'm');
+    formatValueWithSuffix(_windowLockoutDurationValueLabel, zone.config.openWindowLockoutDurationSeconds / 60u, 'm');
     formatTemperatureValue(_heatingOvershootValueLabel, zone.config.heatingOvershoot);
     formatTemperatureValue(_heatingUndershootValueLabel, zone.config.heatingUndershoot);
 }

@@ -4,7 +4,6 @@ namespace
 {
     constexpr HeatingZoneController::DeciDegrees FailSafeLowTarget{ 100 };
     constexpr HeatingZoneController::DeciDegrees FailSafeHighTarget{ 300 };
-    constexpr uint32_t OpenWindowLockoutDurationMs{ 10 * 60 * 1000 };
 }
 
 HeatingZoneController::HeatingZoneController(
@@ -151,7 +150,7 @@ std::optional<HeatingZoneController::DeciDegrees> HeatingZoneController::targetT
 void HeatingZoneController::setWindowOpened(const bool open)
 {
     if (!open && _windowOpen) {
-        _openWindowLockoutRemainingMs = OpenWindowLockoutDurationMs;
+        _openWindowLockoutRemainingMs = _config.openWindowLockoutDurationSeconds * 1000;
     } else if (open) {
         _openWindowLockoutRemainingMs = 0;
     }

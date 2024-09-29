@@ -40,6 +40,7 @@ public:
         uint32_t boostInitialDurationSeconds{ 30 * 60 };
         uint32_t boostExtensionDurationSeconds{ 15 * 60 };
         uint32_t heatingStartDelaySeconds{ 0 };
+        uint32_t openWindowLockoutDurationSeconds{ 600 };
         DeciDegrees heatingOvershoot{ 5 };
         DeciDegrees heatingUndershoot{ 5 };
         DeciDegrees holidayModeTemperature{ 180 };

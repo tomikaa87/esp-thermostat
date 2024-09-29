@@ -1179,6 +1179,9 @@ TEST_P(ActiveModeTest, HeatingStartsAfterOpenWindowLockoutDisengagedAndTemperatu
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
 
+    constexpr auto LockoutDurationSeconds = 120 * 1000;
+    config.openWindowLockoutDurationSeconds = LockoutDurationSeconds;
+
     controller.setWindowOpened(true);
     controller.inputTemperature(100);
     EXPECT_FALSE(controller.callingForHeating());
@@ -1188,9 +1191,9 @@ TEST_P(ActiveModeTest, HeatingStartsAfterOpenWindowLockoutDisengagedAndTemperatu
     controller.setWindowOpened(false);
     controller.inputTemperature(100);
     EXPECT_FALSE(controller.callingForHeating());
-    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), 10 * 60 * 1000);
+    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), LockoutDurationSeconds * 1000);
 
-    controller.task(10 * 60 * 1000);
+    controller.task(LockoutDurationSeconds * 1000);
     EXPECT_TRUE(controller.callingForHeating());
 }
 
@@ -1199,6 +1202,9 @@ TEST_P(ActiveModeTest, HeatingDoesntStartAfterOpenWindowLockoutDisengagedAndTemp
     controller.setHighTargetTemperature(230);
     controller.setLowTargetTemperature(210);
 
+    constexpr auto LockoutDurationSeconds = 120 * 1000;
+    config.openWindowLockoutDurationSeconds = LockoutDurationSeconds;
+
     controller.setWindowOpened(true);
     controller.inputTemperature(100);
     EXPECT_FALSE(controller.callingForHeating());
@@ -1208,7 +1214,7 @@ TEST_P(ActiveModeTest, HeatingDoesntStartAfterOpenWindowLockoutDisengagedAndTemp
     controller.setWindowOpened(false);
     controller.inputTemperature(100);
     EXPECT_FALSE(controller.callingForHeating());
-    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), 10 * 60 * 1000);
+    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), LockoutDurationSeconds * 1000);
 
     controller.inputTemperature(240);
     controller.task(10 * 60 * 1000);
