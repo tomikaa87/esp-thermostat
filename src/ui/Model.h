@@ -33,7 +33,8 @@ namespace UI
                 Heating,
                 Holiday,
                 Boost,
-                WindowOpen
+                WindowOpen,
+                WindowLockout
             } status{ Status::Idle };
         };
 

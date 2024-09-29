@@ -211,6 +211,8 @@ void MainScreen::drawZoneStatus(
                     return "BST"sv;
                 case Model::Zone::Status::WindowOpen:
                     return "WND"sv;
+                case Model::Zone::Status::WindowLockout:
+                    return "WLO"sv;
             }
             return "UNK"sv;
         }(),

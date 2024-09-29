@@ -318,6 +318,9 @@ void FurnaceController::updateUiModel()
             if (zone.controller().windowOpened()) {
                 return Status::WindowOpen;
             }
+            if (zone.controller().openWindowLockoutActive()) {
+                return Status::WindowLockout;
+            }
             return Status::Idle;
         }();
     }
