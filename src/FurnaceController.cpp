@@ -313,6 +313,9 @@ void FurnaceController::updateUiModel()
                 case HeatingZoneController::Mode::Holiday:
                     return Status::Holiday;
             }
+            if (zone.controller().windowOpened()) {
+                return Status::WindowOpen;
+            }
             return Status::Idle;
         }();
     }
