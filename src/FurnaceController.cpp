@@ -327,4 +327,7 @@ void FurnaceController::updateUiModel()
 
     _uiModel.heating = static_cast<int>(_callingForHeatingState) == 1;
     _uiModel.internalTemperature = _temperatureSensor.read();
+
+    _uiModel.wifiConnected = _app.isWifiConnected();
+    _uiModel.mqttConnected = _app.mqttClient().isConnected();
 }

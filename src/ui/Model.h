@@ -44,5 +44,8 @@ namespace UI
         bool energySaverEnabled{ true };
 
         int16_t internalTemperature{};
+
+        bool wifiConnected{};
+        bool mqttConnected{};
     };
 }
