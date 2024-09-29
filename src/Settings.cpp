@@ -160,7 +160,7 @@ Settings::Settings(ISettingsHandler& handler)
 
     load();
 
-    checkMagicValue();
+    checkVersion();
 }
 
 bool Settings::load()
@@ -210,9 +210,15 @@ void Settings::loadDefaults()
     // }
 }
 
-void Settings::checkMagicValue()
+void Settings::checkVersion()
 {
-    static constexpr std::array ValidMagicValues{
+    // How to add migration code for new versions:
+    //  1. Add the previous `CurrentVersion` as a separate constant into the `Versioning` namespace
+    //  2. Add the previous version constant to `KnownVersions`
+    //  3. Set `CurrentVersion` to the actual version
+    //  4. Add the version-dependent migration logic to the end of this function
+
+    static constexpr std::array KnownVersions{
         Versioning::CurrentVersion
     };
 
@@ -227,9 +233,9 @@ void Settings::checkMagicValue()
     
     if (
         !std::ranges::any_of(
-            ValidMagicValues,
-            [&](const auto magic) {
-                return magic == _settingsDataVersion;
+            KnownVersions,
+            [&](const auto version) {
+                return version == _settingsDataVersion;
             }
         )
     ) {
@@ -240,7 +246,7 @@ void Settings::checkMagicValue()
 
     _log.info_P(PSTR("settings data version OK"));
 
-    // Add more magic-dependent checks here
+    // Add version-dependent checks here
 }
 
 bool Settings::check()
@@ -311,7 +317,7 @@ bool Settings::check()
 void Settings::dumpData() const
 {
     _log.info_P(
-        PSTR("Reserved{ magic=0x%08lX }"),
+        PSTR("Reserved{ version=0x%08lX }"),
         _settingsDataVersion
     );
 

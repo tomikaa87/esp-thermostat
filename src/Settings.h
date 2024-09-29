@@ -123,7 +123,7 @@ private:
 
     uint32_t _settingsDataVersion{};
 
-    void checkMagicValue();
+    void checkVersion();
     bool check();
 
     void dumpData() const;
