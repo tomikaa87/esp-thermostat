@@ -106,6 +106,8 @@ FurnaceController::FurnaceController(
         _app.mqttClient()
     }
 {
+    static_assert(MQTT_MAX_PACKET_SIZE >= 2048, "MQTT packet size too low");
+
     _log.debug_P(PSTR("stack memory usage: %u B"), sizeof(FurnaceController));
 
     setupRelayOutput();
