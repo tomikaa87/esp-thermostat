@@ -10,6 +10,7 @@ namespace UI::ScreenID {
     constexpr int GeneralSettings{ 220 };
     constexpr int DisplaySettings{ 230 };
     constexpr int DateTimeSettings{ 240 };
+    constexpr int DebuggingSettingsScreen{ 250 };
 
     constexpr int ZoneSettings{ 300 };
     constexpr int ZoneSchedule{ 310 };

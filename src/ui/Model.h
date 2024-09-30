@@ -48,5 +48,8 @@ namespace UI
 
         bool wifiConnected{};
         bool mqttConnected{};
+
+        VersionNumber firmwareVersion{};
+        VersionNumber baseVersion{};
     };
 }

@@ -10,7 +10,6 @@ using namespace std::string_view_literals;
 
 namespace
 {
-    char _logLevelValueLabel[6]{};
 }
 
 MainMenuScreen::MainMenuScreen(Model& model, Graphics& graphics)
@@ -23,8 +22,7 @@ MainMenuScreen::MainMenuScreen(Model& model, Graphics& graphics)
         MenuItem{ "[General Settings]" },
         MenuItem{ "[Display Settings]" },
         MenuItem{ "[Date/Time Sett.]" },
-        MenuItem{ "Log Level", _logLevelValueLabel },
-        MenuItem{ "[Reboot]" }
+        MenuItem{ "[Debugging Sett.]" },
     }
 {}
 
@@ -77,8 +75,8 @@ Screen::Result MainMenuScreen::selectMenuItem() const
             return Navigate{ .id = ScreenID::DisplaySettings };
         case 3:
             return Navigate{ .id = ScreenID::DateTimeSettings };
-        case 5:
-            system_restart();
+        case 4:
+            return Navigate{ .id = ScreenID::DebuggingSettingsScreen };
         default:
             break;
     }
@@ -89,15 +87,6 @@ Screen::Result MainMenuScreen::selectMenuItem() const
 void MainMenuScreen::stepSelectedSetting(const StepDirection direction)
 {
     switch (_menu.currentIndex()) {
-        case 4:
-            model().settings.system.maximumLogLevel = stepValue(
-                model().settings.system.maximumLogLevel,
-                direction,
-                static_cast<uint8_t>(Log::Severity::Error),
-                static_cast<uint8_t>(Log::Severity::Debug)
-            );
-            break;
-
         default:
             return;
     }
@@ -108,22 +97,4 @@ void MainMenuScreen::stepSelectedSetting(const StepDirection direction)
 
 void MainMenuScreen::updateValueLabels()
 {
-    snprintf(
-        _logLevelValueLabel,
-        sizeof(_logLevelValueLabel),
-        "%s",
-        [&] {
-            switch (model().settings.system.maximumLogLevel) {
-                case 0:
-                    return "Error";
-                case 1:
-                    return "Warn.";
-                case 2:
-                    return "Info";
-                case 3:
-                    return "Debug";
-            }
-            return "Unkn.";
-        }()
-    );
 }

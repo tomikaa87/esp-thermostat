@@ -28,6 +28,7 @@
 #include "Controllers/ClockController.h"
 
 #include "Screens/DateTimeSettingsScreen.h"
+#include "Screens/DebuggingSettingsScreen.h"
 #include "Screens/DisplaySettingsScreen.h"
 #include "Screens/GeneralSettingsScreen.h"
 #include "Screens/MainScreen.h"
@@ -76,6 +77,7 @@ namespace UI
         GeneralSettingsScreen,
         DisplaySettingsScreen,
         DateTimeSettingsScreen,
+        DebuggingSettingsScreen,
         ZoneSettingsScreen,
         ZoneScheduleScreen
     >;

@@ -114,6 +114,9 @@ FurnaceController::FurnaceController(
     setupMqttComponentConfigs();
     setupMqttChangeHandlers();
     updateMqtt();
+
+    _uiModel.firmwareVersion = _appConfig.firmwareVersion;
+    _uiModel.baseVersion = _appConfig.applicationVersion;
 }
 
 void FurnaceController::task(const uint32_t deltaMillis)
