@@ -86,7 +86,7 @@ namespace UI
         UIController(
             CoreApplication& application,
             Settings& settings,
-            Model& model
+            Model& modelconst
         );
 
         void task(uint32_t deltaMillis);
@@ -115,7 +115,7 @@ namespace UI
 
         [[nodiscard]] bool loadScreen(int id);
 
-        [[nodiscard]] static int getId(RegisteredScreens::Screen& screen);
+        [[nodiscard]] static int getId(const RegisteredScreens::Screen& screen);
         static void invokeActivate(RegisteredScreens::Screen& screen);
         static void invokeUpdate(RegisteredScreens::Screen& screen);
         [[nodiscard]] static Screen::Result invokeHandleKeyPress(

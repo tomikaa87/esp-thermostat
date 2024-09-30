@@ -91,7 +91,7 @@ namespace Topics::BoostActive
 HeatingZone::HeatingZone(
     const unsigned index,
     CoreApplication& app,
-    SettingDependencies settingDependencies
+    const SettingDependencies& settingDependencies
 )
     : _index{ index }
     , _app{ app }

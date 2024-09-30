@@ -175,7 +175,7 @@ bool UIController::loadScreen(const int id)
     return false;
 }
 
-int UIController::getId(RegisteredScreens::Screen& screen)
+int UIController::getId(const RegisteredScreens::Screen& screen)
 {
     return std::visit(
         []<typename ScreenType>(const ScreenType& s) {

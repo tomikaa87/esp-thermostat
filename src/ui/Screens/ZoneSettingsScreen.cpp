@@ -217,7 +217,7 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
 
 void ZoneSettingsScreen::updateValueLabels()
 {
-    auto& zone = model().settings.heating.zones[model().navigation.selectedZoneIndex];
+    const auto& zone = model().settings.heating.zones[model().navigation.selectedZoneIndex];
 
     snprintf(
         _modeValueLabel,

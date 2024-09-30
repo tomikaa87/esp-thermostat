@@ -75,7 +75,7 @@ void ZoneScheduleScreen::drawSchedulePositionIndicator()
     auto hours = _scheduleBitIndex >> 1;
 
     char buf[14]{};
-    snprintf(buf, sizeof(buf), "%2d:%02d", hours, mins);
+    snprintf(buf, sizeof(buf), "%2u:%02u", hours, mins);
 
     const auto x = graphics().drawText(0, 3, "Time: "sv, Resources::Fonts::Oled);
     graphics().drawText(x, 3, buf, Resources::Fonts::Oled);

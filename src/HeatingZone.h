@@ -19,7 +19,7 @@ public:
     explicit HeatingZone(
         unsigned index,
         CoreApplication& app,
-        SettingDependencies settingDependencies
+        const SettingDependencies& settingDependencies
     );
 
     void task(uint32_t systemClockDeltaMs);
