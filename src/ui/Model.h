@@ -40,8 +40,9 @@ namespace UI
 
         std::array<Zone, Config::ZoneCount> zones;
 
-        bool heating{ true };
-        bool energySaverEnabled{ true };
+        bool heating{};
+        bool masterEnable{};
+        bool energyOptimizerEnabled{};
 
         int16_t internalTemperature{};
 

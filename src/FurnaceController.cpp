@@ -330,4 +330,7 @@ void FurnaceController::updateUiModel()
 
     _uiModel.wifiConnected = _app.isWifiConnected();
     _uiModel.mqttConnected = _app.mqttClient().isConnected();
+
+    _uiModel.masterEnable = _settings.system.masterEnable;
+    _uiModel.energyOptimizerEnabled = _settings.system.energyOptimizerEnabled;
 }

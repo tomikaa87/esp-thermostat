@@ -123,7 +123,9 @@ void MainScreen::drawInternalTemperature() const
 void MainScreen::drawHeatingState() const
 {
     const auto text{
-        model().heating ? "Heat"sv : "Idle"sv
+        model().masterEnable
+            ? (model().heating ? "Heat"sv : "Idle"sv)
+            : "Off "sv
     };
 
     graphics().drawVerticalSeparator(Positions::HeatingState.x, Positions::HeatingState.line);
