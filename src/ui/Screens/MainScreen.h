@@ -29,5 +29,6 @@ namespace UI
             const Model::Zone& zoneModel
         ) const;
         void drawZoneStatuses();
+        void drawConnectionStatus();
     };
 }

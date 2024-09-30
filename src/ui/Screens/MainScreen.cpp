@@ -21,6 +21,7 @@ namespace Positions
     constexpr Position ClockDayOfWeek{ 31, 0 };
     constexpr Position InternalTemperature{ 53, 0 };
     constexpr Position HeatingState{ 81, 0 };
+    constexpr Position ConnectionState{ 112, 0 };
 
     namespace Zone
     {
@@ -50,6 +51,7 @@ void MainScreen::update()
     drawClock();
     drawInternalTemperature();
     drawHeatingState();
+    drawConnectionStatus();
     drawZoneStatuses();
 }
 
@@ -97,7 +99,7 @@ void MainScreen::drawClock() const
     );
 }
 
-void MainScreen::drawInternalTemperature() const 
+void MainScreen::drawInternalTemperature() const
 {
     char text[9]{};
     snprintf(
@@ -121,7 +123,7 @@ void MainScreen::drawInternalTemperature() const
 void MainScreen::drawHeatingState() const
 {
     const auto text{
-        model().heating ? "Heating"sv : "Idle   "sv
+        model().heating ? "Heat"sv : "Idle"sv
     };
 
     graphics().drawVerticalSeparator(Positions::HeatingState.x, Positions::HeatingState.line);
@@ -234,4 +236,21 @@ void MainScreen::drawZoneStatuses()
             line = Positions::Zone::BaseLine;
         }
     }
+}
+
+void MainScreen::drawConnectionStatus()
+{
+    graphics().drawVerticalSeparator(Positions::ConnectionState.x, Positions::ConnectionState.line);
+
+    char s[3]{};
+
+    s[0] = model().wifiConnected ? 'W' : '-';
+    s[1] = model().mqttConnected ? 'M' : '-';
+
+    graphics().drawText(
+        Positions::ConnectionState.x + 3,
+        Positions::ConnectionState.line,
+        s,
+        Resources::Fonts::Oled
+    );
 }
