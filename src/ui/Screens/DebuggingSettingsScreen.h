@@ -16,7 +16,7 @@ namespace UI
         [[nodiscard]] Result handleKeyPress(Keypad::Keys keys);
 
     private:
-        Menu _menu;
+        Menu<4> _menu;
 
         [[nodiscard]] Result selectMenuItem() const;
         void stepSelectedSetting(StepDirection direction);

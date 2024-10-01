@@ -16,6 +16,6 @@ namespace UI
         [[nodiscard]] Result handleKeyPress(Keypad::Keys keys);
 
     private:
-        Menu _menu;
+        Menu<6> _menu;
     };
 }

@@ -22,17 +22,23 @@ struct MenuItem
     const char* value{};
 };
 
-template <typename GraphicsType, std::size_t ItemCount>
+template <typename GraphicsType, std::size_t Capacity>
 class MenuImpl
 {
 public:
     template <typename... Items>
-    explicit MenuImpl(GraphicsType& display, const unsigned startLine, const unsigned height, Items&&... items)
-        : _graphics{ display }
+    explicit MenuImpl(
+        GraphicsType& graphics,
+        const unsigned startLine,
+        const unsigned height,
+        Items&&... items
+    )
+        : _graphics{ graphics }
         , _items{ std::forward<Items>(items)... }
         , _startLine{ startLine }
         , _height{ height }
     {
+        static_assert(sizeof...(Items) <= Capacity, "Increase capacity");
     }
 
     void reset()
@@ -89,7 +95,7 @@ public:
 
 private:
     GraphicsType& _graphics;
-    std::array<MenuItem, ItemCount> _items;
+    std::array<MenuItem, Capacity> _items;
     const unsigned _startLine;
     const unsigned _height;
     unsigned _selectionIndex{};
@@ -170,6 +176,10 @@ private:
     }
 };
 
+template <std::size_t Capacity>
+using Menu = MenuImpl<Graphics, Capacity>;
+
+#if 0
 class Menu
 {
 public:
@@ -264,5 +274,6 @@ private:
 
     MenuVariant _menu;
 };
+#endif
 
 }
