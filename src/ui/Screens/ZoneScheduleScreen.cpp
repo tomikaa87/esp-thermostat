@@ -15,7 +15,12 @@ ZoneScheduleScreen::ZoneScheduleScreen(Model& model, Graphics& graphics)
 void ZoneScheduleScreen::activate()
 {
     auto x = graphics().drawText(0, 0, "Schedule: "sv, Resources::Fonts::Oled);
-    graphics().drawText(x, 0, std::to_string(model().navigation.selectedZoneIndex), Resources::Fonts::Oled);
+    graphics().drawText(
+        x,
+        0,
+        std::to_string(model().zones[model().navigation.selectedZoneIndex].zoneNumber),
+        Resources::Fonts::Oled
+    );
 
     drawScheduleBar();
     drawSchedulePositionIndicator();

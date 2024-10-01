@@ -47,7 +47,12 @@ ZoneSettingsScreen::ZoneSettingsScreen(Model& model, Graphics& graphics)
 void ZoneSettingsScreen::activate()
 {
     auto x = graphics().drawText(0, 0, "Zone Settings: "sv, Resources::Fonts::Oled);
-    graphics().drawText(x, 0, std::to_string(model().navigation.selectedZoneIndex), Resources::Fonts::Oled);
+    graphics().drawText(
+        x,
+        0,
+        std::to_string(model().zones[model().navigation.selectedZoneIndex].zoneNumber),
+        Resources::Fonts::Oled
+    );
 
     updateValueLabels();
     _menu.reset();
