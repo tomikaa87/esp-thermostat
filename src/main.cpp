@@ -61,6 +61,8 @@ void setup()
     appConfig.wifi.password = Config::WiFi::Password;
     appConfig.wifi.ssid = Config::WiFi::SSID;
 
+    appConfig.ntp.server = Config::Ntp::Server;
+
     appConfig.hostName = Config::HostName;
 
     coreApplication = [] {
