@@ -35,6 +35,7 @@ public:
     )
         : _graphics{ graphics }
         , _items{ std::forward<Items>(items)... }
+        , _itemCount{ sizeof...(items) }
         , _startLine{ startLine }
         , _height{ height }
     {
@@ -62,9 +63,9 @@ public:
         switch (direction) {
             case StepDirection::Up:
                 if (_selectionIndex == 0) {
-                    _selectionIndex = _items.size() - 1;
-                    if (_items.size() > _height) {
-                        _viewPosition = std::max(_items.size() - _height, 0u);
+                    _selectionIndex = _itemCount - 1;
+                    if (_itemCount > _height) {
+                        _viewPosition = std::max(_itemCount - _height, 0u);
                     }
                 } else {
                     --_selectionIndex;
@@ -77,10 +78,10 @@ public:
 
             case StepDirection::Down:
                 ++_selectionIndex;
-                if (_selectionIndex == _items.size()) {
+                if (_selectionIndex == _itemCount) {
                     _selectionIndex = 0;
                     _viewPosition = 0;
-                } else if (_selectionIndex >= _height) {
+                } else if ((_selectionIndex - _viewPosition) >= _height) {
                     ++_viewPosition;
                 }
 
@@ -96,6 +97,7 @@ public:
 private:
     GraphicsType& _graphics;
     std::array<MenuItem, Capacity> _items;
+    const unsigned _itemCount;
     const unsigned _startLine;
     const unsigned _height;
     unsigned _selectionIndex{};
@@ -107,7 +109,7 @@ private:
         auto line{ _startLine };
 
         while (
-            itemIndex < _items.size()
+            itemIndex < _itemCount
             && line < (_startLine + _height)
             && line <= (GraphicsType::Lines - 1)
         ) {
@@ -152,7 +154,7 @@ private:
                 );
             }
 
-            uint8_t position = _selectionIndex == 0 ? 0 : ((_selectionIndex + 1) * (_height - 1) / _items.size());
+            uint8_t position = _selectionIndex == 0 ? 0 : ((_selectionIndex + 1) * (_height - 1) / _itemCount);
 
             for (uint8_t i = 0; i <= (_height - 1); ++i) {
                 if (i == position) {
