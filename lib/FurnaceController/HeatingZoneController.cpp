@@ -1,9 +1,14 @@
 #include "HeatingZoneController.h"
 
+#include <algorithm>
+
 namespace
 {
     constexpr HeatingZoneController::DeciDegrees FailSafeLowTarget{ 100 };
     constexpr HeatingZoneController::DeciDegrees FailSafeHighTarget{ 300 };
+
+    constexpr HeatingZoneController::DeciDegrees MinTargetTempHysteresis{ 1 };
+    constexpr HeatingZoneController::DeciDegrees MaxTargetTempHysteresis{ 10 };
 }
 
 HeatingZoneController::HeatingZoneController(
@@ -190,13 +195,21 @@ bool HeatingZoneController::callingForHeating()
         calculatedTargetTemperature = t.value();
     }
 
-    if (_callForHeatingByTemperature) {
-        const auto target = calculatedTargetTemperature + _config.heatingOvershoot;
+    calculatedTargetTemperature = std::clamp(
+        calculatedTargetTemperature,
+        FailSafeLowTarget,
+        FailSafeHighTarget
+    );
 
-        if (
-            _lastInputTemperature >= target
-            || _lastInputTemperature >= FailSafeHighTarget
-        ) {
+    if (_callForHeatingByTemperature) {
+        const auto target = calculatedTargetTemperature
+            + std::clamp(
+                _config.heatingOvershoot,
+                MinTargetTempHysteresis,
+                MaxTargetTempHysteresis
+            );
+
+        if (_lastInputTemperature >= target) {
             _callForHeatingByTemperature = false;
         }
     } else {
@@ -207,12 +220,14 @@ bool HeatingZoneController::callingForHeating()
         const auto target =
             _furnaceHeating
                 ? calculatedTargetTemperature
-                : calculatedTargetTemperature - _config.heatingUndershoot;
+                : calculatedTargetTemperature -
+                    std::clamp(
+                        _config.heatingUndershoot,
+                        MinTargetTempHysteresis,
+                        MaxTargetTempHysteresis
+                    );
 
-        if (
-            _lastInputTemperature <= target
-            || _lastInputTemperature <= FailSafeLowTarget
-        ) {
+        if (_lastInputTemperature <= target) {
             _callForHeatingByTemperature = true;
 
             // Start the delay timer

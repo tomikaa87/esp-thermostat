@@ -998,6 +998,173 @@ TEST(HeatingZoneController, TargetTemperatureForLastScheduleSegment)
     EXPECT_TRUE(controller.callingForHeating());
 }
 
+TEST(HeatingZoneController, FailSafeLowTargetTemperature)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 5,
+        .heatingUndershoot = 5
+    };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(1);
+
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+    controller.inputTemperature(100 - config.heatingUndershoot);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, FailSafeHighTargetTemperature)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 5,
+        .heatingUndershoot = 5
+    };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(400);
+
+    // Start heating to be able to test overshooting
+    controller.inputTemperature(200);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(300);
+    EXPECT_TRUE(controller.callingForHeating());
+    controller.inputTemperature(300 + config.heatingOvershoot);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, MinimumOvershoot)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 0,
+        .heatingUndershoot = 0
+    };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(230);
+
+    controller.inputTemperature(220);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(230);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(231);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, MaximumOvershoot)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 20,
+        .heatingUndershoot = 0
+    };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(230);
+
+    controller.inputTemperature(220);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(230);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(240);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, MinimumUndershoot)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 0,
+        .heatingUndershoot = 0
+    };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(230);
+
+    controller.inputTemperature(240);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(230);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(229);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+TEST(HeatingZoneController, MaximumUndershoot)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 0,
+        .heatingUndershoot = 20
+    };
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller{ config, schedule };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+
+    controller.setLowTargetTemperature(230);
+
+    controller.inputTemperature(240);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(230);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(220);
+    EXPECT_TRUE(controller.callingForHeating());
+}
+
+#if 0
+// Oscillation test to support zero over/undershoot
+TEST(HeatingZoneController, EnergyOptimizerWithOvershootSetToZero)
+{
+    HeatingZoneController::Configuration config{
+        .heatingOvershoot = 0,
+        .heatingUndershoot = 5
+    };
+
+    HeatingZoneController controller{ config, HeatingZoneController::Schedule{} };
+
+    controller.setMode(HeatingZoneController::Mode::Auto);
+    controller.setLowTargetTemperature(230);
+    controller.handleFurnaceHeatingChanged(true);
+
+    controller.inputTemperature(229);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.handleFurnaceHeatingChanged(false);
+
+    controller.inputTemperature(229);
+    EXPECT_TRUE(controller.callingForHeating());
+
+    controller.inputTemperature(230);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.handleFurnaceHeatingChanged(true);
+
+    controller.inputTemperature(230);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+#endif
+
 #pragma endregion
 
 #pragma region Tests for all active modes

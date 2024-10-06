@@ -198,8 +198,8 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
             zone.config.heatingOvershoot = stepValue(
                 zone.config.heatingOvershoot,
                 direction,
-                0,
-                100
+                1,
+                10
             );
             break;
 
@@ -207,8 +207,8 @@ void ZoneSettingsScreen::stepSelectedSetting(const StepDirection direction)
             zone.config.heatingUndershoot = stepValue(
                 zone.config.heatingUndershoot,
                 direction,
-                0,
-                100
+                1,
+                10
             );
             break;
 
