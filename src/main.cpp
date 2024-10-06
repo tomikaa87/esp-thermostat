@@ -34,7 +34,7 @@ void setup()
 {
     initializeTempSensor();
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 7, 7 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 7, 8 };
 
 #ifndef TEST_BUILD
     appConfig.logging.syslog.enabled = true;
