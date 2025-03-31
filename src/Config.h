@@ -18,7 +18,7 @@
     Created on 2017-01-04
 */
 
-#include <IPAddress.h>
+#include "HostAddress.h"
 
 #include "PrivateConfig.h"
 

@@ -88,23 +88,26 @@ namespace HomeAssistant
     /**
      * @brief Makes a config topic: /homeassistant/<device type>/<unique ID with device name>/config
      *
+     * @param stream
      * @param deviceType
      * @param deviceName
-     * @return std::string
      */
-    std::string makeConfigTopic(
+    void makeConfigTopic(
+        std::stringstream& stream,
         const std::string_view& deviceType,
         const std::string_view& deviceName
     );
 
-    std::string makeClimateConfig(
+    void makeClimateConfig(
+        std::stringstream& stream,
         const std::string_view& name,
         const std::string_view& uniqueId,
         const std::string_view& topicPrefix,
         const ConfigAppender& appender = {}
     );
 
-    std::string makeSwitchConfig(
+    void makeSwitchConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -114,7 +117,8 @@ namespace HomeAssistant
         const ConfigAppender& appender = {}
     );
 
-    std::string makeSensorConfig(
+    void makeSensorConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -124,7 +128,8 @@ namespace HomeAssistant
         const ConfigAppender& appender = {}
     );
 
-    std::string makeButtonConfig(
+    void makeButtonConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -134,7 +139,8 @@ namespace HomeAssistant
         const ConfigAppender& appender = {}
     );
 
-    std::string makeNumberConfig(
+    void makeNumberConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,

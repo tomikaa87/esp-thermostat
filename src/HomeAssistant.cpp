@@ -129,42 +129,41 @@ namespace HomeAssistant
         auto mac{ WiFi.macAddress() };
         mac.replace(":", "");
 
-        std::stringstream ss;
+        std::string s;
+        s.reserve(128);
 
-        ss
-            << fromPstr(PSTR("furnace_controller_"))
-#ifdef TEST_BUILD
-            << "test_"
-#endif
-            << mac.c_str();
+        s += fromPstr(PSTR("furnace_controller_"));
+        #ifdef TEST_BUILD
+        s += "test_";
+        #endif
+        s += mac.c_str();
 
         if (!id.empty()) {
-            ss << '_' << id;
+            s += '_';
+            s += id;
         }
 
-        return ss.str();
+        return s;
     }
 
-    std::string makeConfigTopic(
+    void makeConfigTopic(
+        std::stringstream& stream,
         const std::string_view& deviceType,
         const std::string_view& deviceName
     )
     {
         using namespace Extras;
 
-        std::stringstream topic;
-
-        topic
+        stream
             << fromPstr(PSTR("homeassistant/"))
             << deviceType
             << '/'
             << makeUniqueId(deviceName)
             << fromPstr(PSTR("/config"));
-
-        return topic.str();
     }
 
-    std::string makeClimateConfig(
+    void makeClimateConfig(
+        std::stringstream& stream,
         const std::string_view& name,
         const std::string_view& uniqueId,
         const std::string_view& topicPrefix,
@@ -173,47 +172,44 @@ namespace HomeAssistant
     {
         using namespace Extras;
 
-        std::stringstream config;
+        stream << '{';
 
-        config << '{';
+        stream << fromPstr(PSTR(R"("icon":"mdi:sun-thermometer")"));
 
-        config << fromPstr(PSTR(R"("icon":"mdi:sun-thermometer")"));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("name")), name);
+        addFieldWithValuesConcat(stream, fromPstr("unique_id"), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr("object_id"), makeUniqueId(uniqueId));
 
-        addFieldWithValuesConcat(config, fromPstr(PSTR("name")), name);
-        addFieldWithValuesConcat(config, fromPstr("unique_id"), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr("object_id"), makeUniqueId(uniqueId));
+        stream << fromPstr(PSTR(R"(,"max_temp":30)"));
+        stream << fromPstr(PSTR(R"(,"min_temp":10)"));
+        stream << fromPstr(PSTR(R"(,"modes":["heat","off"])"));
+        stream << fromPstr(PSTR(R"(,"preset_modes":["away"])"));
+        stream << fromPstr(PSTR(R"(,"precision":0.1)"));
+        stream << fromPstr(PSTR(R"(,"temperature_unit":"C")"));
+        stream << fromPstr(PSTR(R"(,"temp_step":0.5)"));
 
-        config << fromPstr(PSTR(R"(,"max_temp":30)"));
-        config << fromPstr(PSTR(R"(,"min_temp":10)"));
-        config << fromPstr(PSTR(R"(,"modes":["heat","off"])"));
-        config << fromPstr(PSTR(R"(,"preset_modes":["away"])"));
-        config << fromPstr(PSTR(R"(,"precision":0.1)"));
-        config << fromPstr(PSTR(R"(,"temperature_unit":"C")"));
-        config << fromPstr(PSTR(R"(,"temp_step":0.5)"));
-
-        addFieldWithValuesConcat(config, fromPstr(PSTR("mode_command_topic")), topicPrefix, fromPstr(Topics::Mode::command()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("mode_state_topic")), topicPrefix, fromPstr(Topics::Mode::state()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("current_temperature_topic")), topicPrefix, fromPstr(Topics::Temperature::Remote::state()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("temperature_command_topic")), topicPrefix, fromPstr(Topics::Temperature::Active::command()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("temperature_state_topic")), topicPrefix, fromPstr(Topics::Temperature::Active::state()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("temperature_high_command_topic")), topicPrefix, fromPstr(Topics::Temperature::High::command()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("temperature_high_state_topic")), topicPrefix, fromPstr(Topics::Temperature::High::state()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("temperature_low_command_topic")), topicPrefix, fromPstr(Topics::Temperature::Low::command()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("temperature_low_state_topic")), topicPrefix, fromPstr(Topics::Temperature::Low::state()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("action_topic")), topicPrefix, fromPstr(Topics::Action::state()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("preset_mode_command_topic")), topicPrefix, fromPstr(Topics::Preset::command()));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("preset_mode_state_topic")), topicPrefix, fromPstr(Topics::Preset::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("mode_command_topic")), topicPrefix, fromPstr(Topics::Mode::command()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("mode_state_topic")), topicPrefix, fromPstr(Topics::Mode::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("current_temperature_topic")), topicPrefix, fromPstr(Topics::Temperature::Remote::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("temperature_command_topic")), topicPrefix, fromPstr(Topics::Temperature::Active::command()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("temperature_state_topic")), topicPrefix, fromPstr(Topics::Temperature::Active::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("temperature_high_command_topic")), topicPrefix, fromPstr(Topics::Temperature::High::command()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("temperature_high_state_topic")), topicPrefix, fromPstr(Topics::Temperature::High::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("temperature_low_command_topic")), topicPrefix, fromPstr(Topics::Temperature::Low::command()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("temperature_low_state_topic")), topicPrefix, fromPstr(Topics::Temperature::Low::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("action_topic")), topicPrefix, fromPstr(Topics::Action::state()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("preset_mode_command_topic")), topicPrefix, fromPstr(Topics::Preset::command()));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("preset_mode_state_topic")), topicPrefix, fromPstr(Topics::Preset::state()));
 
         if (appender) {
-            appender(config);
+            appender(stream);
         }
 
-        config << '}';
-
-        return config.str();
+        stream << '}';
     }
 
-    std::string makeSwitchConfig(
+    void makeSwitchConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -225,29 +221,26 @@ namespace HomeAssistant
     {
         using namespace Extras;
 
-        std::stringstream config;
+        stream << '{';
 
-        config << '{';
-
-        addFieldWithValuesConcat(config, fromPstr(PSTR("icon")), icon);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("name")), name);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("command_topic")), topicPrefix, commandTopic);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("state_topic")), topicPrefix, stateTopic);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("payload_off")), '0');
-        addFieldWithValuesConcat(config, fromPstr(PSTR("payload_on")), '1');
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("icon")), icon);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("name")), name);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("command_topic")), topicPrefix, commandTopic);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("state_topic")), topicPrefix, stateTopic);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("payload_off")), '0');
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("payload_on")), '1');
 
         if (appender) {
-            appender(config);
+            appender(stream);
         }
 
-        config << '}';
-
-        return config.str();
+        stream << '}';
     }
 
-    std::string makeSensorConfig(
+    void makeSensorConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -259,27 +252,24 @@ namespace HomeAssistant
     {
         using namespace Extras;
 
-        std::stringstream config;
+        stream << '{';
 
-        config << '{';
-
-        addFieldWithValuesConcat(config, fromPstr(PSTR("icon")), icon);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("name")), name);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("state_topic")), topicPrefix, stateTopic);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("unit_of_measurement")), unit);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("icon")), icon);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("name")), name);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("state_topic")), topicPrefix, stateTopic);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("unit_of_measurement")), unit);
 
         if (appender) {
-            appender(config);
+            appender(stream);
         }
 
-        config << '}';
-
-        return config.str();
+        stream << '}';
     }
 
-    std::string makeButtonConfig(
+    void makeButtonConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -291,27 +281,24 @@ namespace HomeAssistant
     {
         using namespace Extras;
 
-        std::stringstream config;
+        stream << '{';
 
-        config << '{';
-
-        addFieldWithValuesConcat(config, fromPstr(PSTR("icon")), icon);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("name")), name);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("command_topic")), topicPrefix, commandTopic);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("payload_press")), pressPayload);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("icon")), icon);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("name")), name);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("command_topic")), topicPrefix, commandTopic);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("payload_press")), pressPayload);
 
         if (appender) {
-            appender(config);
+            appender(stream);
         }
 
-        config << '}';
-
-        return config.str();
+        stream << '}';
     }
 
-    std::string makeNumberConfig(
+    void makeNumberConfig(
+        std::stringstream& stream,
         const std::string_view& icon,
         const std::string_view& name,
         const std::string_view& uniqueId,
@@ -324,29 +311,25 @@ namespace HomeAssistant
     {
         using namespace Extras;
 
-        std::stringstream config;
+        stream << '{';
 
-        config << '{';
-
-        addFieldWithValuesConcat(config, fromPstr(PSTR("icon")), icon);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("name")), name);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("command_topic")), topicPrefix, commandTopic);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("state_topic")), topicPrefix, stateTopic);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("unit_of_measurement")), unit);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("mode")), fromPstr("slider"));
-        addFieldWithValuesConcat(config, fromPstr(PSTR("min")), 10);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("max")), 30);
-        addFieldWithValuesConcat(config, fromPstr(PSTR("step")), "0.1");
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("icon")), icon);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("name")), name);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("unique_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("object_id")), makeUniqueId(uniqueId));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("command_topic")), topicPrefix, commandTopic);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("state_topic")), topicPrefix, stateTopic);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("unit_of_measurement")), unit);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("mode")), fromPstr("slider"));
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("min")), 10);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("max")), 30);
+        addFieldWithValuesConcat(stream, fromPstr(PSTR("step")), "0.1");
 
         if (appender) {
-            appender(config);
+            appender(stream);
         }
 
-        config << '}';
-
-        return config.str();
+        stream << '}';
     }
 }
 

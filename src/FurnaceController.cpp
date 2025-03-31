@@ -192,14 +192,16 @@ void FurnaceController::setupMqttComponentConfigs()
     using namespace Extras;
 
     _app.mqttClient().publish(
-        [] {
-            return HomeAssistant::makeConfigTopic(
+        [](auto& stream) {
+            HomeAssistant::makeConfigTopic(
+                stream,
                 fromPstr("switch"),
                 fromPstr(Devices::MasterSwitch::uniqueId())
             );
         },
-        [&] {
-            return HomeAssistant::makeSwitchConfig(
+        [&](auto& stream) {
+            HomeAssistant::makeSwitchConfig(
+                stream,
                 fromPstr(PSTR("mdi:power")),
                 fromPstr(PSTR("Master Enable")),
                 fromPstr(Devices::MasterSwitch::uniqueId()),
@@ -217,14 +219,16 @@ void FurnaceController::setupMqttComponentConfigs()
     );
 
     _app.mqttClient().publish(
-        [] {
-            return HomeAssistant::makeConfigTopic(
+        [&](auto& stream) {
+            HomeAssistant::makeConfigTopic(
+                stream,
                 fromPstr("switch"),
                 fromPstr(Devices::EnergyOptimizerSwitch::uniqueId())
             );
         },
-        [&] {
-            return HomeAssistant::makeSwitchConfig(
+        [&](auto& stream) {
+            HomeAssistant::makeSwitchConfig(
+                stream,
                 fromPstr(PSTR("mdi:leaf")),
                 fromPstr(PSTR("Energy Optimizer")),
                 fromPstr(Devices::EnergyOptimizerSwitch::uniqueId()),
@@ -242,14 +246,16 @@ void FurnaceController::setupMqttComponentConfigs()
     );
 
     _app.mqttClient().publish(
-        [] {
-            return HomeAssistant::makeConfigTopic(
+        [&](auto& stream) {
+            HomeAssistant::makeConfigTopic(
+                stream,
                 fromPstr("sensor"),
                 fromPstr(Devices::CallingForHeatingSensor::uniqueId())
             );
         },
-        [&] {
-            return HomeAssistant::makeSensorConfig(
+        [&](auto& stream) {
+            HomeAssistant::makeSensorConfig(
+                stream,
                 fromPstr(PSTR("mdi:radiator")),
                 fromPstr(PSTR("Calling for heating")),
                 fromPstr(Devices::CallingForHeatingSensor::uniqueId()),

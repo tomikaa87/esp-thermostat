@@ -187,8 +187,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // Climate config
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("climate"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::Climate::uniqueId()),
@@ -196,8 +197,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeClimateConfig(
+        [&](auto& stream) {
+            HA::makeClimateConfig(
+                stream,
                 fromPstr(PSTR("Zone")) + ' ' + std::to_string(_index),
                 zoneDependentUniqueId(
                     fromPstr(Devices::Climate::uniqueId()),
@@ -217,8 +219,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // "Boost" activate button config
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("button"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::BoostActivateButton::uniqueId()),
@@ -226,8 +229,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeButtonConfig(
+        [&](auto& stream) {
+            HA::makeButtonConfig(
+                stream,
                 fromPstr(PSTR("mdi:radiator")),
                 zoneDependentName(fromPstr(PSTR("Activate Boost")), _index),
                 zoneDependentUniqueId(
@@ -250,8 +254,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // "Boost" deactivate button config
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("button"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::BoostDeactivateButton::uniqueId()),
@@ -259,8 +264,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeButtonConfig(
+        [&](auto& stream) {
+            HA::makeButtonConfig(
+                stream,
                 fromPstr(PSTR("mdi:radiator-off")),
                 zoneDependentName(fromPstr(PSTR("Deactivate Boost")), _index),
                 zoneDependentUniqueId(
@@ -283,8 +289,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // "Boost" remaining seconds sensor config
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("sensor"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::BoostRemainingSensor::uniqueId()),
@@ -292,8 +299,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeSensorConfig(
+        [&](auto& stream) {
+            HA::makeSensorConfig(
+                stream,
                 fromPstr(PSTR("mdi:timer")),
                 zoneDependentName(fromPstr("Boost Remaining"), _index),
                 zoneDependentUniqueId(
@@ -316,8 +324,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // Remote temperature sensor config
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("number"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::RemoteTemperatureNumber::uniqueId()),
@@ -325,8 +334,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeNumberConfig(
+        [&](auto& stream) {
+            HA::makeNumberConfig(
+                stream,
                 fromPstr(PSTR("mdi:thermometer")),
                 zoneDependentName(fromPstr("Remote Temperature"), _index),
                 zoneDependentUniqueId(
@@ -350,8 +360,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // Remote window state sensor config
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("switch"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::RemoteWindowSensor::uniqueId()),
@@ -359,8 +370,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeSwitchConfig(
+        [&](auto& stream) {
+            HA::makeSwitchConfig(
+                stream,
                 fromPstr(PSTR("mdi:window-closed")),
                 zoneDependentName(fromPstr("Remote Window Open"), _index),
                 zoneDependentUniqueId(
@@ -383,8 +395,9 @@ void HeatingZone::setupMqttComponentConfigs()
 
     // Open window lockout remaining
     _app.mqttClient().publish(
-        [this] {
-            return HA::makeConfigTopic(
+        [&](auto& stream) {
+            HA::makeConfigTopic(
+                stream,
                 fromPstr("sensor"),
                 zoneDependentUniqueId(
                     fromPstr(Devices::OpenWindowLockoutRemainingSensor::uniqueId()),
@@ -392,8 +405,9 @@ void HeatingZone::setupMqttComponentConfigs()
                 )
             );
         },
-        [this] {
-            return HA::makeSensorConfig(
+        [&](auto& stream) {
+            HA::makeSensorConfig(
+                stream,
                 fromPstr(PSTR("mdi:timer")),
                 zoneDependentName(fromPstr("Open Window Lockout Remaining"), _index),
                 zoneDependentUniqueId(

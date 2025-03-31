@@ -34,19 +34,19 @@ void setup()
 {
     initializeTempSensor();
 
-    appConfig.firmwareVersion = VersionNumber{ 1, 7, 9 };
+    appConfig.firmwareVersion = VersionNumber{ 1, 7, 10 };
 
 #ifndef TEST_BUILD
     appConfig.logging.syslog.enabled = true;
     appConfig.logging.syslog.hostName = Config::Logging::SyslogHostName;
-    appConfig.logging.syslog.serverHostName = Config::Logging::SyslogServerHost;
+    appConfig.logging.syslog.server = Config::Logging::SyslogServer;
     appConfig.logging.syslog.serverPort = Config::Logging::SyslogServerPort;
 #endif
 
     appConfig.mqtt.enabled = Config::Mqtt::Enabled;
     if (Config::Mqtt::Enabled) {
         appConfig.mqtt.id = Config::Mqtt::Id;
-        appConfig.mqtt.brokerIp = Config::Mqtt::BrokerIp;
+        appConfig.mqtt.broker = Config::Mqtt::Broker;
         appConfig.mqtt.brokerPort = Config::Mqtt::BrokerPort;
         appConfig.mqtt.user = Config::Mqtt::User;
         appConfig.mqtt.password =  Config::Mqtt::Password;
