@@ -79,6 +79,14 @@ public:
 
     void updateDateTime(int dayOfWeek, int hour, int minute);
 
+    /**
+     * @brief Changes the state of master switch.
+     * When it's off, the controller won't call for heat in any circumstances.
+     *
+     * @param on Set to true to switch on
+     */
+    void setMasterSwitchOn(bool on);
+
     void setMode(Mode mode);
     [[nodiscard]] Mode mode() const;
 
@@ -178,6 +186,8 @@ public:
 private:
     const Configuration& _config;
     const Schedule& _schedule;
+
+    bool _masterSwitchOn{ true };
 
     bool _stateChanged{ false };
 

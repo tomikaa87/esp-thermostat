@@ -1496,6 +1496,300 @@ INSTANTIATE_TEST_SUITE_P(
 
 #pragma endregion
 
+#pragma region Tests for turned off Master Switch
+
+class MasterSwitchOffTests
+    : public ::testing::TestWithParam<HeatingZoneController::Mode>
+{
+public:
+    MasterSwitchOffTests()
+        : config{
+            .heatingOvershoot = 5,
+            .heatingUndershoot = 5
+        }
+        , controller{ config, schedule }
+    {
+        controller.setMasterSwitchOn(false);
+        controller.setMode(GetParam());
+    }
+
+    HeatingZoneController::Configuration config;
+    HeatingZoneController::Schedule schedule{{}};
+    HeatingZoneController controller;
+};
+
+TEST_P(MasterSwitchOffTests, TargetTemperatureIsValid)
+{
+    EXPECT_NE(controller.targetTemperature(), std::nullopt);
+}
+
+TEST_P(MasterSwitchOffTests, OverrideTemperatureOvershoot)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_EQ(controller.targetTemperature(), 250);
+    EXPECT_TRUE(controller.targetTemperatureOverrideActive());
+
+    controller.inputTemperature(200);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(250);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(250 + config.heatingOvershoot);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, OverrideTemperatureUndershoot)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_EQ(controller.targetTemperature(), 250);
+    EXPECT_TRUE(controller.targetTemperatureOverrideActive());
+
+    controller.inputTemperature(260);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(250);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.inputTemperature(250 - config.heatingUndershoot);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, OverrideTimesOut)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    const auto originalTargetTemperature = controller.targetTemperature();
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_EQ(controller.targetTemperature(), 250);
+    EXPECT_TRUE(controller.targetTemperatureOverrideActive());
+    EXPECT_EQ(
+        controller.targetTemperatureOverrideRemainingSeconds(),
+        HeatingZoneController::Configuration{}.overrideTimeoutSeconds
+    );
+
+    controller.task(HeatingZoneController::Configuration{}.overrideTimeoutSeconds * 1000);
+    EXPECT_FALSE(controller.targetTemperatureOverrideActive());
+    EXPECT_EQ(controller.targetTemperature(), originalTargetTemperature);
+}
+
+TEST_P(MasterSwitchOffTests, OverrideCanBeReset)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    const auto originalTargetTemperature = controller.targetTemperature();
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_EQ(controller.targetTemperature(), 250);
+    EXPECT_TRUE(controller.targetTemperatureOverrideActive());
+
+    controller.resetTargetTemperature();
+    EXPECT_FALSE(controller.targetTemperatureOverrideActive());
+    EXPECT_EQ(controller.targetTemperature(), originalTargetTemperature);
+}
+
+TEST_P(MasterSwitchOffTests, OverrideControlsHeatingWithoutTemperatureChange)
+{
+    controller.inputTemperature(240);
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.overrideTargetTemperature(250);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.resetTargetTemperature();
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, KeepHeatingOnAfterBoostTimesOut)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(100);
+
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.task(HeatingZoneController::Configuration{}.boostInitialDurationSeconds * 1000);
+    EXPECT_FALSE(controller.boostActive());
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, KeepHeatingOnAfterBoostStoppedManually)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+    controller.inputTemperature(100);
+
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.startOrExtendBoost();
+    EXPECT_TRUE(controller.boostActive());
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.stopBoost();
+    EXPECT_FALSE(controller.boostActive());
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingStartsAboveUndershootThresholdWhenFurnaceIsAlreadyRunning)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+    EXPECT_FALSE(controller.callingForHeating());
+
+    // Assuming undershoot is 5
+    controller.inputTemperature(controller.targetTemperature().value() - 1);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.handleFurnaceHeatingChanged(true);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingDoesntStartWhenTheWindowIsOpen)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingStartsAfterOpenWindowLockoutDisengagedAndTemperatureIsLow)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    constexpr auto LockoutDurationSeconds = 120 * 1000;
+    config.openWindowLockoutDurationSeconds = LockoutDurationSeconds;
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_FALSE(controller.openWindowLockoutActive());
+    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), 0);
+
+    controller.setWindowOpened(false);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), LockoutDurationSeconds * 1000);
+
+    controller.task(LockoutDurationSeconds * 1000);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingDoesntStartAfterOpenWindowLockoutDisengagedAndTemperatureIsHigh)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    constexpr auto LockoutDurationSeconds = 120 * 1000;
+    config.openWindowLockoutDurationSeconds = LockoutDurationSeconds;
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_FALSE(controller.openWindowLockoutActive());
+    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), 0);
+
+    controller.setWindowOpened(false);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_EQ(controller.openWindowLockoutRemainingMs(), LockoutDurationSeconds * 1000);
+
+    controller.inputTemperature(240);
+    controller.task(10 * 60 * 1000);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingStopsAfterOpeningWindowAndTemperatureIsLow)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.setWindowOpened(false);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(true);
+    controller.inputTemperature(100);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingDoesntStartDuringBoostWhenTheWindowIsOpen)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+
+    controller.startOrExtendBoost();
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(true);
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(false);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingStartsAfterClosingWindowDuringBoost)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+
+    controller.setWindowOpened(true);
+    controller.startOrExtendBoost();
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(false);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+TEST_P(MasterSwitchOffTests, HeatingStopsAfterOpeningWindowDuringBoost)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    controller.inputTemperature(controller.targetTemperature().value());
+
+    controller.setWindowOpened(false);
+    controller.startOrExtendBoost();
+    EXPECT_FALSE(controller.callingForHeating());
+
+    controller.setWindowOpened(true);
+    EXPECT_FALSE(controller.callingForHeating());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    HeatingZoneController,
+    MasterSwitchOffTests,
+    ::testing::Values(
+        HeatingZoneController::Mode::Auto,
+        HeatingZoneController::Mode::Holiday
+    )
+);
+
+#pragma endregion
+
 #pragma region Test for all existing modes
 
 class AllModesTest

@@ -24,10 +24,6 @@ public:
 
     void task(uint32_t systemClockDeltaMs);
 
-    [[nodiscard]] bool callingForHeating();
-
-    void handleFurnaceHeatingChanged(bool heating);
-
     [[nodiscard]] HeatingZoneController& controller()
     {
         return _controller;

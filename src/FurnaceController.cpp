@@ -129,8 +129,6 @@ void FurnaceController::task(const uint32_t deltaMillis)
         updateMqtt();
     }
 
-    bool callingForHeating{ false };
-
     _clockUpdateTimer += deltaMillis;
     if (_clockUpdateTimer >= 1000) {
         _clockUpdateTimer = 0;
@@ -143,13 +141,14 @@ void FurnaceController::task(const uint32_t deltaMillis)
         }
     }
 
+    bool callingForHeating{ false };
+
     for (auto& zone : _zones) {
+        zone.controller().setMasterSwitchOn(_settings.system.masterEnable);
         zone.task(deltaMillis);
 
-        if (_settings.system.masterEnable) {
-            if (zone.callingForHeating()) {
-                callingForHeating = true;
-            }
+        if (zone.controller().callingForHeating()) {
+            callingForHeating = true;
         }
     }
 
@@ -157,7 +156,7 @@ void FurnaceController::task(const uint32_t deltaMillis)
 
     if (_settings.system.energyOptimizerEnabled) {
         for (auto& zone : _zones) {
-            zone.handleFurnaceHeatingChanged(callingForHeating);
+            zone.controller().handleFurnaceHeatingChanged(callingForHeating);
         }
     }
 
@@ -313,7 +312,7 @@ void FurnaceController::updateUiModel()
             if (zone.controller().boostActive()) {
                 return Status::Boost;
             }
-            if (zone.callingForHeating()) {
+            if (zone.controller().callingForHeating()) {
                 return Status::Heating;
             }
             switch (zone.controller().mode()) {

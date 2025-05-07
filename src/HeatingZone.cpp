@@ -171,16 +171,6 @@ void HeatingZone::task(const uint32_t systemClockDeltaMs)
     }
 }
 
-bool HeatingZone::callingForHeating()
-{
-    return _controller.callingForHeating();
-}
-
-void HeatingZone::handleFurnaceHeatingChanged(const bool heating)
-{
-    _controller.handleFurnaceHeatingChanged(heating);
-}
-
 void HeatingZone::setupMqttComponentConfigs()
 {
     using namespace Extras;

@@ -37,6 +37,11 @@ void HeatingZoneController::updateDateTime(
     _scheduleDataMask = 1 << (7 - (intervalIndex & 0b111));
 }
 
+void HeatingZoneController::setMasterSwitchOn(const bool on)
+{
+    _masterSwitchOn = on;
+}
+
 void HeatingZoneController::setMode(const Mode mode)
 {
     _mode = mode;
@@ -170,6 +175,10 @@ bool HeatingZoneController::windowOpened() const
 
 bool HeatingZoneController::callingForHeating()
 {
+    if (!_masterSwitchOn) {
+        return false;
+    }
+
     if (_windowOpen) {
         return false;
     }
