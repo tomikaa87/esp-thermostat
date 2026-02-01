@@ -122,6 +122,9 @@ void HeatingZoneController::overrideTargetTemperature(const DeciDegrees value)
 
     _overrideRemainingMs = _config.overrideTimeoutSeconds * 1000;
     _overrideTemperature = value;
+
+    // Clear the start delay since the user requested heating explicitly
+    _heatingStartDelayRemainingMs = 0;
 }
 
 void HeatingZoneController::resetTargetTemperature()
@@ -239,8 +242,8 @@ bool HeatingZoneController::callingForHeating()
         if (_lastInputTemperature <= target) {
             _callForHeatingByTemperature = true;
 
-            // Start the delay timer
-            if (_config.heatingStartDelaySeconds > 0) {
+            // Start the delay timer, but only when override is inactive
+            if (_config.heatingStartDelaySeconds > 0 && _overrideRemainingMs == 0) {
                 _heatingStartDelayRemainingMs = _config.heatingStartDelaySeconds * 1000;
                 return false;
             }

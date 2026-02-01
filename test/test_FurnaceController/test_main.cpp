@@ -2,6 +2,7 @@
 
 #include <HeatingZoneController.h>
 
+#include <algorithm>
 #include <optional>
 
 #pragma region Utilities
@@ -1463,6 +1464,51 @@ TEST_P(ActiveModeTest, HeatingStartsAfterSetDelay)
     controller.task(config.heatingStartDelaySeconds * 1000 - 1);
     EXPECT_FALSE(controller.callingForHeating());
     EXPECT_TRUE(controller.startDelayActive());
+
+    controller.task(1);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+}
+
+TEST_P(ActiveModeTest, HeatingOverrideStartsRegardlessDelay)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    config.heatingStartDelaySeconds = 600;
+
+    controller.inputTemperature(170);
+    controller.overrideTargetTemperature(240);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+
+    controller.task(config.heatingStartDelaySeconds * 1000 - 1);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+
+    controller.task(1);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
+}
+
+TEST_P(ActiveModeTest, HeatingOverrideClearsDelay)
+{
+    controller.setHighTargetTemperature(230);
+    controller.setLowTargetTemperature(210);
+
+    config.heatingStartDelaySeconds = 600;
+
+    controller.inputTemperature(170);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_TRUE(controller.startDelayActive());
+
+    controller.task(config.heatingStartDelaySeconds / 2 * 1000 - 1);
+    EXPECT_FALSE(controller.callingForHeating());
+    EXPECT_TRUE(controller.startDelayActive());
+
+    controller.overrideTargetTemperature(240);
+    EXPECT_TRUE(controller.callingForHeating());
+    EXPECT_FALSE(controller.startDelayActive());
 
     controller.task(1);
     EXPECT_TRUE(controller.callingForHeating());
